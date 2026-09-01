@@ -13,8 +13,9 @@ Sigue actores, actrices o directores y lleva registro de qué películas de su f
 
 ## Funcionalidades
 
-- Buscar actores/actrices/directores
+- Buscar actores/actrices/directores, con búsquedas recientes guardadas en el navegador (localStorage)
 - Ver filmografía ordenada cronológicamente, con detalle de cada película en modal
+- Panel "Personal Info" en el perfil (nacimiento, lugar, alias) y galería de fotos de TMDB al hacer click en el avatar
 - Seguir personas → aparecen en "My Filmographies" con progreso
 - Marcar películas como vistas/pendientes, con filtros
 - **Watchlist**: agregar cualquier película desde una filmografía a tu radar, con referencia a la persona desde la que la agregaste (`/watchlist`)
@@ -45,14 +46,15 @@ Copia `.env.example` a `.env` y completa:
 src/
 ├── components/
 │   ├── auth/          # LoginButton, UserMenu
-│   ├── people/         # PersonSearch, PersonHeader, FollowButton
-│   ├── filmography/    # Filmography, MovieItem, WatchlistPage, Dashboard
+│   ├── people/         # PersonSearch, PersonHeader, PersonInfo, PersonPhotoGallery, FollowButton
+│   ├── filmography/    # Filmography, MovieItem, MovieDetailsDialog, WatchlistPage, Dashboard
 │   └── ui/              # shadcn/ui
 ├── lib/
 │   ├── firebase/        # client, auth, firestore
-│   └── tmdb/             # client, people, movies (server-only)
+│   ├── tmdb/             # client, people, movies (server-only)
+│   └── recentSearches.ts # localStorage helper (client-only)
 ├── pages/
-│   ├── api/              # proxy endpoints a TMDB
+│   ├── api/              # proxy endpoints a TMDB (search-person, person/[id], person/[id]/images, movie/[id])
 │   ├── person/[id].astro
 │   ├── search.astro
 │   ├── filmographies.astro
@@ -60,4 +62,4 @@ src/
 └── types/
 ```
 
-Modelo de datos en Firestore y reglas de seguridad: ver [firestore.rules](firestore.rules).
+Modelo de datos en Firestore y reglas de seguridad: ver [firestore.rules](firestore.rules) y [design.md](design.md).

@@ -1,3 +1,7 @@
+## Proyecto
+
+Filmo — tracker de filmografías (Astro + React + Firebase + TMDB). Ver [README.md](README.md) (overview) y [design.md](design.md) (arquitectura, modelo de datos, gotchas de deploy) antes de trabajar en features nuevas.
+
 ## Development
 
 When starting the dev server, use background mode:
@@ -7,6 +11,24 @@ astro dev --background
 ```
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+
+## Verificación
+
+Antes de dar por terminado un cambio:
+
+```sh
+pnpm astro check   # typecheck
+pnpm build          # build completo (Vercel usa output: "server")
+```
+
+## Convenciones del repo
+
+- TMDB solo se consulta server-side (`src/lib/tmdb/`, `src/pages/api/`) — nunca exponer `TMDB_API_KEY` a componentes React.
+- Componentes React solo para lo interactivo; páginas/routing/SSR en `.astro`.
+- shadcn: agregar solo el componente que se necesita (`pnpm dlx shadcn@latest add <component>`), no instalar el catálogo completo.
+- Botones tipo link usan `render={<a href="..." />}` (API de base-ui), no `asChild` con `<button><a>` anidado.
+- Cambios a `firestore.rules` no se despliegan solos — avisar al usuario que debe publicarlos en Firebase Console o `firebase deploy --only firestore:rules`.
+- Cambios a dependencias: revisar `pnpm-workspace.yaml` (`minimumReleaseAge`, `allowBuilds`) si el build de Vercel falla en `pnpm install` — ver design.md.
 
 ## Documentation
 
