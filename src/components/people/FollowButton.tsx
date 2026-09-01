@@ -14,7 +14,12 @@ interface FollowButtonProps {
   readonly knownForDepartment: string | null;
 }
 
-export function FollowButton({ personId, name, profilePath, knownForDepartment }: FollowButtonProps) {
+export function FollowButton({
+  personId,
+  name,
+  profilePath,
+  knownForDepartment,
+}: FollowButtonProps) {
   const { user, loading: authLoading } = useAuth();
   const [following, setFollowing] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -40,7 +45,12 @@ export function FollowButton({ personId, name, profilePath, knownForDepartment }
       await unfollowPerson(user.uid, personId);
       setFollowing(false);
     } else {
-      await followPerson(user.uid, { tmdbId: personId, name, profilePath, knownForDepartment });
+      await followPerson(user.uid, {
+        tmdbId: personId,
+        name,
+        profilePath,
+        knownForDepartment,
+      });
       setFollowing(true);
     }
   }
@@ -49,11 +59,16 @@ export function FollowButton({ personId, name, profilePath, knownForDepartment }
 
   return (
     <div className="space-y-1">
-      <Button variant={following ? "secondary" : "default"} onClick={() => void toggleFollow()}>
+      <Button
+        variant={following ? "secondary" : "default"}
+        onClick={() => void toggleFollow()}
+      >
         {following ? "✓ Following" : "+ Follow"}
       </Button>
       {showSignInHint && (
-        <p className="text-sm text-muted-foreground">Sign in to follow filmographies.</p>
+        <p className="text-sm text-muted-foreground">
+          Sign in to follow filmographies.
+        </p>
       )}
     </div>
   );

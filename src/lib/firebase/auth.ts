@@ -20,7 +20,9 @@ export async function signOutUser(): Promise<void> {
   await signOut(auth);
 }
 
-export function subscribeToAuthState(callback: (user: User | null) => void): () => void {
+export function subscribeToAuthState(
+  callback: (user: User | null) => void,
+): () => void {
   if (!auth) {
     callback(null);
     return () => {};

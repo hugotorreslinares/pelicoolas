@@ -37,9 +37,13 @@ export function PersonSearch({
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search-person?q=${encodeURIComponent(trimmed)}`);
+        const res = await fetch(
+          `/api/search-person?q=${encodeURIComponent(trimmed)}`,
+        );
         if (!res.ok) throw new Error("request failed");
-        const data = (await res.json()) as { results: readonly PersonSearchResult[] };
+        const data = (await res.json()) as {
+          results: readonly PersonSearchResult[];
+        };
         setResults(data.results);
         setError(null);
       } catch {
@@ -77,20 +81,28 @@ export function PersonSearch({
       {!loading && error && <p className="text-sm text-destructive">{error}</p>}
 
       {!loading && !error && query.trim() && results.length === 0 && (
-        <p className="text-sm text-muted-foreground">No people found. Try another name.</p>
+        <p className="text-sm text-muted-foreground">
+          No people found. Try another name.
+        </p>
       )}
 
       {!loading && results.length > 0 && (
         <div className="space-y-2">
           {results.map((person) => (
-            <PersonCard key={person.id} person={person} onClick={() => selectPerson(person)} />
+            <PersonCard
+              key={person.id}
+              person={person}
+              onClick={() => selectPerson(person)}
+            />
           ))}
         </div>
       )}
 
       {showRecent && (
         <div className="text-left">
-          <p className="mb-2 text-sm font-medium text-muted-foreground">Recent searches</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">
+            Recent searches
+          </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {recent.map((person) => (
               <PersonCard

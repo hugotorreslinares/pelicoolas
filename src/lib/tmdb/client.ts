@@ -2,7 +2,10 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 export class TmdbError extends Error {}
 
-export async function tmdbFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
+export async function tmdbFetch<T>(
+  path: string,
+  params?: Record<string, string>,
+): Promise<T> {
   const apiKey = import.meta.env.TMDB_API_KEY;
   if (!apiKey) {
     throw new TmdbError("TMDB_API_KEY is not configured");

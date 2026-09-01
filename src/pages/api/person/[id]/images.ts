@@ -7,7 +7,9 @@ export const prerender = false;
 export const GET: APIRoute = async ({ params }) => {
   const personId = Number(params.id);
   if (!Number.isInteger(personId)) {
-    return new Response(JSON.stringify({ error: "Invalid person id" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "Invalid person id" }), {
+      status: 400,
+    });
   }
 
   try {
@@ -18,7 +20,9 @@ export const GET: APIRoute = async ({ params }) => {
     });
   } catch (error) {
     if (error instanceof TmdbError) {
-      return new Response(JSON.stringify({ error: "TMDB unavailable" }), { status: 502 });
+      return new Response(JSON.stringify({ error: "TMDB unavailable" }), {
+        status: 502,
+      });
     }
     throw error;
   }

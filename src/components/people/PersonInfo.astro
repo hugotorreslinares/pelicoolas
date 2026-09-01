@@ -16,17 +16,27 @@ function formatDate(iso: string): string {
   });
 }
 
-function ageAt(birthday: string, until: string = new Date().toISOString()): number {
+function ageAt(
+  birthday: string,
+  until: string = new Date().toISOString(),
+): number {
   const birth = new Date(birthday);
   const end = new Date(until);
   let age = end.getFullYear() - birth.getFullYear();
   const monthDiff = end.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && end.getDate() < birth.getDate())) age--;
+  if (monthDiff < 0 || (monthDiff === 0 && end.getDate() < birth.getDate()))
+    age--;
   return age;
 }
 
 const genderLabel =
-  profile.gender === "female" ? "Female" : profile.gender === "male" ? "Male" : profile.gender === "non-binary" ? "Non-binary" : null;
+  profile.gender === "female"
+    ? "Female"
+    : profile.gender === "male"
+      ? "Male"
+      : profile.gender === "non-binary"
+        ? "Non-binary"
+        : null;
 
 const birthdayLine = profile.birthday
   ? profile.deathday
@@ -44,82 +54,114 @@ const birthdayLine = profile.birthday
       </span>
     </summary>
     <div class="mt-4">
-      {profile.knownForDepartment && (
-        <div class="mb-4">
-          <p class="text-sm font-medium">Known For</p>
-          <p class="text-sm text-muted-foreground">{profile.knownForDepartment}</p>
-        </div>
-      )}
+      {
+        profile.knownForDepartment && (
+          <div class="mb-4">
+            <p class="text-sm font-medium">Known For</p>
+            <p class="text-sm text-muted-foreground">
+              {profile.knownForDepartment}
+            </p>
+          </div>
+        )
+      }
       <div class="mb-4">
         <p class="text-sm font-medium">Known Credits</p>
         <p class="text-sm text-muted-foreground">{movieCount}</p>
       </div>
-      {genderLabel && (
-        <div class="mb-4">
-          <p class="text-sm font-medium">Gender</p>
-          <p class="text-sm text-muted-foreground">{genderLabel}</p>
-        </div>
-      )}
-      {birthdayLine && (
-        <div class="mb-4">
-          <p class="text-sm font-medium">{profile.deathday ? "Birthday — Deathday" : "Birthday"}</p>
-          <p class="text-sm text-muted-foreground">{birthdayLine}</p>
-        </div>
-      )}
-      {profile.placeOfBirth && (
-        <div class="mb-4">
-          <p class="text-sm font-medium">Place of Birth</p>
-          <p class="text-sm text-muted-foreground">{profile.placeOfBirth}</p>
-        </div>
-      )}
-      {profile.alsoKnownAs.length > 0 && (
-        <div>
-          <p class="text-sm font-medium">Also Known As</p>
-          <ul class="text-sm text-muted-foreground">
-            {profile.alsoKnownAs.map((name) => <li>{name}</li>)}
-          </ul>
-        </div>
-      )}
+      {
+        genderLabel && (
+          <div class="mb-4">
+            <p class="text-sm font-medium">Gender</p>
+            <p class="text-sm text-muted-foreground">{genderLabel}</p>
+          </div>
+        )
+      }
+      {
+        birthdayLine && (
+          <div class="mb-4">
+            <p class="text-sm font-medium">
+              {profile.deathday ? "Birthday — Deathday" : "Birthday"}
+            </p>
+            <p class="text-sm text-muted-foreground">{birthdayLine}</p>
+          </div>
+        )
+      }
+      {
+        profile.placeOfBirth && (
+          <div class="mb-4">
+            <p class="text-sm font-medium">Place of Birth</p>
+            <p class="text-sm text-muted-foreground">{profile.placeOfBirth}</p>
+          </div>
+        )
+      }
+      {
+        profile.alsoKnownAs.length > 0 && (
+          <div>
+            <p class="text-sm font-medium">Also Known As</p>
+            <ul class="text-sm text-muted-foreground">
+              {profile.alsoKnownAs.map((name) => (
+                <li>{name}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
     </div>
   </details>
 
   <div class="hidden space-y-4 sm:block">
     <h2 class="font-semibold">Personal Info</h2>
-    {profile.knownForDepartment && (
-      <div>
-        <p class="text-sm font-medium">Known For</p>
-        <p class="text-sm text-muted-foreground">{profile.knownForDepartment}</p>
-      </div>
-    )}
+    {
+      profile.knownForDepartment && (
+        <div>
+          <p class="text-sm font-medium">Known For</p>
+          <p class="text-sm text-muted-foreground">
+            {profile.knownForDepartment}
+          </p>
+        </div>
+      )
+    }
     <div>
       <p class="text-sm font-medium">Known Credits</p>
       <p class="text-sm text-muted-foreground">{movieCount}</p>
     </div>
-    {genderLabel && (
-      <div>
-        <p class="text-sm font-medium">Gender</p>
-        <p class="text-sm text-muted-foreground">{genderLabel}</p>
-      </div>
-    )}
-    {birthdayLine && (
-      <div>
-        <p class="text-sm font-medium">{profile.deathday ? "Birthday — Deathday" : "Birthday"}</p>
-        <p class="text-sm text-muted-foreground">{birthdayLine}</p>
-      </div>
-    )}
-    {profile.placeOfBirth && (
-      <div>
-        <p class="text-sm font-medium">Place of Birth</p>
-        <p class="text-sm text-muted-foreground">{profile.placeOfBirth}</p>
-      </div>
-    )}
-    {profile.alsoKnownAs.length > 0 && (
-      <div>
-        <p class="text-sm font-medium">Also Known As</p>
-        <ul class="text-sm text-muted-foreground">
-          {profile.alsoKnownAs.map((name) => <li>{name}</li>)}
-        </ul>
-      </div>
-    )}
+    {
+      genderLabel && (
+        <div>
+          <p class="text-sm font-medium">Gender</p>
+          <p class="text-sm text-muted-foreground">{genderLabel}</p>
+        </div>
+      )
+    }
+    {
+      birthdayLine && (
+        <div>
+          <p class="text-sm font-medium">
+            {profile.deathday ? "Birthday — Deathday" : "Birthday"}
+          </p>
+          <p class="text-sm text-muted-foreground">{birthdayLine}</p>
+        </div>
+      )
+    }
+    {
+      profile.placeOfBirth && (
+        <div>
+          <p class="text-sm font-medium">Place of Birth</p>
+          <p class="text-sm text-muted-foreground">{profile.placeOfBirth}</p>
+        </div>
+      )
+    }
+    {
+      profile.alsoKnownAs.length > 0 && (
+        <div>
+          <p class="text-sm font-medium">Also Known As</p>
+          <ul class="text-sm text-muted-foreground">
+            {profile.alsoKnownAs.map((name) => (
+              <li>{name}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
   </div>
 </aside>

@@ -37,7 +37,9 @@ export function PersonPhotoGallery({
         return r.json();
       })
       .then((data: { images: readonly string[] }) => setImages(data.images))
-      .catch(() => setError("We couldn't load these photos. Please try again."));
+      .catch(() =>
+        setError("We couldn't load these photos. Please try again."),
+      );
   }, [open, personId]);
 
   return (
@@ -72,7 +74,9 @@ export function PersonPhotoGallery({
         )}
 
         {!error && images !== null && images.length === 0 && (
-          <p className="py-6 text-center text-muted-foreground">No photos available.</p>
+          <p className="py-6 text-center text-muted-foreground">
+            No photos available.
+          </p>
         )}
 
         {!error && images !== null && images.length > 0 && (

@@ -5,8 +5,12 @@ interface FilmographyProgressProps {
   readonly totalCount: number;
 }
 
-export function FilmographyProgress({ watchedCount, totalCount }: FilmographyProgressProps) {
-  const percent = totalCount === 0 ? 0 : Math.round((watchedCount / totalCount) * 100);
+export function FilmographyProgress({
+  watchedCount,
+  totalCount,
+}: FilmographyProgressProps) {
+  const percent =
+    totalCount === 0 ? 0 : Math.round((watchedCount / totalCount) * 100);
   const remaining = totalCount - watchedCount;
 
   return (
@@ -15,7 +19,9 @@ export function FilmographyProgress({ watchedCount, totalCount }: FilmographyPro
         {watchedCount} / {totalCount} movies
       </p>
       <Progress value={percent} />
-      <p className="text-sm text-muted-foreground">{remaining} movies pending</p>
+      <p className="text-sm text-muted-foreground">
+        {remaining} movies pending
+      </p>
     </div>
   );
 }

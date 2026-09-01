@@ -28,11 +28,15 @@ export function FollowedPersonCard({ person }: FollowedPersonCardProps) {
   useEffect(() => {
     fetch(`/api/person/${person.tmdbId}`)
       .then((r) => r.json())
-      .then((data: { movies: readonly unknown[] }) => setTotalCount(data.movies.length))
+      .then((data: { movies: readonly unknown[] }) =>
+        setTotalCount(data.movies.length),
+      )
       .catch(() => setTotalCount(0));
   }, [person.tmdbId]);
 
-  const percent = totalCount ? Math.round((watchedCount / totalCount) * 100) : 0;
+  const percent = totalCount
+    ? Math.round((watchedCount / totalCount) * 100)
+    : 0;
 
   return (
     <a href={`/person/${person.tmdbId}`}>
@@ -40,7 +44,11 @@ export function FollowedPersonCard({ person }: FollowedPersonCardProps) {
         <CardHeader className="flex-row items-center gap-2">
           <Avatar>
             <AvatarImage
-              src={person.profilePath ? `${TMDB_IMAGE_BASE}${person.profilePath}` : undefined}
+              src={
+                person.profilePath
+                  ? `${TMDB_IMAGE_BASE}${person.profilePath}`
+                  : undefined
+              }
               alt={person.name}
             />
             <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
@@ -54,7 +62,8 @@ export function FollowedPersonCard({ person }: FollowedPersonCardProps) {
             <>
               <Progress value={percent} />
               <p className="text-sm text-muted-foreground">
-                {watchedCount} / {totalCount} · {totalCount - watchedCount} remaining
+                {watchedCount} / {totalCount} · {totalCount - watchedCount}{" "}
+                remaining
               </p>
             </>
           )}

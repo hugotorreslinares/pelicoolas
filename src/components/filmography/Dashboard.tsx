@@ -39,7 +39,9 @@ export function Dashboard() {
   if (!people || people.length === 0) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">You aren't following anyone yet.</h1>
+        <h1 className="text-xl font-semibold">
+          You aren't following anyone yet.
+        </h1>
         <p className="text-muted-foreground">
           Find an actor or director whose movies you want to explore.
         </p>
@@ -51,7 +53,9 @@ export function Dashboard() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">My Filmographies</h1>
-      <p className="text-sm text-muted-foreground">{people.length} people you're following</p>
+      <p className="text-sm text-muted-foreground">
+        {people.length} people you're following
+      </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {people.map((person) => (
           <FollowedPersonCard key={person.tmdbId} person={person} />

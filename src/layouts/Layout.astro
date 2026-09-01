@@ -1,12 +1,20 @@
 ---
 import "../styles/global.css";
 import { UserMenu } from "@/components/auth/UserMenu";
+import Analytics from "@vercel/analytics/astro";
+import SpeedInsights from "@vercel/speed-insights/astro";
 
 interface Props {
   title?: string;
+  showDeployInfo?: boolean;
 }
 
-const { title = "Filmo" } = Astro.props;
+const { title = "Filmo", showDeployInfo = false } = Astro.props;
+
+const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 ---
 
 <!doctype html>
@@ -15,14 +23,20 @@ const { title = "Filmo" } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <Analytics />
+    <SpeedInsights />
   </head>
   <body class="min-h-screen bg-background text-foreground">
     <header class="border-b">
-      <div class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-y-2 p-4">
+      <div
+        class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-y-2 p-4"
+      >
         <a href="/" class="text-lg font-bold tracking-tight">FILMO</a>
         <nav class="flex flex-wrap items-center gap-3 sm:gap-4">
           <a href="/search" class="text-sm hover:underline">Search</a>
-          <a href="/filmographies" class="text-sm hover:underline">My Filmographies</a>
+          <a href="/filmographies" class="text-sm hover:underline"
+            >My Filmographies</a
+          >
           <a href="/watchlist" class="text-sm hover:underline">Watchlist</a>
           <UserMenu client:load />
         </nav>
@@ -31,8 +45,13 @@ const { title = "Filmo" } = Astro.props;
     <main class="mx-auto max-w-4xl p-4">
       <slot />
     </main>
-    <footer class="mx-auto max-w-4xl p-4 text-xs text-muted-foreground">
-      This product uses the TMDB API but is not endorsed or certified by TMDB.
+    <footer
+      class="mx-auto max-w-4xl space-y-1 p-4 text-xs text-muted-foreground"
+    >
+      <p>
+        This product uses the TMDB API but is not endorsed or certified by TMDB.
+      </p>
+      {showDeployInfo && <p class="opacity-50">Deployed {deployedAt}</p>}
     </footer>
   </body>
 </html>

@@ -12,7 +12,11 @@ interface PersonHeaderProps {
   readonly movieCount: number;
 }
 
-export function PersonHeader({ profile, department, movieCount }: PersonHeaderProps) {
+export function PersonHeader({
+  profile,
+  department,
+  movieCount,
+}: PersonHeaderProps) {
   const [galleryOpen, setGalleryOpen] = useState(false);
 
   return (
@@ -25,7 +29,11 @@ export function PersonHeader({ profile, department, movieCount }: PersonHeaderPr
       >
         <Avatar className="h-24 w-24">
           <AvatarImage
-            src={profile.profilePath ? `${TMDB_IMAGE_BASE}${profile.profilePath}` : undefined}
+            src={
+              profile.profilePath
+                ? `${TMDB_IMAGE_BASE}${profile.profilePath}`
+                : undefined
+            }
             alt={profile.name}
           />
           <AvatarFallback>{profile.name.slice(0, 1)}</AvatarFallback>

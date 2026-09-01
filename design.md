@@ -4,7 +4,7 @@ Referencia técnica del estado actual de Filmo. Para la visión de producto y al
 
 ## Filosofía de producto
 
-Filmo responde una sola pregunta: *¿he visto todas las películas de esta persona?* No compite con Letterboxd (ratings/reviews/social) — el núcleo es el checklist de una filmografía.
+Filmo responde una sola pregunta: _¿he visto todas las películas de esta persona?_ No compite con Letterboxd (ratings/reviews/social) — el núcleo es el checklist de una filmografía.
 
 ## Astro vs React
 
@@ -14,14 +14,14 @@ Filmo responde una sola pregunta: *¿he visto todas las películas de esta perso
 
 ## Rutas
 
-| Ruta | Descripción |
-| :--- | :--- |
-| `/` | Home — dashboard si hay sesión, CTA de búsqueda si no |
-| `/search` | Buscar persona (TMDB), búsquedas recientes (localStorage) |
-| `/person/[id]` | Perfil: foto (→ galería modal), Personal Info, filmografía |
-| `/filmographies` | "My Filmographies" — personas seguidas + progreso |
-| `/watchlist` | Películas guardadas, con referencia a la persona origen |
-| `/api/search-person`, `/api/person/[id]`, `/api/person/[id]/images`, `/api/movie/[id]` | Proxy server-side a TMDB |
+| Ruta                                                                                   | Descripción                                                |
+| :------------------------------------------------------------------------------------- | :--------------------------------------------------------- |
+| `/`                                                                                    | Home — dashboard si hay sesión, CTA de búsqueda si no      |
+| `/search`                                                                              | Buscar persona (TMDB), búsquedas recientes (localStorage)  |
+| `/person/[id]`                                                                         | Perfil: foto (→ galería modal), Personal Info, filmografía |
+| `/filmographies`                                                                       | "My Filmographies" — personas seguidas + progreso          |
+| `/watchlist`                                                                           | Películas guardadas, con referencia a la persona origen    |
+| `/api/search-person`, `/api/person/[id]`, `/api/person/[id]/images`, `/api/movie/[id]` | Proxy server-side a TMDB                                   |
 
 ## Modelo de datos (Firestore)
 
@@ -63,3 +63,20 @@ El build de Vercel usa pnpm con dos políticas que rompen `pnpm install` si no e
 - `allowBuilds` — debe listar explícitamente cada paquete con postinstall script (`esbuild`, `sharp`, `@firebase/util`, `protobufjs`), si no el install falla duro (no es solo warning como en local).
 
 Variables de entorno en Vercel (Production + Preview + Development): `TMDB_API_KEY` (Secret), `PUBLIC_FIREBASE_*` (Config — son públicas por diseño, Vercel exige `--type config` explícito para no confundirlas con secretos).
+
+## Calidad de código
+
+- **ESLint** (flat config, `eslint.config.mjs`) + **Prettier** (`.prettierrc.json`, con `prettier-plugin-astro`). Comandos: `pnpm lint`, `pnpm lint:fix`, `pnpm format`, `pnpm format:check`.
+- **`eslint-plugin-react-hooks` v7** trae por defecto las reglas experimentales del React Compiler (`set-state-in-effect`, `immutability`, `purity`, ...), que marcan como error el patrón idiomático de sincronizar estado con un listener externo (`useEffect` + `onSnapshot` de Firestore, o `fetch` on mount). Se decidió usar solo las reglas clásicas y estables: `rules-of-hooks` (error) y `exhaustive-deps` (warn). Ver comentario en `eslint.config.mjs`.
+- `jsx-a11y/anchor-has-content` está desactivada: el patrón `<Button render={<a href="..." />}>texto</Button>` de base-ui inyecta el contenido en tiempo de ejecución, invisible para el análisis estático — falso positivo garantizado en cada uso.
+- `no-undef` desactivado en archivos TS/Astro: `astro check` (TypeScript) ya detecta identificadores no definidos con más precisión, y `no-undef` da falsos positivos con globals ambient (`declare const __BUILD_TIME__`) y tipos de TS.
+- **Husky + lint-staged**: pre-commit corre `eslint --fix` + `prettier --write` solo sobre archivos staged (rápido). El typecheck completo (`astro check`) queda para CI, no para el hook — es más lento y no vale la pena en cada commit local.
+- **GitHub Actions** (`.github/workflows/ci.yml`): en cada push/PR a `main` corre `format:check` → `lint` → `astro check` → `build`. No necesita secrets: con `output: "server"` ninguna página se prerenderiza en build (todas tienen `prerender = false`), así que no hay fetch a TMDB ni init de Firebase durante `pnpm build`.
+
+## Fecha de build
+
+El footer de `/` muestra "Deployed {fecha}" de forma discreta. Se captura en build time vía `vite.define` en `astro.config.mjs` (`__BUILD_TIME__`, declarado en `src/env.d.ts`), no con `new Date()` en el componente — como el output es `server` (SSR por request), un `new Date()` ahí mostraría la hora de cada visita, no la del deploy.
+
+## Analytics
+
+`@vercel/analytics/astro` y `@vercel/speed-insights/astro` montados en `Layout.astro`. Requiere activarlos también en el dashboard de Vercel (Analytics y Speed Insights) para que empiecen a recolectar datos.

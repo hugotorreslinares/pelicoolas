@@ -1,5 +1,9 @@
 import { tmdbFetch } from "./client";
-import type { PersonGender, PersonProfile, PersonSearchResult } from "@/types/person";
+import type {
+  PersonGender,
+  PersonProfile,
+  PersonSearchResult,
+} from "@/types/person";
 
 interface TmdbSearchPersonResponse {
   readonly results: readonly {
@@ -30,7 +34,9 @@ function toGender(gender: number): PersonGender {
   return null;
 }
 
-export async function searchPerson(query: string): Promise<readonly PersonSearchResult[]> {
+export async function searchPerson(
+  query: string,
+): Promise<readonly PersonSearchResult[]> {
   const data = await tmdbFetch<TmdbSearchPersonResponse>("/search/person", {
     query,
     include_adult: "false",
@@ -44,8 +50,12 @@ export async function searchPerson(query: string): Promise<readonly PersonSearch
   }));
 }
 
-export async function getPersonProfile(personId: number): Promise<PersonProfile> {
-  const data = await tmdbFetch<TmdbPersonDetailsResponse>(`/person/${personId}`);
+export async function getPersonProfile(
+  personId: number,
+): Promise<PersonProfile> {
+  const data = await tmdbFetch<TmdbPersonDetailsResponse>(
+    `/person/${personId}`,
+  );
 
   return {
     id: data.id,
@@ -65,7 +75,11 @@ interface TmdbPersonImagesResponse {
   readonly profiles: readonly { readonly file_path: string }[];
 }
 
-export async function getPersonImages(personId: number): Promise<readonly string[]> {
-  const data = await tmdbFetch<TmdbPersonImagesResponse>(`/person/${personId}/images`);
+export async function getPersonImages(
+  personId: number,
+): Promise<readonly string[]> {
+  const data = await tmdbFetch<TmdbPersonImagesResponse>(
+    `/person/${personId}/images`,
+  );
   return data.profiles.map((p) => p.file_path);
 }

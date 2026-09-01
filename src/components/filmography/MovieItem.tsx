@@ -26,7 +26,10 @@ export function MovieItem({
 
   return (
     <div className="flex items-center gap-3 rounded-lg border p-2">
-      <Checkbox checked={watched} onCheckedChange={(v) => onToggle(v === true)} />
+      <Checkbox
+        checked={watched}
+        onCheckedChange={(v) => onToggle(v === true)}
+      />
       <button
         type="button"
         onClick={() => setDetailsOpen(true)}

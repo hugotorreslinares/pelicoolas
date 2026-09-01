@@ -12,7 +12,10 @@ const FILTERS: readonly { value: FilmographyFilter; label: string }[] = [
   { value: "watched", label: "Watched" },
 ];
 
-export function FilmographyFilters({ value, onChange }: FilmographyFiltersProps) {
+export function FilmographyFilters({
+  value,
+  onChange,
+}: FilmographyFiltersProps) {
   return (
     <div className="flex gap-2">
       {FILTERS.map((f) => (

@@ -9,11 +9,19 @@ interface PersonCardProps {
   readonly variant?: "row" | "grid";
 }
 
-export function PersonCard({ person, onClick, variant = "row" }: PersonCardProps) {
+export function PersonCard({
+  person,
+  onClick,
+  variant = "row",
+}: PersonCardProps) {
   const avatar = (
     <Avatar className={variant === "grid" ? "h-16 w-16" : undefined}>
       <AvatarImage
-        src={person.profilePath ? `${TMDB_IMAGE_BASE}${person.profilePath}` : undefined}
+        src={
+          person.profilePath
+            ? `${TMDB_IMAGE_BASE}${person.profilePath}`
+            : undefined
+        }
         alt={person.name}
         loading="lazy"
       />
@@ -31,7 +39,9 @@ export function PersonCard({ person, onClick, variant = "row" }: PersonCardProps
         <div>
           <p className="font-medium">{person.name}</p>
           {person.knownForDepartment && (
-            <p className="text-sm text-muted-foreground">{person.knownForDepartment}</p>
+            <p className="text-sm text-muted-foreground">
+              {person.knownForDepartment}
+            </p>
           )}
         </div>
       </button>
@@ -47,7 +57,9 @@ export function PersonCard({ person, onClick, variant = "row" }: PersonCardProps
       <div>
         <p className="font-medium">{person.name}</p>
         {person.knownForDepartment && (
-          <p className="text-sm text-muted-foreground">{person.knownForDepartment}</p>
+          <p className="text-sm text-muted-foreground">
+            {person.knownForDepartment}
+          </p>
         )}
       </div>
     </button>

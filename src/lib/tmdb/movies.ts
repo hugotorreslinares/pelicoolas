@@ -27,7 +27,9 @@ function toReleaseYear(releaseDate: string | undefined): number | null {
   return Number.isFinite(year) && year > 0 ? year : null;
 }
 
-function dedupeByMovieId(movies: readonly FilmographyMovie[]): readonly FilmographyMovie[] {
+function dedupeByMovieId(
+  movies: readonly FilmographyMovie[],
+): readonly FilmographyMovie[] {
   const seen = new Map<number, FilmographyMovie>();
   for (const movie of movies) {
     if (!seen.has(movie.tmdbMovieId)) {
@@ -48,18 +50,18 @@ export async function getFilmography(
   const credits =
     department === "Acting"
       ? data.cast.filter((c) => c.media_type === "movie")
-      : data.crew.filter((c) => c.media_type === "movie" && c.department === "Directing");
+      : data.crew.filter(
+          (c) => c.media_type === "movie" && c.department === "Directing",
+        );
 
-  const movies = credits.map(
-    (c): FilmographyMovie => ({
-      tmdbMovieId: c.id,
-      title: c.title ?? "Untitled",
-      posterPath: c.poster_path,
-      releaseYear: toReleaseYear(c.release_date),
-      character: "character" in c ? (c.character ?? null) : null,
-      voteAverage: c.vote_average ?? null,
-    }),
-  );
+  const movies = credits.map((c): FilmographyMovie => ({
+    tmdbMovieId: c.id,
+    title: c.title ?? "Untitled",
+    posterPath: c.poster_path,
+    releaseYear: toReleaseYear(c.release_date),
+    character: "character" in c ? (c.character ?? null) : null,
+    voteAverage: c.vote_average ?? null,
+  }));
 
   return dedupeByMovieId(movies);
 }
@@ -96,7 +98,9 @@ export function sortFilmography(
   const withoutYear = movies.filter((m) => m.releaseYear === null);
 
   const sorted = [...withYear].sort((a, b) =>
-    order === "newest" ? b.releaseYear! - a.releaseYear! : a.releaseYear! - b.releaseYear!,
+    order === "newest"
+      ? b.releaseYear! - a.releaseYear!
+      : a.releaseYear! - b.releaseYear!,
   );
 
   return [...sorted, ...withoutYear];

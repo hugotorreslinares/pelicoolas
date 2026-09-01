@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookmarkIcon } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { removeFromWatchlist, subscribeToWatchlist } from "@/lib/firebase/firestore";
+import {
+  removeFromWatchlist,
+  subscribeToWatchlist,
+} from "@/lib/firebase/firestore";
 import type { WatchlistMovie } from "@/types/filmography";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
@@ -17,7 +20,9 @@ function sortMovies(
   const withYear = movies.filter((m) => m.releaseYear !== null);
   const withoutYear = movies.filter((m) => m.releaseYear === null);
   const sorted = [...withYear].sort((a, b) =>
-    order === "newest" ? b.releaseYear! - a.releaseYear! : a.releaseYear! - b.releaseYear!,
+    order === "newest"
+      ? b.releaseYear! - a.releaseYear!
+      : a.releaseYear! - b.releaseYear!,
   );
   return [...sorted, ...withoutYear];
 }
@@ -39,7 +44,10 @@ export function WatchlistPage() {
     return (
       <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="mb-3 aspect-[2/3] w-full break-inside-avoid rounded-lg" />
+          <Skeleton
+            key={i}
+            className="mb-3 aspect-[2/3] w-full break-inside-avoid rounded-lg"
+          />
         ))}
       </div>
     );
@@ -49,7 +57,9 @@ export function WatchlistPage() {
     return (
       <div className="space-y-3 text-center">
         <h1 className="text-xl font-semibold">Watchlist</h1>
-        <p className="text-muted-foreground">Sign in to keep movies on your radar.</p>
+        <p className="text-muted-foreground">
+          Sign in to keep movies on your radar.
+        </p>
       </div>
     );
   }
@@ -59,7 +69,8 @@ export function WatchlistPage() {
       <div className="space-y-3 text-center">
         <h1 className="text-xl font-semibold">Your watchlist is empty.</h1>
         <p className="text-muted-foreground">
-          While exploring a filmography, tap the bookmark icon on a movie to add it here.
+          While exploring a filmography, tap the bookmark icon on a movie to add
+          it here.
         </p>
         <Button render={<a href="/search" />}>Search actors & directors</Button>
       </div>
@@ -73,7 +84,9 @@ export function WatchlistPage() {
       <h1 className="text-xl font-semibold">Watchlist</h1>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">{movies.length} movies on your radar</p>
+        <p className="text-sm text-muted-foreground">
+          {movies.length} movies on your radar
+        </p>
         <Button
           size="sm"
           variant="ghost"
@@ -121,7 +134,10 @@ export function WatchlistPage() {
             <p className="mt-1 truncate font-medium">{movie.title}</p>
             <p className="text-sm text-muted-foreground">
               {movie.releaseYear ?? "Unknown"} · via{" "}
-              <a href={`/person/${movie.sourcePersonId}`} className="hover:underline">
+              <a
+                href={`/person/${movie.sourcePersonId}`}
+                className="hover:underline"
+              >
                 {movie.sourcePersonName}
               </a>
             </p>

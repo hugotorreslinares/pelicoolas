@@ -1,21 +1,22 @@
 # TODO — Nivel técnico
 
-No es para escalar a muchos usuarios; es para que el proyecto esté a la altura de una app "grande" en cuanto a calidad, robustez y mantenibilidad. Estado actual: cero tests, cero CI, cero linting, cero observabilidad. Todo lo demás está en buen punto para ser MVP.
+No es para escalar a muchos usuarios; es para que el proyecto esté a la altura de una app "grande" en cuanto a calidad, robustez y mantenibilidad.
 
 ## Calidad de código
 
-- [ ] **ESLint + Prettier** — hoy no hay linting. `@typescript-eslint` + `eslint-plugin-astro` + `eslint-plugin-react-hooks`.
+- [x] **ESLint + Prettier** — flat config, `eslint-plugin-astro` + `eslint-plugin-react-hooks` (solo reglas clásicas) + `eslint-plugin-jsx-a11y`. Ver `design.md`.
+- [x] **Husky + lint-staged** — `eslint --fix` + `prettier --write` en pre-commit, solo sobre staged.
+- [x] **GitHub Actions** (`.github/workflows/ci.yml`): format:check → lint → astro check → build, en cada push/PR a `main`.
 - [ ] **Vitest** para unit tests de lógica pura: `sortFilmography`, `dedupeByMovieId`, `toGender`, `ageAt`, helpers de `recentSearches.ts`. Son funciones puras, fáciles de testear y son justo donde se cuelan bugs sutiles (fechas, orden, dedupe).
 - [ ] **Playwright** E2E para el flujo core: buscar → seguir → marcar vista → ver progreso. Mockear TMDB con fixtures fijos para no depender de la API real ni gastar cuota.
 - [ ] **Firebase Emulator Suite** + tests de `firestore.rules` (`@firebase/rules-unit-testing`) — las reglas de seguridad nunca se han probado automáticamente, solo revisado a ojo.
-- [ ] **Husky + lint-staged** — typecheck/lint en pre-commit.
-- [ ] **GitHub Actions**: `astro check` + build + (futuro) tests en cada PR antes de mergear a `main`.
+- [ ] Agregar el job de CI también a la ejecución de tests una vez existan (Vitest/Playwright).
 
 ## Observabilidad
 
+- [x] **Vercel Analytics + Speed Insights** — montados en `Layout.astro`. Falta activarlos en el dashboard de Vercel para que empiecen a recolectar.
 - [ ] **Sentry** (o similar) para errores de cliente y servidor — hoy un error en producción es invisible salvo que lo veas tú mismo.
 - [ ] **Structured logging** en los endpoints `/api/*` (hoy silencian el error real y devuelven un mensaje genérico).
-- [ ] **Vercel Analytics / Web Vitals** — saber si una página está lenta de verdad, no solo intuirlo.
 
 ## Performance
 
@@ -44,10 +45,9 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [ ] Documentar en `design.md` el porqué de cada decisión no obvia (ya iniciado) — mantenerlo vivo cada vez que se tome una decisión de arquitectura nueva.
 - [ ] Considerar Zod (o similar) para validar las respuestas de TMDB en runtime — hoy se confía ciegamente en el shape de la API externa; si TMDB cambia algo, falla silenciosamente en producción.
 
-## Prioridad sugerida si hay que elegir por dónde empezar
+## Prioridad sugerida si hay que elegir por dónde seguir
 
-1. ESLint/Prettier + `astro check` en CI (barato, previene regresiones ya)
-2. Vitest para la lógica pura (sort/dedupe/age) — bugs reales ya ocurrieron ahí
-3. Sentry — para dejar de ser ciego a errores en producción
-4. Firestore rules tests con el emulador — es tu única capa de seguridad real
-5. Resto, según lo que más te frustre en el día a día
+1. Vitest para la lógica pura (sort/dedupe/age) — bugs reales ya ocurrieron ahí
+2. Sentry — para dejar de ser ciego a errores en producción
+3. Firestore rules tests con el emulador — es tu única capa de seguridad real
+4. Resto, según lo que más te frustre en el día a día

@@ -34,11 +34,11 @@ Copia `.env.example` a `.env` y completa:
 
 ## Comandos
 
-| Comando          | Acción                                   |
-| :---------------- | :---------------------------------------- |
-| `pnpm dev`         | Servidor local en `localhost:4321`        |
-| `pnpm build`       | Build de producción a `./dist/`           |
-| `pnpm astro check` | Typecheck                                  |
+| Comando            | Acción                             |
+| :----------------- | :--------------------------------- |
+| `pnpm dev`         | Servidor local en `localhost:4321` |
+| `pnpm build`       | Build de producción a `./dist/`    |
+| `pnpm astro check` | Typecheck                          |
 
 ## Estructura
 

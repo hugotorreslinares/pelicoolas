@@ -13,3 +13,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** ISO timestamp captured at build time, injected via vite.define in astro.config.mjs. */
+declare const __BUILD_TIME__: string;

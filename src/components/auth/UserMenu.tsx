@@ -21,12 +21,17 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger className="rounded-full">
         <Avatar>
-          <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ""} />
+          <AvatarImage
+            src={user.photoURL ?? undefined}
+            alt={user.displayName ?? ""}
+          />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => void signOutUser()}>Sign out</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void signOutUser()}>
+          Sign out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

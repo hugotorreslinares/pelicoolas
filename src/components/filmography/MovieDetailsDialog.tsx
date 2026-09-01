@@ -20,7 +20,11 @@ interface MovieDetailsDialogProps {
   readonly onOpenChange: (open: boolean) => void;
 }
 
-export function MovieDetailsDialog({ movieId, open, onOpenChange }: MovieDetailsDialogProps) {
+export function MovieDetailsDialog({
+  movieId,
+  open,
+  onOpenChange,
+}: MovieDetailsDialogProps) {
   const [details, setDetails] = useState<MovieDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +43,10 @@ export function MovieDetailsDialog({ movieId, open, onOpenChange }: MovieDetails
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-h-[85vh] overflow-y-auto sm:max-w-md">
+      <DialogContent
+        showCloseButton={false}
+        className="max-h-[85vh] overflow-y-auto sm:max-w-md"
+      >
         <DialogClose
           render={
             <Button
@@ -82,7 +89,9 @@ export function MovieDetailsDialog({ movieId, open, onOpenChange }: MovieDetails
               <p className="text-sm text-muted-foreground">
                 {[
                   details.releaseYear ?? "Unknown",
-                  details.runtimeMinutes ? `${details.runtimeMinutes} min` : null,
+                  details.runtimeMinutes
+                    ? `${details.runtimeMinutes} min`
+                    : null,
                   details.genres.join(", ") || null,
                 ]
                   .filter(Boolean)
