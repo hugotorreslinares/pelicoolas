@@ -26,6 +26,7 @@ export interface WatchlistMovie {
   readonly title: string;
   readonly posterPath: string | null;
   readonly releaseYear: number | null;
+  readonly voteAverage: number | null;
   readonly sourcePersonId: number;
   readonly sourcePersonName: string;
   readonly addedAt: string;

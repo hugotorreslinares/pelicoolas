@@ -9,6 +9,7 @@ interface TmdbCastCredit {
   readonly release_date?: string;
   readonly character?: string;
   readonly media_type: string;
+  readonly vote_average?: number;
 }
 
 interface TmdbCrewCredit extends TmdbCastCredit {
@@ -56,6 +57,7 @@ export async function getFilmography(
       posterPath: c.poster_path,
       releaseYear: toReleaseYear(c.release_date),
       character: "character" in c ? (c.character ?? null) : null,
+      voteAverage: c.vote_average ?? null,
     }),
   );
 

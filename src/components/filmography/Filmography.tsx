@@ -104,6 +104,7 @@ export function Filmography({ personId, personName, movies }: FilmographyProps) 
         title: movie.title,
         posterPath: movie.posterPath,
         releaseYear: movie.releaseYear,
+        voteAverage: movie.voteAverage,
         sourcePersonId: personId,
         sourcePersonName: personName,
       });

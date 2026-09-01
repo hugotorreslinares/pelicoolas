@@ -5,6 +5,7 @@ export interface FilmographyMovie {
   /** null when TMDB has no release date; always sorts last, never guessed */
   readonly releaseYear: number | null;
   readonly character: string | null;
+  readonly voteAverage: number | null;
 }
 
 export interface MovieDetails {
