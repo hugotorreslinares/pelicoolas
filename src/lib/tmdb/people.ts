@@ -1,5 +1,5 @@
 import { tmdbFetch } from "./client";
-import type { PersonProfile, PersonSearchResult } from "@/types/person";
+import type { PersonGender, PersonProfile, PersonSearchResult } from "@/types/person";
 
 interface TmdbSearchPersonResponse {
   readonly results: readonly {
@@ -16,6 +16,18 @@ interface TmdbPersonDetailsResponse {
   readonly profile_path: string | null;
   readonly known_for_department: string | null;
   readonly biography: string | null;
+  readonly gender: number;
+  readonly birthday: string | null;
+  readonly deathday: string | null;
+  readonly place_of_birth: string | null;
+  readonly also_known_as: readonly string[];
+}
+
+function toGender(gender: number): PersonGender {
+  if (gender === 1) return "female";
+  if (gender === 2) return "male";
+  if (gender === 3) return "non-binary";
+  return null;
 }
 
 export async function searchPerson(query: string): Promise<readonly PersonSearchResult[]> {
@@ -41,6 +53,11 @@ export async function getPersonProfile(personId: number): Promise<PersonProfile>
     profilePath: data.profile_path,
     knownForDepartment: data.known_for_department,
     biography: data.biography,
+    gender: toGender(data.gender),
+    birthday: data.birthday,
+    deathday: data.deathday,
+    placeOfBirth: data.place_of_birth,
+    alsoKnownAs: data.also_known_as,
   };
 }
 

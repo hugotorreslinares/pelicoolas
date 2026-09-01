@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PersonCard } from "./PersonCard";
+import { addRecentSearch, getRecentSearches } from "@/lib/recentSearches";
 import type { PersonSearchResult } from "@/types/person";
 
 const DEBOUNCE_MS = 350;
@@ -9,8 +10,13 @@ const DEBOUNCE_MS = 350;
 export function PersonSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly PersonSearchResult[]>([]);
+  const [recent, setRecent] = useState<readonly PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRecent(getRecentSearches());
+  }, []);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -38,6 +44,13 @@ export function PersonSearch() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  function selectPerson(person: PersonSearchResult) {
+    addRecentSearch(person);
+    window.location.href = `/person/${person.id}`;
+  }
+
+  const showRecent = !query.trim() && recent.length > 0;
+
   return (
     <div className="mx-auto w-full max-w-md space-y-4">
       <Input
@@ -62,11 +75,16 @@ export function PersonSearch() {
       {!loading && results.length > 0 && (
         <div className="space-y-2">
           {results.map((person) => (
-            <PersonCard
-              key={person.id}
-              person={person}
-              onClick={() => (window.location.href = `/person/${person.id}`)}
-            />
+            <PersonCard key={person.id} person={person} onClick={() => selectPerson(person)} />
+          ))}
+        </div>
+      )}
+
+      {showRecent && (
+        <div className="space-y-2 text-left">
+          <p className="text-sm font-medium text-muted-foreground">Recent searches</p>
+          {recent.map((person) => (
+            <PersonCard key={person.id} person={person} onClick={() => selectPerson(person)} />
           ))}
         </div>
       )}

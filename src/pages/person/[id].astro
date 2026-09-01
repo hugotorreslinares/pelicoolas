@@ -3,6 +3,7 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { PersonHeader } from "@/components/people/PersonHeader";
+import PersonInfo from "@/components/people/PersonInfo.astro";
 import { Filmography } from "@/components/filmography/Filmography";
 import { getPersonProfile } from "@/lib/tmdb/people";
 import { getFilmography } from "@/lib/tmdb/movies";
@@ -34,9 +35,14 @@ if (!Number.isInteger(personId)) {
   {error && <p class="mt-4 text-destructive">{error}</p>}
 
   {profile && (
-    <div class="mt-4 space-y-8">
-      <PersonHeader profile={profile} department={department} movieCount={movies.length} client:load />
-      <Filmography personId={profile.id} personName={profile.name} movies={movies} client:load />
+    <div class="mt-4 flex flex-col gap-8 sm:flex-row">
+      <div class="space-y-8 sm:w-64 sm:shrink-0">
+        <PersonHeader profile={profile} department={department} movieCount={movies.length} client:load />
+        <PersonInfo profile={profile} movieCount={movies.length} />
+      </div>
+      <div class="flex-1">
+        <Filmography personId={profile.id} personName={profile.name} movies={movies} client:load />
+      </div>
     </div>
   )}
 </Layout>
