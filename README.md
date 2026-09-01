@@ -1,43 +1,63 @@
-# Astro Starter Kit: Minimal
+# Filmo — Filmography Tracker
+
+Sigue actores, actrices o directores y lleva registro de qué películas de su filmografía ya viste. MVP enfocado en una sola tarea: completar la filmografía de la gente que te interesa.
+
+## Stack
+
+- **Astro** — routing, layouts, SSR
+- **React** — islas interactivas (search, filmografía, watchlist)
+- **shadcn/ui + Tailwind** — componentes
+- **Firebase** — Auth (Google) + Firestore
+- **TMDB API** — datos de personas y películas (proxied server-side, la API key nunca se expone al cliente)
+- **Vercel** — hosting
+
+## Funcionalidades
+
+- Buscar actores/actrices/directores
+- Ver filmografía ordenada cronológicamente, con detalle de cada película en modal
+- Seguir personas → aparecen en "My Filmographies" con progreso
+- Marcar películas como vistas/pendientes, con filtros
+- **Watchlist**: agregar cualquier película desde una filmografía a tu radar, con referencia a la persona desde la que la agregaste (`/watchlist`)
+
+## Desarrollo local
 
 ```sh
-pnpm create astro@latest -- --template minimal
+pnpm install
+pnpm dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Copia `.env.example` a `.env` y completa:
 
-## 🚀 Project Structure
+- `TMDB_API_KEY` — TMDB v4 read access token (server-only)
+- `PUBLIC_FIREBASE_*` — config del proyecto Firebase (cliente, público por diseño)
 
-Inside of your Astro project, you'll see the following folders and files:
+## Comandos
+
+| Comando          | Acción                                   |
+| :---------------- | :---------------------------------------- |
+| `pnpm dev`         | Servidor local en `localhost:4321`        |
+| `pnpm build`       | Build de producción a `./dist/`           |
+| `pnpm astro check` | Typecheck                                  |
+
+## Estructura
 
 ```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+src/
+├── components/
+│   ├── auth/          # LoginButton, UserMenu
+│   ├── people/         # PersonSearch, PersonHeader, FollowButton
+│   ├── filmography/    # Filmography, MovieItem, WatchlistPage, Dashboard
+│   └── ui/              # shadcn/ui
+├── lib/
+│   ├── firebase/        # client, auth, firestore
+│   └── tmdb/             # client, people, movies (server-only)
+├── pages/
+│   ├── api/              # proxy endpoints a TMDB
+│   ├── person/[id].astro
+│   ├── search.astro
+│   ├── filmographies.astro
+│   └── watchlist.astro
+└── types/
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Modelo de datos en Firestore y reglas de seguridad: ver [firestore.rules](firestore.rules).

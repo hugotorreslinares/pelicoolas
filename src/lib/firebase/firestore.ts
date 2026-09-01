@@ -8,7 +8,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { db } from "./client";
-import type { FollowedPerson, WatchedMovie } from "@/types/filmography";
+import type { FollowedPerson, WatchedMovie, WatchlistMovie } from "@/types/filmography";
 
 function requireDb() {
   if (!db) throw new Error("Firebase is not configured");
@@ -29,6 +29,10 @@ function watchedMovieRef(userId: string, personId: number, movieId: number) {
     "watchedMovies",
     String(movieId),
   );
+}
+
+function watchlistMovieRef(userId: string, movieId: number) {
+  return doc(requireDb(), "users", userId, "watchlist", String(movieId));
 }
 
 export async function followPerson(
@@ -92,4 +96,32 @@ export function subscribeToWatchedMovies(
       callback(watched);
     },
   );
+}
+
+export async function addToWatchlist(
+  userId: string,
+  movie: Omit<WatchlistMovie, "addedAt">,
+): Promise<void> {
+  await setDoc(watchlistMovieRef(userId, movie.tmdbId), {
+    ...movie,
+    addedAt: serverTimestamp(),
+  });
+}
+
+export async function removeFromWatchlist(userId: string, movieId: number): Promise<void> {
+  await deleteDoc(watchlistMovieRef(userId, movieId));
+}
+
+export async function isInWatchlist(userId: string, movieId: number): Promise<boolean> {
+  const snapshot = await getDoc(watchlistMovieRef(userId, movieId));
+  return snapshot.exists();
+}
+
+export function subscribeToWatchlist(
+  userId: string,
+  callback: (movies: readonly WatchlistMovie[]) => void,
+): () => void {
+  return onSnapshot(collection(requireDb(), "users", userId, "watchlist"), (snapshot) => {
+    callback(snapshot.docs.map((d) => d.data() as WatchlistMovie));
+  });
 }

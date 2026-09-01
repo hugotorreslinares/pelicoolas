@@ -36,7 +36,7 @@ if (!Number.isInteger(personId)) {
   {profile && (
     <div class="mt-4 space-y-8">
       <PersonHeader profile={profile} department={department} movieCount={movies.length} client:load />
-      <Filmography personId={profile.id} movies={movies} client:load />
+      <Filmography personId={profile.id} personName={profile.name} movies={movies} client:load />
     </div>
   )}
 </Layout>

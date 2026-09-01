@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
+import { BookmarkIcon } from "lucide-react";
 import type { FilmographyMovie } from "@/types/movie";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w92";
@@ -9,9 +11,17 @@ interface MovieItemProps {
   readonly movie: FilmographyMovie;
   readonly watched: boolean;
   readonly onToggle: (watched: boolean) => void;
+  readonly inWatchlist: boolean;
+  readonly onToggleWatchlist: () => void;
 }
 
-export function MovieItem({ movie, watched, onToggle }: MovieItemProps) {
+export function MovieItem({
+  movie,
+  watched,
+  onToggle,
+  inWatchlist,
+  onToggleWatchlist,
+}: MovieItemProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
@@ -37,6 +47,19 @@ export function MovieItem({ movie, watched, onToggle }: MovieItemProps) {
           </p>
         </div>
       </button>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleWatchlist();
+        }}
+      >
+        <BookmarkIcon className={inWatchlist ? "fill-current" : ""} />
+      </Button>
 
       <MovieDetailsDialog
         movieId={movie.tmdbMovieId}

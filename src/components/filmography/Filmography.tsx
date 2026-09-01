@@ -5,8 +5,11 @@ import { FilmographyFilters } from "./FilmographyFilters";
 import { FilmographyProgress } from "./FilmographyProgress";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
+  addToWatchlist,
   markMovieWatched,
+  removeFromWatchlist,
   subscribeToWatchedMovies,
+  subscribeToWatchlist,
   unmarkMovieWatched,
 } from "@/lib/firebase/firestore";
 import type { FilmographyMovie } from "@/types/movie";
@@ -14,6 +17,7 @@ import type { FilmographyFilter } from "@/types/filmography";
 
 interface FilmographyProps {
   readonly personId: number;
+  readonly personName: string;
   readonly movies: readonly FilmographyMovie[];
 }
 
@@ -39,9 +43,10 @@ function groupByYear(movies: readonly FilmographyMovie[]): readonly [string, Fil
   return Array.from(groups.entries());
 }
 
-export function Filmography({ personId, movies }: FilmographyProps) {
+export function Filmography({ personId, personName, movies }: FilmographyProps) {
   const { user } = useAuth();
   const [watched, setWatched] = useState<ReadonlySet<number>>(new Set());
+  const [watchlist, setWatchlist] = useState<ReadonlySet<number>>(new Set());
   const [filter, setFilter] = useState<FilmographyFilter>("all");
   const [order, setOrder] = useState<SortOrder>("newest");
   const [showSignInHint, setShowSignInHint] = useState(false);
@@ -53,6 +58,16 @@ export function Filmography({ personId, movies }: FilmographyProps) {
     }
     return subscribeToWatchedMovies(user.uid, personId, setWatched);
   }, [user, personId]);
+
+  useEffect(() => {
+    if (!user) {
+      setWatchlist(new Set());
+      return;
+    }
+    return subscribeToWatchlist(user.uid, (movies) =>
+      setWatchlist(new Set(movies.map((m) => m.tmdbId))),
+    );
+  }, [user]);
 
   const sorted = useMemo(() => sortMovies(movies, order), [movies, order]);
 
@@ -76,6 +91,25 @@ export function Filmography({ personId, movies }: FilmographyProps) {
     }
   }
 
+  async function toggleWatchlist(movie: FilmographyMovie) {
+    if (!user) {
+      setShowSignInHint(true);
+      return;
+    }
+    if (watchlist.has(movie.tmdbMovieId)) {
+      await removeFromWatchlist(user.uid, movie.tmdbMovieId);
+    } else {
+      await addToWatchlist(user.uid, {
+        tmdbId: movie.tmdbMovieId,
+        title: movie.title,
+        posterPath: movie.posterPath,
+        releaseYear: movie.releaseYear,
+        sourcePersonId: personId,
+        sourcePersonName: personName,
+      });
+    }
+  }
+
   return (
     <div className="space-y-4">
       <FilmographyProgress watchedCount={watched.size} totalCount={movies.length} />
@@ -92,7 +126,7 @@ export function Filmography({ personId, movies }: FilmographyProps) {
       </div>
 
       {showSignInHint && (
-        <p className="text-sm text-muted-foreground">Sign in to track watched movies.</p>
+        <p className="text-sm text-muted-foreground">Sign in to track and save movies.</p>
       )}
 
       <div className="space-y-6">
@@ -105,6 +139,8 @@ export function Filmography({ personId, movies }: FilmographyProps) {
                 movie={movie}
                 watched={watched.has(movie.tmdbMovieId)}
                 onToggle={(next) => void toggleWatched(movie.tmdbMovieId, next)}
+                inWatchlist={watchlist.has(movie.tmdbMovieId)}
+                onToggleWatchlist={() => void toggleWatchlist(movie)}
               />
             ))}
           </div>

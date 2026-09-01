@@ -21,4 +21,14 @@ export interface WatchedMovie {
   readonly watchedAt: string;
 }
 
+export interface WatchlistMovie {
+  readonly tmdbId: number;
+  readonly title: string;
+  readonly posterPath: string | null;
+  readonly releaseYear: number | null;
+  readonly sourcePersonId: number;
+  readonly sourcePersonName: string;
+  readonly addedAt: string;
+}
+
 export type FilmographyFilter = "all" | "watched" | "unwatched";

@@ -1,0 +1,10 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { WatchlistPage } from "@/components/filmography/WatchlistPage";
+---
+
+<Layout title="Watchlist — Filmo">
+  <WatchlistPage client:load />
+</Layout>
