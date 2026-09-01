@@ -43,3 +43,12 @@ export async function getPersonProfile(personId: number): Promise<PersonProfile>
     biography: data.biography,
   };
 }
+
+interface TmdbPersonImagesResponse {
+  readonly profiles: readonly { readonly file_path: string }[];
+}
+
+export async function getPersonImages(personId: number): Promise<readonly string[]> {
+  const data = await tmdbFetch<TmdbPersonImagesResponse>(`/person/${personId}/images`);
+  return data.profiles.map((p) => p.file_path);
+}
