@@ -1,0 +1,42 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { PersonHeader } from "@/components/people/PersonHeader";
+import { Filmography } from "@/components/filmography/Filmography";
+import { getPersonProfile } from "@/lib/tmdb/people";
+import { getFilmography } from "@/lib/tmdb/movies";
+import { TmdbError } from "@/lib/tmdb/client";
+import type { CreditDepartment } from "@/types/filmography";
+
+const personId = Number(Astro.params.id);
+let error: string | null = null;
+let profile = null;
+let department: CreditDepartment = "Acting";
+let movies: Awaited<ReturnType<typeof getFilmography>> = [];
+
+if (!Number.isInteger(personId)) {
+  error = "No people found. Try another name.";
+} else {
+  try {
+    profile = await getPersonProfile(personId);
+    department = profile.knownForDepartment === "Directing" ? "Directing" : "Acting";
+    movies = await getFilmography(personId, department);
+  } catch (e) {
+    error = e instanceof TmdbError ? "We couldn't load this filmography. Please try again." : "No people found. Try another name.";
+  }
+}
+---
+
+<Layout title={profile ? `${profile.name} — Filmo` : "Filmo"}>
+  <a href="/search" class="text-sm text-muted-foreground hover:underline">← Back</a>
+
+  {error && <p class="mt-4 text-destructive">{error}</p>}
+
+  {profile && (
+    <div class="mt-4 space-y-8">
+      <PersonHeader profile={profile} department={department} movieCount={movies.length} client:load />
+      <Filmography personId={profile.id} movies={movies} client:load />
+    </div>
+  )}
+</Layout>
