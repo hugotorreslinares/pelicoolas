@@ -7,7 +7,11 @@ import type { PersonSearchResult } from "@/types/person";
 
 const DEBOUNCE_MS = 350;
 
-export function PersonSearch() {
+interface PersonSearchProps {
+  readonly className?: string;
+}
+
+export function PersonSearch({ className = "mx-auto w-full max-w-md space-y-4" }: PersonSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly PersonSearchResult[]>([]);
   const [recent, setRecent] = useState<readonly PersonSearchResult[]>([]);
@@ -52,7 +56,7 @@ export function PersonSearch() {
   const showRecent = !query.trim() && recent.length > 0;
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-4">
+    <div className={className}>
       <Input
         placeholder="Search actor or director..."
         value={query}

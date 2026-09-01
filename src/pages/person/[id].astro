@@ -3,6 +3,7 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { PersonHeader } from "@/components/people/PersonHeader";
+import { PersonSearch } from "@/components/people/PersonSearch";
 import PersonInfo from "@/components/people/PersonInfo.astro";
 import { Filmography } from "@/components/filmography/Filmography";
 import { getPersonProfile } from "@/lib/tmdb/people";
@@ -30,7 +31,7 @@ if (!Number.isInteger(personId)) {
 ---
 
 <Layout title={profile ? `${profile.name} — Filmo` : "Filmo"}>
-  <a href="/search" class="text-sm text-muted-foreground hover:underline">← Back</a>
+  <PersonSearch className="max-w-sm space-y-4" client:load />
 
   {error && <p class="mt-4 text-destructive">{error}</p>}
 
