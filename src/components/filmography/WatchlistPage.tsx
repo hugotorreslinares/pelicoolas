@@ -8,9 +8,24 @@ import type { WatchlistMovie } from "@/types/filmography";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
 
+type SortOrder = "newest" | "oldest";
+
+function sortMovies(
+  movies: readonly WatchlistMovie[],
+  order: SortOrder,
+): readonly WatchlistMovie[] {
+  const withYear = movies.filter((m) => m.releaseYear !== null);
+  const withoutYear = movies.filter((m) => m.releaseYear === null);
+  const sorted = [...withYear].sort((a, b) =>
+    order === "newest" ? b.releaseYear! - a.releaseYear! : a.releaseYear! - b.releaseYear!,
+  );
+  return [...sorted, ...withoutYear];
+}
+
 export function WatchlistPage() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly WatchlistMovie[] | null>(null);
+  const [order, setOrder] = useState<SortOrder>("newest");
 
   useEffect(() => {
     if (!user) {
@@ -51,13 +66,25 @@ export function WatchlistPage() {
     );
   }
 
+  const sorted = sortMovies(movies, order);
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Watchlist</h1>
-      <p className="text-sm text-muted-foreground">{movies.length} movies on your radar</p>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">{movies.length} movies on your radar</p>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setOrder(order === "newest" ? "oldest" : "newest")}
+        >
+          {order === "newest" ? "Most recent" : "Oldest"}
+        </Button>
+      </div>
 
       <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-        {movies.map((movie) => (
+        {sorted.map((movie) => (
           <div key={movie.tmdbId} className="mb-3 break-inside-avoid">
             <div className="group relative overflow-hidden rounded-lg border">
               {movie.posterPath ? (
