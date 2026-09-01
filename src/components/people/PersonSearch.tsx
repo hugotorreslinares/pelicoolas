@@ -9,9 +9,13 @@ const DEBOUNCE_MS = 350;
 
 interface PersonSearchProps {
   readonly className?: string;
+  readonly showRecent?: boolean;
 }
 
-export function PersonSearch({ className = "mx-auto w-full max-w-md space-y-4" }: PersonSearchProps) {
+export function PersonSearch({
+  className = "mx-auto w-full max-w-xl space-y-4",
+  showRecent: showRecentProp = true,
+}: PersonSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly PersonSearchResult[]>([]);
   const [recent, setRecent] = useState<readonly PersonSearchResult[]>([]);
@@ -53,7 +57,7 @@ export function PersonSearch({ className = "mx-auto w-full max-w-md space-y-4" }
     window.location.href = `/person/${person.id}`;
   }
 
-  const showRecent = !query.trim() && recent.length > 0;
+  const showRecent = showRecentProp && !query.trim() && recent.length > 0;
 
   return (
     <div className={className}>
@@ -85,11 +89,18 @@ export function PersonSearch({ className = "mx-auto w-full max-w-md space-y-4" }
       )}
 
       {showRecent && (
-        <div className="space-y-2 text-left">
-          <p className="text-sm font-medium text-muted-foreground">Recent searches</p>
-          {recent.map((person) => (
-            <PersonCard key={person.id} person={person} onClick={() => selectPerson(person)} />
-          ))}
+        <div className="text-left">
+          <p className="mb-2 text-sm font-medium text-muted-foreground">Recent searches</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {recent.map((person) => (
+              <PersonCard
+                key={person.id}
+                person={person}
+                variant="grid"
+                onClick={() => selectPerson(person)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

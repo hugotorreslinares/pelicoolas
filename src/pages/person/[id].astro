@@ -31,7 +31,7 @@ if (!Number.isInteger(personId)) {
 ---
 
 <Layout title={profile ? `${profile.name} — Filmo` : "Filmo"}>
-  <PersonSearch className="max-w-sm space-y-4" client:load />
+  <PersonSearch className="max-w-sm space-y-4" showRecent={false} client:load />
 
   {error && <p class="mt-4 text-destructive">{error}</p>}
 
