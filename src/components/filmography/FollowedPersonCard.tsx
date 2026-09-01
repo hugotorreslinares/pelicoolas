@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToWatchedMovies } from "@/lib/firebase/firestore";
 import type { FollowedPerson } from "@/types/filmography";
+
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w185";
 
 interface FollowedPersonCardProps {
   readonly person: FollowedPerson;
@@ -34,7 +37,14 @@ export function FollowedPersonCard({ person }: FollowedPersonCardProps) {
   return (
     <a href={`/person/${person.tmdbId}`}>
       <Card className="transition-colors hover:bg-accent">
-        <CardHeader>
+        <CardHeader className="flex-row items-center gap-2">
+          <Avatar>
+            <AvatarImage
+              src={person.profilePath ? `${TMDB_IMAGE_BASE}${person.profilePath}` : undefined}
+              alt={person.name}
+            />
+            <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+          </Avatar>
           <CardTitle>{person.name}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
