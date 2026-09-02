@@ -25,6 +25,7 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [x] `Cache-Control` en los endpoints `/api/*` (compartido en el CDN de Vercel entre usuarios, no solo por navegador).
 - [x] Lighthouse CI — corre semanal/manual contra producción (`.github/workflows/lighthouse.yml`), en modo informativo (warn, no bloquea).
 - [ ] `client:idle`/`client:visible` en más islas si algún día se siente lento — por ahora solo `UserMenu` lo necesitaba; el resto es contenido primario de cada página (diferirlo perjudicaría la interacción real, no la ayudaría).
+- [ ] **Investigar el score real de Lighthouse** (primera corrida: performance 0.61, LCP 0.41 — bajo). Sospecha sin confirmar: cold-start de la función serverless en el plan free de Vercel (si no hay tráfico, "duerme"), más CSS de Tailwind bloqueando el render inicial. No se investigó a fondo esta sesión.
 
 ## Seguridad
 
