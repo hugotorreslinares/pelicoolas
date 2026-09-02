@@ -5,8 +5,9 @@ import type { FollowedPerson } from "@/types/filmography";
 
 const MAX_ORBITERS = 8;
 const TILT = -0.45; // radians — gives the classic tilted-ellipse "solar system" look
-const BASE_RADIUS = 46;
-const RADIUS_STEP = 34;
+const FACE_RADIUS = 24;
+const BASE_RADIUS = 70;
+const RADIUS_STEP = 60; // wide enough that neighboring faces (2x FACE_RADIUS) don't overlap
 
 interface OrbitSceneProps {
   readonly people: readonly FollowedPerson[];
@@ -17,6 +18,7 @@ interface Orbiter {
   readonly radius: number;
   readonly angle: number;
   readonly speed: number;
+  readonly personId: number;
 }
 
 export function OrbitScene({ people }: OrbitSceneProps) {
@@ -34,7 +36,7 @@ export function OrbitScene({ people }: OrbitSceneProps) {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    camera.position.set(0, 0, 340);
+    camera.position.set(0, 0, 520);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -63,7 +65,7 @@ export function OrbitScene({ people }: OrbitSceneProps) {
 
       const faceMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc });
       const face = new THREE.Mesh(
-        new THREE.CircleGeometry(12, 32),
+        new THREE.CircleGeometry(FACE_RADIUS, 32),
         faceMaterial,
       );
       group.add(face);
@@ -81,8 +83,36 @@ export function OrbitScene({ people }: OrbitSceneProps) {
         angle: (i * Math.PI * 2) / orbiterPeople.length,
         // Farther orbits move slower — a nod to Kepler, not literal physics.
         speed: 0.5 / Math.sqrt(radius),
+        personId: person.tmdbId,
       };
     });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const faceMeshes = orbiters.map((o) => o.mesh);
+
+    function orbiterAt(event: MouseEvent): Orbiter | undefined {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObjects(faceMeshes)[0];
+      return hit ? orbiters.find((o) => o.mesh === hit.object) : undefined;
+    }
+
+    function handleClick(event: MouseEvent) {
+      const orbiter = orbiterAt(event);
+      if (orbiter) window.location.href = `/person/${orbiter.personId}`;
+    }
+
+    function handlePointerMove(event: MouseEvent) {
+      renderer.domElement.style.cursor = orbiterAt(event)
+        ? "pointer"
+        : "default";
+    }
+
+    renderer.domElement.addEventListener("click", handleClick);
+    renderer.domElement.addEventListener("pointermove", handlePointerMove);
 
     function resize() {
       if (!container) return;
@@ -113,6 +143,8 @@ export function OrbitScene({ people }: OrbitSceneProps) {
     return () => {
       cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      renderer.domElement.removeEventListener("click", handleClick);
+      renderer.domElement.removeEventListener("pointermove", handlePointerMove);
       renderer.dispose();
       scene.traverse((obj) => {
         if (!(obj instanceof THREE.Mesh)) return;
