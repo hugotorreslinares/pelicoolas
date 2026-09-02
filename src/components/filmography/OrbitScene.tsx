@@ -5,9 +5,9 @@ import type { FollowedPerson } from "@/types/filmography";
 
 const MAX_ORBITERS = 8;
 const TILT = -0.45; // radians — gives the classic tilted-ellipse "solar system" look
-const FACE_RADIUS = 24;
-const BASE_RADIUS = 70;
-const RADIUS_STEP = 60; // wide enough that neighboring faces (2x FACE_RADIUS) don't overlap
+const FACE_RADIUS = 40;
+const BASE_RADIUS = 95;
+const RADIUS_STEP = 90; // wide enough that neighboring faces (2x FACE_RADIUS) don't overlap
 
 interface OrbitSceneProps {
   readonly people: readonly FollowedPerson[];
@@ -35,8 +35,8 @@ export function OrbitScene({ people }: OrbitSceneProps) {
     const lineColor = isDark ? 0x444444 : 0xdddddd;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    camera.position.set(0, 0, 520);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 1000);
+    camera.position.set(0, 0, 420);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -160,5 +160,5 @@ export function OrbitScene({ people }: OrbitSceneProps) {
 
   if (orbiterPeople.length === 0) return null;
 
-  return <div ref={containerRef} className="h-64 w-full sm:h-80" />;
+  return <div ref={containerRef} className="h-80 w-full sm:h-96" />;
 }
