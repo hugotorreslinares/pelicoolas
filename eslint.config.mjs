@@ -62,5 +62,13 @@ export default tseslint.config(
       "@typescript-eslint/triple-slash-reference": "off",
     },
   },
+  {
+    // Hand-written service worker (public/, served as-is — not bundled by
+    // Vite) runs in the ServiceWorkerGlobalScope, not the browser/node globals.
+    files: ["public/sw.js"],
+    languageOptions: {
+      globals: globals.serviceworker,
+    },
+  },
   eslintConfigPrettier,
 );

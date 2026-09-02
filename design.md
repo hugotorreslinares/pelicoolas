@@ -96,3 +96,15 @@ El footer de `/` muestra "Deployed {fecha}" de forma discreta. Se captura en bui
 - **Rate limiting** (`src/lib/rateLimit.ts`): limitador en memoria por IP, 30 req/min por endpoint, aplicado a los 4 proxies de TMDB (`/api/search-person`, `/api/person/[id]`, `/api/person/[id]/images`, `/api/movie/[id]`). No persiste entre cold starts ni se comparte entre regiones — no es un límite estricto, es un freno barato a un bug o scraper que agote la cuota de TMDB. Funciona porque Fluid Compute de Vercel reutiliza instancias entre requests (el `Map` en memoria sobrevive invocaciones calientes).
 - **Dependabot** (`.github/dependabot.yml`): PRs semanales para dependencias npm (agrupadas si son solo devDependencies) y GitHub Actions.
 - **Firebase App Check**: pendiente — requiere que el usuario registre una site key de reCAPTCHA v3 y active "Enforce" en la consola de Firebase; no es algo que se pueda completar solo desde el código. Ver TODO.md.
+
+## PWA
+
+- **Service worker escrito a mano** (`public/sw.js`), sin Workbox. Se intentó `@vite-pwa/astro` primero — su `virtual:pwa-register` no resuelve en el build SSR de este stack (Astro 7 / Vite 8, más nuevo que lo que el paquete declara soportar en su `peerDependencies`, tope `astro@^5`): Rolldown falla intentando resolver `workbox-window` (API de browser) dentro del bundle de servidor. Se removió la dependencia y se implementó manual — menos "mágico", pero sin riesgo de incompatibilidad de versión.
+- **`public/manifest.webmanifest`**: estático, enlazado desde `Layout.astro`. Íconos generados una sola vez desde `public/pwa-source-icon.svg` (un bookmark blanco sobre fondo negro — no existía logo de marca, se usó el mismo motivo que ya es central en la UI) vía `pnpm dlx @vite-pwa/assets-generator` (herramienta de un solo uso, no quedó como dependencia del proyecto).
+- **Registro**: `<script is:inline>` en `Layout.astro` — `is:inline` es necesario para que Astro deje el script intacto y no intente procesarlo/empaquetarlo (ahí fue donde falló el enfoque con `virtual:pwa-register`).
+- **Estrategia de cacheo** (`public/sw.js`):
+  - Navegación (HTML de página) → network-first, cae a caché si no hay red. Así una página que ya visitaste queda disponible offline.
+  - `image.tmdb.org` → cache-first (los posters no cambian una vez publicados).
+  - `/api/*` (proxy a TMDB) → network-first con fallback a caché — datos frescos con red, últimos vistos sin ella.
+  - Resto del mismo origen (JS/CSS/íconos) → cache-first.
+  - No persiste vistos-por-usuario (eso lo maneja Firestore, no el service worker) — esto es solo "lo que ya cargaste en el navegador queda disponible sin red".
