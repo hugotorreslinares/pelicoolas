@@ -1,13 +1,16 @@
 import type { APIRoute } from "astro";
 import { getPersonImages } from "@/lib/tmdb/people";
 import { TmdbError } from "@/lib/tmdb/client";
-import { jsonResponse, errorResponse } from "@/lib/api";
+import { jsonResponse, errorResponse, rateLimitResponse } from "@/lib/api";
 
 export const prerender = false;
 
 const CACHE_SECONDS = 60 * 60 * 24; // 1d — a person's photo gallery on TMDB barely changes
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, request }) => {
+  const limited = rateLimitResponse(request, "person-images", 30, 60_000);
+  if (limited) return limited;
+
   const personId = Number(params.id);
   if (!Number.isInteger(personId)) {
     return errorResponse("Invalid person id", 400);

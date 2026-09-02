@@ -29,10 +29,10 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 
 ## Seguridad
 
-- [ ] **Firebase App Check** — hoy cualquiera con la `PUBLIC_FIREBASE_API_KEY` (pública por diseño, pero aun así) podría golpear Firestore directo si no hay reglas perfectas. App Check añade una capa de "esto viene de mi app real".
-- [ ] **Rate limiting** en `/api/search-person`, `/api/person/[id]`, `/api/movie/[id]` — sin límite, alguien (o un bug en el front) podría agotar la cuota de TMDB fácilmente.
-- [ ] Cabeceras de seguridad (CSP, `X-Frame-Options`, etc.) vía `vercel.json` o middleware.
-- [ ] Auditoría de dependencias automática (`pnpm audit` en CI, o Dependabot/Renovate).
+- [x] **Rate limiting** en los 4 endpoints `/api/*` — 30 req/min por IP, en memoria (`src/lib/rateLimit.ts`). Ver `design.md`.
+- [x] Cabeceras de seguridad (CSP, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) vía `src/middleware.ts`. Verificado localmente: sin violaciones de CSP, búsqueda e imágenes funcionan. **Falta verificar que el login con Google siga funcionando en producción tras este cambio** (no se pudo probar en automático — requiere tu cuenta real).
+- [x] Auditoría de dependencias automática — `.github/dependabot.yml` (npm semanal + GitHub Actions).
+- [ ] **Firebase App Check** — hoy cualquiera con la `PUBLIC_FIREBASE_API_KEY` (pública por diseño, pero aun así) podría golpear Firestore directo si no hay reglas perfectas. App Check añade una capa de "esto viene de mi app real". Requiere que registres una site key de reCAPTCHA v3 y actives "Enforce" en la consola de Firebase — no se puede completar solo desde el código.
 
 ## Producto (sin agregar features sociales)
 
