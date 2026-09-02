@@ -108,3 +108,10 @@ El footer de `/` muestra "Deployed {fecha}" de forma discreta. Se captura en bui
   - `/api/*` (proxy a TMDB) → network-first con fallback a caché — datos frescos con red, últimos vistos sin ella.
   - Resto del mismo origen (JS/CSS/íconos) → cache-first.
   - No persiste vistos-por-usuario (eso lo maneja Firestore, no el service worker) — esto es solo "lo que ya cargaste en el navegador queda disponible sin red".
+- **Gotcha de desarrollo**: el `cache-first` de assets del mismo origen puede servir JS viejo en `localhost` si el service worker de una sesión anterior sigue registrado mientras cambia el código — en dev, Vite no usa nombres de archivo con hash de contenido como en producción, así que un chunk cacheado puede quedar desincronizado con el HTML nuevo (síntoma: "Invalid hook call" / instancias de React duplicadas, nada que ver con el código real). Si algo se ve raro en dev después de tocar el service worker, primero: DevTools → Application → Service Workers → Unregister, y borrar Cache Storage. En producción no aplica — los bundles sí llevan hash de contenido.
+
+## Dark mode
+
+- Tema por clase (`.dark` en `<html>`), no solo `prefers-color-scheme` — los tokens de shadcn ya venían listos para esto (`:root` / `.dark` en `global.css`), solo faltaban el toggle y la persistencia.
+- **Anti-flash**: script `is:inline` bloqueante, primera línea del `<head>` (antes que cualquier CSS) — lee `localStorage.theme`, si no hay nada usa `prefers-color-scheme` del sistema, y aplica la clase antes del primer paint. Sin esto habría un parpadeo del tema equivocado en cada carga.
+- `ThemeToggle.tsx`: el ícono (sol/luna) se decide por CSS (`dark:hidden` / `hidden dark:block`), no por estado de React — así no hay parpadeo del ícono incorrecto mientras el componente hidrata, ya que la clase `.dark` ya quedó bien puesta por el script bloqueante antes de que React entre en juego.

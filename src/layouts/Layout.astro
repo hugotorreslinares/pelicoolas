@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { UserMenu } from "@/components/auth/UserMenu";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 
@@ -22,6 +23,21 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script is:inline>
+      // Blocking, runs before first paint — avoids a flash of the wrong theme.
+      (function () {
+        try {
+          const stored = localStorage.getItem("theme");
+          const dark = stored
+            ? stored === "dark"
+            : matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.classList.toggle("dark", dark);
+        } catch {
+          // localStorage/matchMedia unavailable (privacy mode, old browser) — default light theme stands.
+        }
+      })();
+    </script>
     <title>{title}</title>
 
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -57,6 +73,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
             >My Filmographies</a
           >
           <a href="/watchlist" class="text-sm hover:underline">Watchlist</a>
+          <ThemeToggle client:idle />
           <UserMenu client:idle />
         </nav>
       </div>

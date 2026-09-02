@@ -36,7 +36,7 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 
 ## Producto (sin agregar features sociales)
 
-- [ ] **Dark mode** — shadcn ya trae soporte de theming, falta el toggle y persistencia (localStorage).
+- [x] **Dark mode** — toggle (`ThemeToggle.tsx`) + persistencia en localStorage + script anti-flash. Ver `design.md`.
 - [x] **PWA** instalable con caché offline de lo ya visto — `public/sw.js` (manual, sin Workbox — `@vite-pwa/astro` no compila en este stack, ver `design.md`) + `public/manifest.webmanifest`. Ícono generado desde cero (bookmark blanco/negro, no había logo).
 - [ ] **Exportar/backup de datos** — botón "descarga tu progreso en JSON" desde Firestore. Es tu data, deberías poder sacarla sin depender de que el proyecto siga vivo.
 - [ ] Accesibilidad: auditoría con `axe-core`, foco visible en todos los interactivos, `aria-live` en cambios de estado (marcar visto, follow, watchlist).
