@@ -46,6 +46,10 @@ export function WatchlistPage() {
   if (authLoading || (user && movies === null)) {
     return (
       <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+        {/* Visually-hidden but always present — the loading state is what
+            axe-core (or any crawler) sees before Firebase's async auth
+            check resolves, and a page needs a heading in every state. */}
+        <h1 className="sr-only">Watchlist</h1>
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton
             key={i}
