@@ -28,11 +28,12 @@ export function MovieItem({
       <Checkbox
         checked={watched}
         onCheckedChange={(v) => onToggle(v === true)}
+        aria-label={`Mark ${movie.title} as ${watched ? "unwatched" : "watched"}`}
       />
       <button
         type="button"
         onClick={() => setDetailsOpen(true)}
-        className="flex flex-1 items-center gap-3 text-left"
+        className="focus-ring flex flex-1 items-center gap-3 text-left"
       >
         {movie.posterPath && (
           <img

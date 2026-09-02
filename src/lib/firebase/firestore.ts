@@ -3,6 +3,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -141,6 +142,86 @@ export async function isInWatchlist(
 ): Promise<boolean> {
   const snapshot = await getDoc(watchlistMovieRef(userId, movieId));
   return snapshot.exists();
+}
+
+function toIso(value: unknown): string | null {
+  if (value && typeof value === "object" && "toDate" in value) {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+  return null;
+}
+
+export interface ExportedUserData {
+  readonly exportedAt: string;
+  readonly followedPeople: readonly {
+    readonly tmdbId: number;
+    readonly name: string;
+    readonly knownForDepartment: string | null;
+    readonly followedAt: string | null;
+    readonly watchedMovies: readonly {
+      readonly tmdbId: number;
+      readonly watchedAt: string | null;
+    }[];
+  }[];
+  readonly watchlist: readonly {
+    readonly tmdbId: number;
+    readonly title: string;
+    readonly releaseYear: number | null;
+    readonly sourcePersonName: string;
+    readonly addedAt: string | null;
+  }[];
+}
+
+/** One-shot full export of everything this account has stored — your data, portable out of the app. */
+export async function exportUserData(
+  userId: string,
+): Promise<ExportedUserData> {
+  const db = requireDb();
+
+  const followedSnapshot = await getDocs(
+    collection(db, "users", userId, "followedPeople"),
+  );
+  const followedPeople = await Promise.all(
+    followedSnapshot.docs.map(async (personDoc) => {
+      const person = personDoc.data() as FollowedPerson;
+      const watchedSnapshot = await getDocs(
+        collection(
+          db,
+          "users",
+          userId,
+          "followedPeople",
+          personDoc.id,
+          "watchedMovies",
+        ),
+      );
+      return {
+        tmdbId: person.tmdbId,
+        name: person.name,
+        knownForDepartment: person.knownForDepartment,
+        followedAt: toIso(person.createdAt),
+        watchedMovies: watchedSnapshot.docs.map((d) => {
+          const movie = d.data() as WatchedMovie;
+          return { tmdbId: movie.tmdbId, watchedAt: toIso(movie.watchedAt) };
+        }),
+      };
+    }),
+  );
+
+  const watchlistSnapshot = await getDocs(
+    collection(db, "users", userId, "watchlist"),
+  );
+  const watchlist = watchlistSnapshot.docs.map((d) => {
+    const movie = d.data() as WatchlistMovie;
+    return {
+      tmdbId: movie.tmdbId,
+      title: movie.title,
+      releaseYear: movie.releaseYear,
+      sourcePersonName: movie.sourcePersonName,
+      addedAt: toIso(movie.addedAt),
+    };
+  });
+
+  return { exportedAt: new Date().toISOString(), followedPeople, watchlist };
 }
 
 export function subscribeToWatchlist(

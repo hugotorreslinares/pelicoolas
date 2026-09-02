@@ -38,8 +38,8 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 
 - [x] **Dark mode** — toggle (`ThemeToggle.tsx`) + persistencia en localStorage + script anti-flash. Ver `design.md`.
 - [x] **PWA** instalable con caché offline de lo ya visto — `public/sw.js` (manual, sin Workbox — `@vite-pwa/astro` no compila en este stack, ver `design.md`) + `public/manifest.webmanifest`. Ícono generado desde cero (bookmark blanco/negro, no había logo).
-- [ ] **Exportar/backup de datos** — botón "descarga tu progreso en JSON" desde Firestore. Es tu data, deberías poder sacarla sin depender de que el proyecto siga vivo.
-- [ ] Accesibilidad: auditoría con `axe-core`, foco visible en todos los interactivos, `aria-live` en cambios de estado (marcar visto, follow, watchlist).
+- [x] **Exportar/backup de datos** — "Export data" en el menú de usuario, descarga un JSON con personas seguidas, películas vistas y watchlist (`exportUserData` en `firestore.ts`).
+- [x] Accesibilidad — foco visible (`.focus-ring` en `global.css`) en todos los interactivos que no pasan por el `Button` de shadcn (nav, cards, checkbox de película, link "via" del watchlist); `aria-live` (`src/lib/a11y.ts` + `#a11y-announcer`) en marcar visto, follow/unfollow, watchlist; auditoría `axe-core` semanal/manual contra producción (`.github/workflows/accessibility.yml`, informativo).
 
 ## Arquitectura / DX
 

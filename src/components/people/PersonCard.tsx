@@ -40,7 +40,7 @@ export function PersonCard({
     return (
       <button
         onClick={onClick}
-        className="flex w-full flex-col items-center gap-2 rounded-lg border p-3 text-center hover:bg-accent"
+        className="focus-ring flex w-full flex-col items-center gap-2 rounded-lg border p-3 text-center hover:bg-accent"
       >
         {avatar}
         <div>
@@ -58,7 +58,7 @@ export function PersonCard({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg border p-3 text-left hover:bg-accent"
+      className="focus-ring flex w-full items-center gap-3 rounded-lg border p-3 text-left hover:bg-accent"
     >
       {avatar}
       <div>

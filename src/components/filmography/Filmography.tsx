@@ -4,6 +4,7 @@ import { MovieItem } from "./MovieItem";
 import { FilmographyFilters } from "./FilmographyFilters";
 import { FilmographyProgress } from "./FilmographyProgress";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { announce } from "@/lib/a11y";
 import {
   addToWatchlist,
   markMovieWatched,
@@ -90,15 +91,17 @@ export function Filmography({
 
   const grouped = useMemo(() => groupByYear(filtered), [filtered]);
 
-  async function toggleWatched(movieId: number, next: boolean) {
+  async function toggleWatched(movie: FilmographyMovie, next: boolean) {
     if (!user) {
       setShowSignInHint(true);
       return;
     }
     if (next) {
-      await markMovieWatched(user.uid, personId, movieId);
+      await markMovieWatched(user.uid, personId, movie.tmdbMovieId);
+      announce(`Marked ${movie.title} as watched`);
     } else {
-      await unmarkMovieWatched(user.uid, personId, movieId);
+      await unmarkMovieWatched(user.uid, personId, movie.tmdbMovieId);
+      announce(`Marked ${movie.title} as unwatched`);
     }
   }
 
@@ -109,6 +112,7 @@ export function Filmography({
     }
     if (watchlist.has(movie.tmdbMovieId)) {
       await removeFromWatchlist(user.uid, movie.tmdbMovieId);
+      announce(`Removed ${movie.title} from watchlist`);
     } else {
       await addToWatchlist(user.uid, {
         tmdbId: movie.tmdbMovieId,
@@ -119,6 +123,7 @@ export function Filmography({
         sourcePersonId: personId,
         sourcePersonName: personName,
       });
+      announce(`Added ${movie.title} to watchlist`);
     }
   }
 
@@ -157,7 +162,7 @@ export function Filmography({
                 key={movie.tmdbMovieId}
                 movie={movie}
                 watched={watched.has(movie.tmdbMovieId)}
-                onToggle={(next) => void toggleWatched(movie.tmdbMovieId, next)}
+                onToggle={(next) => void toggleWatched(movie, next)}
                 inWatchlist={watchlist.has(movie.tmdbMovieId)}
                 onToggleWatchlist={() => void toggleWatchlist(movie)}
               />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { announce } from "@/lib/a11y";
 import {
   followPerson,
   isFollowingPerson,
@@ -44,6 +45,7 @@ export function FollowButton({
     if (following) {
       await unfollowPerson(user.uid, personId);
       setFollowing(false);
+      announce(`Unfollowed ${name}`);
     } else {
       await followPerson(user.uid, {
         tmdbId: personId,
@@ -52,6 +54,7 @@ export function FollowButton({
         knownForDepartment,
       });
       setFollowing(true);
+      announce(`Now following ${name}`);
     }
   }
 

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookmarkIcon } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { announce } from "@/lib/a11y";
 import {
   removeFromWatchlist,
   subscribeToWatchlist,
@@ -127,9 +128,12 @@ export function WatchlistPage() {
                 type="button"
                 variant="secondary"
                 size="icon"
-                aria-label="Remove from watchlist"
+                aria-label={`Remove ${movie.title} from watchlist`}
                 className="absolute top-2 right-2 size-8 rounded-full shadow"
-                onClick={() => void removeFromWatchlist(user.uid, movie.tmdbId)}
+                onClick={() => {
+                  void removeFromWatchlist(user.uid, movie.tmdbId);
+                  announce(`Removed ${movie.title} from watchlist`);
+                }}
               >
                 <BookmarkIcon className="fill-current" />
               </Button>
@@ -140,7 +144,7 @@ export function WatchlistPage() {
               {movie.releaseYear ?? "Unknown"} · via{" "}
               <a
                 href={`/person/${movie.sourcePersonId}`}
-                className="hover:underline"
+                className="focus-ring hover:underline"
               >
                 {movie.sourcePersonName}
               </a>

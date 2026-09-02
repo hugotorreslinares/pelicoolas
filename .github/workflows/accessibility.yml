@@ -1,0 +1,35 @@
+name: Accessibility
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Monday 9am UTC
+  workflow_dispatch:
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Same reasoning as lighthouse.yml: runs against the already-deployed
+      # production URLs, informational only. A real violation is worth
+      # fixing, but shouldn't block unrelated pushes from landing.
+      - name: axe-core scan
+        continue-on-error: true
+        run: |
+          pnpm dlx @axe-core/cli \
+            https://pelicoolas.vercel.app/ \
+            https://pelicoolas.vercel.app/search \
+            https://pelicoolas.vercel.app/watchlist \
+            --chrome-options=no-sandbox,headless

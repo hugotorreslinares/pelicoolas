@@ -62,17 +62,23 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
     </script>
   </head>
   <body class="min-h-screen bg-background text-foreground">
+    <div id="a11y-announcer" role="status" aria-live="polite" class="sr-only">
+    </div>
     <header class="border-b">
       <div
         class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-y-2 p-4"
       >
-        <a href="/" class="text-lg font-bold tracking-tight">FILMO</a>
+        <a href="/" class="focus-ring text-lg font-bold tracking-tight">FILMO</a
+        >
         <nav class="flex flex-wrap items-center gap-3 sm:gap-4">
-          <a href="/search" class="text-sm hover:underline">Search</a>
-          <a href="/filmographies" class="text-sm hover:underline"
+          <a href="/search" class="focus-ring text-sm hover:underline">Search</a
+          >
+          <a href="/filmographies" class="focus-ring text-sm hover:underline"
             >My Filmographies</a
           >
-          <a href="/watchlist" class="text-sm hover:underline">Watchlist</a>
+          <a href="/watchlist" class="focus-ring text-sm hover:underline"
+            >Watchlist</a
+          >
           <ThemeToggle client:idle />
           <UserMenu client:idle />
         </nav>

@@ -38,7 +38,7 @@ export function FollowedPersonCard({ person }: FollowedPersonCardProps) {
     : 0;
 
   return (
-    <a href={`/person/${person.tmdbId}`}>
+    <a href={`/person/${person.tmdbId}`} className="focus-ring block">
       <Card className="transition-colors hover:bg-accent">
         <CardHeader className="flex-row items-center gap-2">
           <Avatar>

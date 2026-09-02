@@ -128,3 +128,10 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  /* Visible keyboard-focus ring for plain <a>/<button> elements outside the shadcn component set. */
+  .focus-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none;
+  }
+}
