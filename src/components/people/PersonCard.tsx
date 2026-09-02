@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import type { PersonSearchResult } from "@/types/person";
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w185";
 
 interface PersonCardProps {
   readonly person: PersonSearchResult;
@@ -14,12 +13,20 @@ export function PersonCard({
   onClick,
   variant = "row",
 }: PersonCardProps) {
+  // row: 32px avatar, grid: 64px avatar — density srcset sized to each.
+  const [base, retina] = variant === "grid" ? [92, 185] : [45, 92];
+
   const avatar = (
     <Avatar className={variant === "grid" ? "h-16 w-16" : undefined}>
       <AvatarImage
         src={
           person.profilePath
-            ? `${TMDB_IMAGE_BASE}${person.profilePath}`
+            ? tmdbImageUrl(person.profilePath, base)
+            : undefined
+        }
+        srcSet={
+          person.profilePath
+            ? tmdbDensitySrcSet(person.profilePath, base, retina)
             : undefined
         }
         alt={person.name}

@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FollowButton } from "./FollowButton";
 import { PersonPhotoGallery } from "./PersonPhotoGallery";
+import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import type { PersonProfile } from "@/types/person";
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w300";
 
 interface PersonHeaderProps {
   readonly profile: PersonProfile;
@@ -31,7 +30,12 @@ export function PersonHeader({
           <AvatarImage
             src={
               profile.profilePath
-                ? `${TMDB_IMAGE_BASE}${profile.profilePath}`
+                ? tmdbImageUrl(profile.profilePath, 185)
+                : undefined
+            }
+            srcSet={
+              profile.profilePath
+                ? tmdbDensitySrcSet(profile.profilePath, 185, 342)
                 : undefined
             }
             alt={profile.name}

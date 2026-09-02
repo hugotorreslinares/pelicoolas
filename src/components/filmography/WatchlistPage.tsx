@@ -7,9 +7,11 @@ import {
   removeFromWatchlist,
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
+import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import type { WatchlistMovie } from "@/types/filmography";
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
+const POSTER_WIDTHS = [185, 342, 500];
+const POSTER_SIZES = "(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
 
 type SortOrder = "newest" | "oldest";
 
@@ -102,7 +104,9 @@ export function WatchlistPage() {
             <div className="group relative overflow-hidden rounded-lg border">
               {movie.posterPath ? (
                 <img
-                  src={`${TMDB_IMAGE_BASE}${movie.posterPath}`}
+                  src={tmdbImageUrl(movie.posterPath, 342)}
+                  srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
+                  sizes={POSTER_SIZES}
                   alt=""
                   loading="lazy"
                   className="w-full object-cover"

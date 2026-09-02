@@ -1,28 +1,24 @@
 import type { APIRoute } from "astro";
 import { getMovieDetails } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
+import { jsonResponse, errorResponse } from "@/lib/api";
 
 export const prerender = false;
+
+const CACHE_SECONDS = 60 * 60 * 24; // 1d — a released movie's details rarely change
 
 export const GET: APIRoute = async ({ params }) => {
   const movieId = Number(params.id);
   if (!Number.isInteger(movieId)) {
-    return new Response(JSON.stringify({ error: "Invalid movie id" }), {
-      status: 400,
-    });
+    return errorResponse("Invalid movie id", 400);
   }
 
   try {
     const movie = await getMovieDetails(movieId);
-    return new Response(JSON.stringify({ movie }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
+    return jsonResponse({ movie }, CACHE_SECONDS);
   } catch (error) {
     if (error instanceof TmdbError) {
-      return new Response(JSON.stringify({ error: "TMDB unavailable" }), {
-        status: 502,
-      });
+      return errorResponse("TMDB unavailable", 502);
     }
     throw error;
   }

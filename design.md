@@ -80,3 +80,11 @@ El footer de `/` muestra "Deployed {fecha}" de forma discreta. Se captura en bui
 ## Analytics
 
 `@vercel/analytics/astro` y `@vercel/speed-insights/astro` montados en `Layout.astro`. Requiere activarlos también en el dashboard de Vercel (Analytics y Speed Insights) para que empiecen a recolectar datos.
+
+## Performance
+
+- **Bundle de Firebase aislado**: `astro.config.mjs` fuerza `firebase`/`@firebase/*` a su propio chunk vía `rollupOptions.output.manualChunks`. Antes se mezclaba con código UI compartido (`button.tsx`), generando un chunk de >500kB que cargaba toda página independientemente de si usaba Firebase. Ahora es un chunk propio, cacheable por separado. El tamaño (~500kB) es el SDK en sí — no baja más sin cambiar de SDK.
+- `<UserMenu>` usa `client:idle` (no `client:load`) — es chrome de navegación, no contenido crítico; no debería competir por el hilo principal con el contenido real de la página.
+- **`src/lib/tmdb/image.ts`**: helpers `tmdbImageUrl`, `tmdbDensitySrcSet` (1x/2x, para avatares/thumbnails de tamaño fijo) y `tmdbWidthSrcSet` (para imágenes que escalan con su contenedor — grids, posters grandes). Todos los `<img>`/`<AvatarImage>` que apuntan a TMDB usan `srcSet` con el tamaño real de renderizado, no un tamaño fijo sobredimensionado.
+- **Cache-Control en `/api/*`**: `src/lib/api.ts` (`jsonResponse`) agrega `public, s-maxage=N, stale-while-revalidate=10N` a las respuestas de TMDB — son idénticas para cualquier visitante, así que se comparten en el CDN de Vercel entre usuarios, no solo en el navegador de cada uno. TTLs: búsqueda 1h, perfil+filmografía 6h, fotos/detalle de película 1d.
+- **Lighthouse CI** (`.github/workflows/lighthouse.yml`, `.lighthouserc.json`): corre semanalmente (o manual) contra las URLs de producción ya desplegadas (`/`, `/search`, `/watchlist`) — no contra un build local, porque el adapter de Vercel genera una función serverless y `astro preview` no puede levantarla. Asserts en modo `warn` (informativo, no bloquea CI).

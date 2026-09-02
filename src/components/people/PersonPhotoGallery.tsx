@@ -8,8 +8,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { XIcon } from "lucide-react";
+import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
+const PHOTO_WIDTHS = [185, 342, 500];
+const PHOTO_SIZES = "(min-width: 640px) 168px, 33vw";
 
 interface PersonPhotoGalleryProps {
   readonly personId: number;
@@ -84,7 +86,9 @@ export function PersonPhotoGallery({
             {images.map((path) => (
               <img
                 key={path}
-                src={`${TMDB_IMAGE_BASE}${path}`}
+                src={tmdbImageUrl(path, 185)}
+                srcSet={tmdbWidthSrcSet(path, PHOTO_WIDTHS)}
+                sizes={PHOTO_SIZES}
                 alt={personName}
                 loading="lazy"
                 className="aspect-[2/3] w-full rounded-lg object-cover"

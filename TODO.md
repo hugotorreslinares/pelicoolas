@@ -20,10 +20,11 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 
 ## Performance
 
-- [ ] Investigar el warning de build "chunks larger than 500kB" — probablemente Firebase SDK completo entrando al bundle del cliente. Code-split o lazy-load `firebase/auth` y `firebase/firestore` solo cuando se necesiten (islas que no usan auth no deberían pagar ese peso).
-- [ ] **`astro:assets`** o al menos `srcset`/tamaños responsivos en posters TMDB — hoy se pide un tamaño fijo (`w185`, `w342`) sin importar el viewport real.
-- [ ] Cachear respuestas de TMDB en el edge (Vercel Runtime Cache o `Cache-Control` en los endpoints `/api/*`) — hoy cada visita repite la misma llamada a TMDB para personas populares.
-- [ ] Lighthouse CI en el pipeline, con presupuesto de performance/accesibilidad que falle el build si se degrada.
+- [x] Chunk de >500kB — era Firebase mezclado con código UI compartido. Aislado en su propio chunk vía `manualChunks`. Ver `design.md`.
+- [x] `srcset` responsivo en imágenes de TMDB — `src/lib/tmdb/image.ts` (density para tamaño fijo, width-based para grids/fluid).
+- [x] `Cache-Control` en los endpoints `/api/*` (compartido en el CDN de Vercel entre usuarios, no solo por navegador).
+- [x] Lighthouse CI — corre semanal/manual contra producción (`.github/workflows/lighthouse.yml`), en modo informativo (warn, no bloquea).
+- [ ] `client:idle`/`client:visible` en más islas si algún día se siente lento — por ahora solo `UserMenu` lo necesitaba; el resto es contenido primario de cada página (diferirlo perjudicaría la interacción real, no la ayudaría).
 
 ## Seguridad
 

@@ -10,9 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { XIcon } from "lucide-react";
+import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import type { MovieDetails } from "@/types/movie";
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
+const POSTER_WIDTHS = [342, 500, 780];
 
 interface MovieDetailsDialogProps {
   readonly movieId: number;
@@ -79,7 +80,9 @@ export function MovieDetailsDialog({
           <>
             {details.posterPath && (
               <img
-                src={`${TMDB_IMAGE_BASE}${details.posterPath}`}
+                src={tmdbImageUrl(details.posterPath, 342)}
+                srcSet={tmdbWidthSrcSet(details.posterPath, POSTER_WIDTHS)}
+                sizes="(min-width: 640px) 448px, 100vw"
                 alt=""
                 className="mb-2 h-64 w-full rounded-lg object-cover"
               />

@@ -3,9 +3,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { BookmarkIcon } from "lucide-react";
+import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import type { FilmographyMovie } from "@/types/movie";
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w92";
 
 interface MovieItemProps {
   readonly movie: FilmographyMovie;
@@ -37,7 +36,8 @@ export function MovieItem({
       >
         {movie.posterPath && (
           <img
-            src={`${TMDB_IMAGE_BASE}${movie.posterPath}`}
+            src={tmdbImageUrl(movie.posterPath, 45)}
+            srcSet={tmdbDensitySrcSet(movie.posterPath, 45, 92)}
             alt=""
             loading="lazy"
             className="h-14 w-10 rounded object-cover"

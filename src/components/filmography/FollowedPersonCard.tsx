@@ -5,9 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToWatchedMovies } from "@/lib/firebase/firestore";
+import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import type { FollowedPerson } from "@/types/filmography";
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w185";
 
 interface FollowedPersonCardProps {
   readonly person: FollowedPerson;
@@ -46,7 +45,12 @@ export function FollowedPersonCard({ person }: FollowedPersonCardProps) {
             <AvatarImage
               src={
                 person.profilePath
-                  ? `${TMDB_IMAGE_BASE}${person.profilePath}`
+                  ? tmdbImageUrl(person.profilePath, 45)
+                  : undefined
+              }
+              srcSet={
+                person.profilePath
+                  ? tmdbDensitySrcSet(person.profilePath, 45, 92)
                   : undefined
               }
               alt={person.name}

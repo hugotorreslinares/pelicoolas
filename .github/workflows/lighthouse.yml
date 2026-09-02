@@ -1,0 +1,29 @@
+name: Lighthouse
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Monday 9am UTC
+  workflow_dispatch:
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Runs against the live production URLs in .lighthouserc.json —
+      # there's no local server to spin up (the Vercel adapter builds a
+      # serverless bundle, not something `astro preview` can run). Informational
+      # only (assertions are "warn"): a Chrome/network blip shouldn't go red.
+      - run: pnpm exec lhci autorun
