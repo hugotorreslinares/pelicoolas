@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
+import { XIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PersonCard } from "./PersonCard";
-import { addRecentSearch, getRecentSearches } from "@/lib/recentSearches";
+import { announce } from "@/lib/a11y";
+import {
+  addRecentSearch,
+  getRecentSearches,
+  removeRecentSearch,
+} from "@/lib/recentSearches";
 import type { PersonSearchResult } from "@/types/person";
 
 const DEBOUNCE_MS = 350;
@@ -61,6 +68,12 @@ export function PersonSearch({
     window.location.href = `/person/${person.id}`;
   }
 
+  function removeRecent(person: PersonSearchResult) {
+    removeRecentSearch(person.id);
+    setRecent((prev) => prev.filter((p) => p.id !== person.id));
+    announce(`Removed ${person.name} from recent searches`);
+  }
+
   const showRecent = showRecentProp && !query.trim() && recent.length > 0;
 
   return (
@@ -105,12 +118,26 @@ export function PersonSearch({
           </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {recent.map((person) => (
-              <PersonCard
-                key={person.id}
-                person={person}
-                variant="grid"
-                onClick={() => selectPerson(person)}
-              />
+              <div key={person.id} className="relative">
+                <PersonCard
+                  person={person}
+                  variant="grid"
+                  onClick={() => selectPerson(person)}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  aria-label={`Remove ${person.name} from recent searches`}
+                  className="absolute top-1 right-1 size-6 rounded-full shadow"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeRecent(person);
+                  }}
+                >
+                  <XIcon className="size-3.5" />
+                </Button>
+              </div>
             ))}
           </div>
         </div>

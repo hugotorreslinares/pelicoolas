@@ -21,3 +21,12 @@ export function addRecentSearch(person: PersonSearchResult): void {
     // localStorage unavailable (private mode, etc.) — recent searches just won't persist
   }
 }
+
+export function removeRecentSearch(personId: number): void {
+  try {
+    const next = getRecentSearches().filter((p) => p.id !== personId);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // localStorage unavailable — nothing to remove from
+  }
+}
