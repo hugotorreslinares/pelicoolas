@@ -47,8 +47,9 @@ Copia `.env.example` a `.env` y completa:
 | `pnpm astro check`  | Typecheck                          |
 | `pnpm lint`         | ESLint                             |
 | `pnpm format:check` | Prettier                           |
+| `pnpm test`         | Vitest (lógica pura)               |
 
-CI (GitHub Actions) corre las cuatro cosas de arriba en cada push/PR a `main`. Pre-commit (Husky + lint-staged) hace `eslint --fix` + `prettier --write` sobre lo staged. Hay además dos workflows semanales/manuales: Lighthouse (performance) y axe-core (accesibilidad), ambos informativos contra producción.
+CI (GitHub Actions) corre las cinco cosas de arriba en cada push/PR a `main`. Pre-commit (Husky + lint-staged) hace `eslint --fix` + `prettier --write` sobre lo staged. Hay además dos workflows semanales/manuales: Lighthouse (performance) y axe-core (accesibilidad), ambos informativos contra producción.
 
 ## Estructura
 

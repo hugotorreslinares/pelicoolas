@@ -10,7 +10,7 @@ import type {
   PersonSearchResult,
 } from "@/types/person";
 
-function toGender(gender: number): PersonGender {
+export function toGender(gender: number): PersonGender {
   if (gender === 1) return "female";
   if (gender === 2) return "male";
   if (gender === 3) return "non-binary";

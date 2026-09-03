@@ -6,13 +6,13 @@ import {
 import type { CreditDepartment } from "@/types/filmography";
 import type { FilmographyMovie, MovieDetails } from "@/types/movie";
 
-function toReleaseYear(releaseDate: string | undefined): number | null {
+export function toReleaseYear(releaseDate: string | undefined): number | null {
   if (!releaseDate) return null;
   const year = Number(releaseDate.slice(0, 4));
   return Number.isFinite(year) && year > 0 ? year : null;
 }
 
-function dedupeByMovieId(
+export function dedupeByMovieId(
   movies: readonly FilmographyMovie[],
 ): readonly FilmographyMovie[] {
   const seen = new Map<number, FilmographyMovie>();

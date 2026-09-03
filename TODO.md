@@ -7,10 +7,10 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [x] **ESLint + Prettier** — flat config, `eslint-plugin-astro` + `eslint-plugin-react-hooks` (solo reglas clásicas) + `eslint-plugin-jsx-a11y`. Ver `design.md`.
 - [x] **Husky + lint-staged** — `eslint --fix` + `prettier --write` en pre-commit, solo sobre staged.
 - [x] **GitHub Actions** (`.github/workflows/ci.yml`): format:check → lint → astro check → build, en cada push/PR a `main`.
-- [ ] **Vitest** para unit tests de lógica pura: `sortFilmography`, `dedupeByMovieId`, `toGender`, `ageAt`, helpers de `recentSearches.ts`. Son funciones puras, fáciles de testear y son justo donde se cuelan bugs sutiles (fechas, orden, dedupe).
+- [x] **Vitest** para unit tests de lógica pura — `calculateAge`, `sortFilmography`/`dedupeByMovieId`/`toReleaseYear`, `toGender`, `recentSearches.ts` (17 tests). Config vía `getViteConfig` de `astro/config` (respeta el alias `@/` y env de Astro), `environment: "jsdom"` para los tests que tocan `localStorage`. `pnpm test` corre en CI justo antes del build.
 - [ ] **Playwright** E2E para el flujo core: buscar → seguir → marcar vista → ver progreso. Mockear TMDB con fixtures fijos para no depender de la API real ni gastar cuota.
 - [ ] **Firebase Emulator Suite** + tests de `firestore.rules` (`@firebase/rules-unit-testing`) — las reglas de seguridad nunca se han probado automáticamente, solo revisado a ojo.
-- [ ] Agregar el job de CI también a la ejecución de tests una vez existan (Vitest/Playwright).
+- [ ] Agregar Playwright al CI cuando exista el E2E de arriba (Vitest ya corre en `ci.yml`).
 
 ## Observabilidad
 
@@ -48,7 +48,6 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 
 ## Prioridad sugerida si hay que elegir por dónde seguir
 
-1. Vitest para la lógica pura (sort/dedupe/age) — bugs reales ya ocurrieron ahí
-2. Sentry — para dejar de ser ciego a errores en producción
-3. Firestore rules tests con el emulador — es tu única capa de seguridad real
-4. Resto, según lo que más te frustre en el día a día
+1. Sentry — para dejar de ser ciego a errores en producción
+2. Firestore rules tests con el emulador — es tu única capa de seguridad real
+3. Resto, según lo que más te frustre en el día a día

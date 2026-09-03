@@ -20,10 +20,11 @@ Antes de dar por terminado un cambio:
 pnpm astro check   # typecheck
 pnpm lint            # ESLint
 pnpm format:check   # Prettier
+pnpm test            # Vitest (lógica pura)
 pnpm build          # build completo (Vercel usa output: "server")
 ```
 
-CI (`.github/workflows/ci.yml`) corre las mismas cuatro cosas en cada push/PR a `main`. Pre-commit (Husky + lint-staged) corre `eslint --fix` + `prettier --write` sobre los archivos staged — no hace typecheck completo, eso queda para CI.
+CI (`.github/workflows/ci.yml`) corre las mismas cinco cosas en cada push/PR a `main`. Pre-commit (Husky + lint-staged) corre `eslint --fix` + `prettier --write` sobre los archivos staged — no hace typecheck completo ni tests, eso queda para CI.
 
 ## Convenciones del repo
 
