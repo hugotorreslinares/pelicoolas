@@ -3,7 +3,7 @@ import { Loader2Icon } from "lucide-react";
 import { tmdbDensitySrcSet, tmdbImageUrl } from "@/lib/tmdb/image";
 import type { FollowedPerson } from "@/types/filmography";
 
-const MAX_PHOTOS = 8;
+const MAX_PHOTOS = 40;
 // Alternating vertical offsets give the row an editorial, uneven top edge
 // instead of a flat grid — small nod to the reference's asymmetric layout.
 const OFFSETS = [0, 28, -10, 22, 4, 30, -6, 18];
