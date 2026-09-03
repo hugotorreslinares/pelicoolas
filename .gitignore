@@ -21,6 +21,9 @@ firebase-debug.log
 /blob-report/
 /playwright/.cache/
 
+# Lighthouse CI local run output
+/.lighthouseci/
+
 
 # environment variables
 .env

@@ -43,12 +43,29 @@ export function WatchlistPage() {
     return subscribeToWatchlist(user.uid, setMovies);
   }, [user]);
 
-  if (authLoading || (user && movies === null)) {
+  // A tall 8-poster skeleton is right for "fetching a signed-in user's
+  // watchlist", but auth resolving to "not signed in" is the common case
+  // for a first-time or anonymous visit — collapsing straight from that
+  // tall grid down to the one-line sign-in message was the single biggest
+  // layout shift on the page (CLS ~0.96 in a Lighthouse run). Keep the
+  // auth-pending skeleton the same shape as the sign-in message itself so
+  // there's nothing to collapse from in that case.
+  if (authLoading) {
     return (
-      <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+      <div className="space-y-3 text-center">
         {/* Visually-hidden but always present — the loading state is what
             axe-core (or any crawler) sees before Firebase's async auth
             check resolves, and a page needs a heading in every state. */}
+        <h1 className="sr-only">Watchlist</h1>
+        <Skeleton className="mx-auto h-7 w-32" />
+        <Skeleton className="mx-auto h-5 w-56" />
+      </div>
+    );
+  }
+
+  if (user && movies === null) {
+    return (
+      <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
         <h1 className="sr-only">Watchlist</h1>
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton
