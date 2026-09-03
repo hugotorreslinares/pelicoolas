@@ -13,8 +13,6 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' https://image.tmdb.org data:",
   "font-src 'self' data:",
-  // three.js's WebGLRenderer spins up a blob: worker for texture work.
-  "worker-src 'self' blob:",
   "connect-src 'self' https://*.googleapis.com https://vitals.vercel-insights.com https://*.vercel-insights.com",
   "frame-src https://*.firebaseapp.com https://accounts.google.com",
   "frame-ancestors 'none'",

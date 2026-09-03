@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FollowedPersonCard } from "./FollowedPersonCard";
-import { OrbitScene } from "./OrbitScene";
+import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
 import type { FollowedPerson } from "@/types/filmography";
@@ -62,7 +62,7 @@ export function Dashboard() {
 
   return (
     <div className="space-y-4">
-      <OrbitScene people={people} />
+      <FollowedPeopleHero people={people} />
       <h1 className="text-xl font-semibold">{heading}</h1>
       <p className="text-sm text-muted-foreground">
         {people.length} people you're following
