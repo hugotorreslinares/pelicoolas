@@ -33,6 +33,8 @@ CI (`.github/workflows/ci.yml`) corre las mismas cuatro cosas en cada push/PR a 
 - Botones tipo link usan `render={<a href="..." />}` (API de base-ui), no `asChild` con `<button><a>` anidado.
 - Cambios a `firestore.rules` no se despliegan solos — avisar al usuario que debe publicarlos en Firebase Console o `firebase deploy --only firestore:rules`.
 - Cambios a dependencias: revisar `pnpm-workspace.yaml` (`minimumReleaseAge`, `allowBuilds`) si el build de Vercel falla en `pnpm install` — ver design.md.
+- **Librerías solo-cliente (gsap, y cualquier otra ESM-only o que asuma `window`/`document`) van con `import()` dinámico dentro del `useEffect`, nunca como `import` de nivel superior.** Un componente `client:load`/`client:idle` igual se renderiza en el servidor para el HTML inicial — un import top-level de una librería así puede pasar el build local limpio y romper solo en la función serverless real de Vercel. Ver el gotcha de `FollowedPeopleHero` en design.md.
+- Antes de dar por bueno un cambio con una dependencia nueva usada solo en cliente, no basta con `pnpm build` local: probar contra un deploy real (`vercel` para preview o `vercel --prod`) y revisar `vercel logs <url>` si algo se ve raro.
 
 ## Documentation
 

@@ -30,7 +30,7 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 ## Seguridad
 
 - [x] **Rate limiting** en los 4 endpoints `/api/*` — 30 req/min por IP, en memoria (`src/lib/rateLimit.ts`). Ver `design.md`.
-- [x] Cabeceras de seguridad (CSP, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) vía `src/middleware.ts`. Verificado localmente: sin violaciones de CSP, búsqueda e imágenes funcionan. **Falta verificar que el login con Google siga funcionando en producción tras este cambio** (no se pudo probar en automático — requiere tu cuenta real).
+- [x] Cabeceras de seguridad (CSP, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) vía `src/middleware.ts`. Login con Google confirmado funcionando en producción tras el cambio.
 - [x] Auditoría de dependencias automática — `.github/dependabot.yml` (npm semanal + GitHub Actions).
 - [ ] **Firebase App Check** — hoy cualquiera con la `PUBLIC_FIREBASE_API_KEY` (pública por diseño, pero aun así) podría golpear Firestore directo si no hay reglas perfectas. App Check añade una capa de "esto viene de mi app real". Requiere que registres una site key de reCAPTCHA v3 y actives "Enforce" en la consola de Firebase — no se puede completar solo desde el código.
 

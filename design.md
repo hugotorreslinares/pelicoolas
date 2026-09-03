@@ -9,7 +9,7 @@ Filmo responde una sola pregunta: _¿he visto todas las películas de esta perso
 ## Astro vs React
 
 - **Astro**: routing, layouts, SSR, fetch a TMDB (server-side, la API key nunca llega al cliente).
-- **React** (`client:load`): solo componentes interactivos — `PersonSearch`, `Filmography`, `FollowButton`, `UserMenu`, `Dashboard`, `WatchlistPage`, `MovieDetailsDialog`, `PersonPhotoGallery`.
+- **React** (`client:load` o `client:idle`): solo componentes interactivos — `PersonSearch`, `Filmography`, `FollowButton`, `UserMenu`, `Dashboard`, `FollowedPeopleHero`, `WatchlistPage`, `MovieDetailsDialog`, `PersonPhotoGallery`, `ThemeToggle`. `UserMenu`/`ThemeToggle` van con `client:idle` — son chrome de navegación, no contenido crítico de la página.
 - `PersonInfo.astro` es estático (no necesita hidratación, solo texto derivado de props del servidor).
 
 ## Rutas
