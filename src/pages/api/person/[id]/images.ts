@@ -1,7 +1,12 @@
 import type { APIRoute } from "astro";
 import { getPersonImages } from "@/lib/tmdb/people";
 import { TmdbError } from "@/lib/tmdb/client";
-import { jsonResponse, errorResponse, rateLimitResponse } from "@/lib/api";
+import {
+  jsonResponse,
+  errorResponse,
+  logApiError,
+  rateLimitResponse,
+} from "@/lib/api";
 
 export const prerender = false;
 
@@ -21,6 +26,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     return jsonResponse({ images }, CACHE_SECONDS);
   } catch (error) {
     if (error instanceof TmdbError) {
+      logApiError("person-images", error);
       return errorResponse("TMDB unavailable", 502);
     }
     throw error;

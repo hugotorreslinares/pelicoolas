@@ -16,7 +16,7 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 
 - [x] **Vercel Analytics + Speed Insights** — montados en `Layout.astro`. Falta activarlos en el dashboard de Vercel para que empiecen a recolectar.
 - [x] **Sentry** — `@sentry/astro` integrado en `astro.config.mjs`, captura cliente + servidor (incluye SSR vía middleware automático del integration). **Requiere acción tuya para activarse**: no puedo crear la cuenta/proyecto de Sentry por ti. Pasos: 1) crear proyecto en sentry.io (plataforma Astro), 2) copiar su DSN a `PUBLIC_SENTRY_DSN` en Vercel (Production + Preview), 3) opcional para stack traces legibles — `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (sourcemap upload en build). Sin `PUBLIC_SENTRY_DSN` el SDK es un no-op silencioso — build y runtime no se rompen (verificado local: `pnpm build` sin esas env vars solo imprime warnings informativos de sourcemap, no falla).
-- [ ] **Structured logging** en los endpoints `/api/*` (hoy silencian el error real y devuelven un mensaje genérico).
+- [x] **Structured logging** en los endpoints `/api/*` — `logApiError()` en `src/lib/api.ts`: los 4 endpoints, al capturar un `TmdbError`, ahora emiten una línea JSON (`{level, route, message}`) a stdout (legible en Vercel function logs) y la reportan a Sentry (`Sentry.captureException`) antes de devolver el 502 genérico al cliente — la causa real ya no se pierde. Verificado en dev forzando una API key inválida: el log mostró `{"level":"error","route":"search-person","message":"TMDB request failed: 401 /search/person"}`.
 
 ## Performance
 

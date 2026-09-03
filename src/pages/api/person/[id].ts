@@ -2,7 +2,12 @@ import type { APIRoute } from "astro";
 import { getPersonProfile } from "@/lib/tmdb/people";
 import { getFilmography } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
-import { jsonResponse, errorResponse, rateLimitResponse } from "@/lib/api";
+import {
+  jsonResponse,
+  errorResponse,
+  logApiError,
+  rateLimitResponse,
+} from "@/lib/api";
 import type { CreditDepartment } from "@/types/filmography";
 
 export const prerender = false;
@@ -27,6 +32,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     return jsonResponse({ profile, department, movies }, CACHE_SECONDS);
   } catch (error) {
     if (error instanceof TmdbError) {
+      logApiError("person", error);
       return errorResponse("TMDB unavailable", 502);
     }
     throw error;

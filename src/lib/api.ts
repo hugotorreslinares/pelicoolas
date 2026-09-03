@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/astro";
 import { clientIp, isRateLimited } from "./rateLimit";
 
 /**
@@ -19,6 +20,20 @@ export function jsonResponse(data: unknown, cacheSeconds?: number): Response {
 
 export function errorResponse(message: string, status: number): Response {
   return new Response(JSON.stringify({ error: message }), { status });
+}
+
+/**
+ * A caught TmdbError becomes a generic 502 to the client on purpose (never
+ * leak upstream error details) — this is the one place that keeps the real
+ * cause visible: structured JSON on stdout (Vercel's function logs are
+ * plain text, so a single-line JSON blob is what stays greppable/parseable
+ * there) and forwarded to Sentry, since a caught error never reaches
+ * Sentry's automatic instrumentation on its own.
+ */
+export function logApiError(route: string, error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(JSON.stringify({ level: "error", route, message }));
+  Sentry.captureException(error, { tags: { route } });
 }
 
 /** Returns a 429 Response if the client is over the limit for this route, else null. */
