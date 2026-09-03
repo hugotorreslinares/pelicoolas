@@ -134,4 +134,39 @@
   .focus-ring {
     @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none;
   }
+
+  /*
+   * Old-film sprocket holes running down the page edges — purely decorative
+   * page-frame identity, not tied to any element's layout. Fixed to the
+   * viewport (not the content column) so it sits in the gutter outside
+   * max-w-5xl on wide screens and inside <main>'s own p-4 padding on
+   * narrow ones — never under real content, so it can't collide with it.
+   * Uses --border (already tuned subtle-per-theme) instead of a new color,
+   * so light/dark just work.
+   */
+  .film-perforations {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    z-index: 0;
+    pointer-events: none;
+    /* --border alone (10% white in dark mode) was too faint to read as
+       anything — color-mix against --muted-foreground gives real dots
+       without going full-contrast/noisy. */
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklch, var(--muted-foreground) 45%, transparent) 2.5px,
+      transparent 3px
+    );
+    background-size: 100% 26px;
+    background-repeat: repeat-y;
+    background-position: center top;
+  }
+  .film-perforations-left {
+    left: 3px;
+  }
+  .film-perforations-right {
+    right: 3px;
+  }
 }
