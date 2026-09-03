@@ -17,7 +17,7 @@ const emulatorConnectSrc =
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+  "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://apis.google.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' https://image.tmdb.org data:",
   "font-src 'self' data:",
