@@ -5,6 +5,10 @@ import Layout from "@/layouts/Layout.astro";
 import { WatchlistPage } from "@/components/filmography/WatchlistPage";
 ---
 
-<Layout title="Watchlist — Filmo">
+<Layout
+  title="Watchlist — Filmo"
+  description="Movies you've bookmarked from the filmographies you follow, ready to watch next."
+  noindex
+>
   <WatchlistPage client:load />
 </Layout>

@@ -9,7 +9,15 @@ import { Filmography } from "@/components/filmography/Filmography";
 import { getPersonProfile } from "@/lib/tmdb/people";
 import { getFilmography } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
+import { tmdbImageUrl } from "@/lib/tmdb/image";
 import type { CreditDepartment } from "@/types/filmography";
+
+const MAX_DESCRIPTION_LENGTH = 160;
+
+function truncate(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 1).trimEnd()}…`;
+}
 
 const personId = Number(Astro.params.id);
 let error: string | null = null;
@@ -32,9 +40,22 @@ if (!Number.isInteger(personId)) {
         : "No people found. Try another name.";
   }
 }
+const description = profile
+  ? profile.biography
+    ? truncate(profile.biography, MAX_DESCRIPTION_LENGTH)
+    : `See ${profile.name}'s full filmography and track which movies you've watched.`
+  : undefined;
+const ogImage = profile?.profilePath
+  ? tmdbImageUrl(profile.profilePath, 500)
+  : undefined;
 ---
 
-<Layout title={profile ? `${profile.name} — Filmo` : "Filmo"}>
+<Layout
+  title={profile ? `${profile.name} — Filmo` : "Filmo"}
+  description={description}
+  image={ogImage}
+  noindex={!profile}
+>
   <PersonSearch className="max-w-sm space-y-4" showRecent={false} client:load />
 
   {error && <p class="mt-4 text-destructive">{error}</p>}

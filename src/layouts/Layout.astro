@@ -7,10 +7,27 @@ import SpeedInsights from "@vercel/speed-insights/astro";
 
 interface Props {
   title?: string;
+  description?: string;
   showDeployInfo?: boolean;
+  /** Pages with no real content for a signed-out crawler (personal dashboards) opt out of indexing. */
+  noindex?: boolean;
+  /** Overrides the canonical path when a page duplicates another URL's content (e.g. /filmographies mirrors /). */
+  canonicalPath?: string;
+  /** Absolute or root-relative image URL for Open Graph/Twitter previews. */
+  image?: string;
 }
 
-const { title = "Filmo", showDeployInfo = false } = Astro.props;
+const {
+  title = "Filmo",
+  description = "Track which movies from your favorite actors' and directors' filmographies you've already watched.",
+  showDeployInfo = false,
+  noindex = false,
+  canonicalPath = Astro.url.pathname,
+  image = "/pwa-512x512.png",
+} = Astro.props;
+
+const canonicalURL = new URL(canonicalPath, Astro.site);
+const ogImageURL = new URL(image, Astro.site);
 
 const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
   dateStyle: "medium",
@@ -39,6 +56,23 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
       })();
     </script>
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta
+      name="robots"
+      content={noindex ? "noindex, nofollow" : "index, follow"}
+    />
+    <link rel="canonical" href={canonicalURL} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Filmo" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
 
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />

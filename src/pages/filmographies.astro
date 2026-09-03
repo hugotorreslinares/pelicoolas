@@ -5,6 +5,11 @@ import Layout from "@/layouts/Layout.astro";
 import { Dashboard } from "@/components/filmography/Dashboard";
 ---
 
-<Layout title="My Filmographies — Filmo">
+<Layout
+  title="My Filmographies — Filmo"
+  description="Follow your favorite actors and directors and track which of their movies you've already watched."
+  noindex
+  canonicalPath="/"
+>
   <Dashboard client:load />
 </Layout>

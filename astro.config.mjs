@@ -24,6 +24,9 @@ const sentryIntegration = sentry(
 // https://astro.build/config
 export default defineConfig({
   output: "server",
+  // Needed to build absolute canonical/Open Graph URLs (Astro.site) —
+  // without it those tags would silently emit relative/broken URLs.
+  site: "https://pelicoolas.vercel.app",
   integrations: [react(), sentryIntegration],
 
   vite: {
