@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FollowedPersonCard } from "./FollowedPersonCard";
@@ -42,6 +42,13 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
     Record<number, number>
   >({});
   const [sortMode, setSortMode] = useState<SortMode>("recent");
+  // Firestore's onSnapshot can re-emit the followed-people list with a new
+  // array reference on metadata-only changes (not just real add/remove),
+  // re-running the totalCount/age effect below on every emission. Without
+  // this, that meant re-fetching /api/person/{id} for every already-known
+  // person each time — easily enough requests to hit the endpoint's rate
+  // limit for anyone following more than a handful of people.
+  const fetchedPersonIdsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     if (!user) {
@@ -76,6 +83,8 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
   useEffect(() => {
     if (!people) return;
     people.forEach((person) => {
+      if (fetchedPersonIdsRef.current.has(person.tmdbId)) return;
+      fetchedPersonIdsRef.current.add(person.tmdbId);
       fetch(`/api/person/${person.tmdbId}`)
         .then((r) => r.json())
         .then(
