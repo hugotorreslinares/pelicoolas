@@ -2,6 +2,8 @@
 import "../styles/global.css";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { FollowedDock } from "@/components/filmography/FollowedDock";
+import { SearchIcon, FilmIcon, BookmarkIcon } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 
@@ -28,6 +30,21 @@ const {
 
 const canonicalURL = new URL(canonicalPath, Astro.site);
 const ogImageURL = new URL(image, Astro.site);
+
+// /filmographies mirrors / (same <Dashboard>), so both should read as "on
+// the My Filmographies tab" — otherwise landing on / shows no active state
+// at all.
+const pathname = Astro.url.pathname;
+const isSearchActive = pathname === "/search";
+const isFilmographiesActive = pathname === "/" || pathname === "/filmographies";
+const isWatchlistActive = pathname === "/watchlist";
+
+const navLinkClass = (active: boolean) =>
+  `focus-ring flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors ${
+    active
+      ? "bg-foreground text-background"
+      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+  }`;
 
 const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
   dateStyle: "medium",
@@ -104,18 +121,43 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
       >
         <a href="/" class="focus-ring text-lg font-bold tracking-tight">FILMO</a
         >
-        <nav class="flex flex-wrap items-center gap-3 sm:gap-4">
-          <a href="/search" class="focus-ring text-sm hover:underline">Search</a
+        <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+          <nav
+            aria-label="Main"
+            class="flex items-center gap-1 rounded-full border p-1"
           >
-          <a href="/filmographies" class="focus-ring text-sm hover:underline"
-            >My Filmographies</a
-          >
-          <a href="/watchlist" class="focus-ring text-sm hover:underline"
-            >Watchlist</a
-          >
+            <a
+              href="/search"
+              class={navLinkClass(isSearchActive)}
+              aria-current={isSearchActive ? "page" : undefined}
+              title="Search"
+            >
+              <SearchIcon className="size-4" />
+              <span class="sr-only">Search</span>
+            </a>
+            <a
+              href="/filmographies"
+              class={navLinkClass(isFilmographiesActive)}
+              aria-current={isFilmographiesActive ? "page" : undefined}
+              title="My Filmographies"
+            >
+              <FilmIcon className="size-4" />
+              <span class="sr-only">My Filmographies</span>
+            </a>
+            <a
+              href="/watchlist"
+              class={navLinkClass(isWatchlistActive)}
+              aria-current={isWatchlistActive ? "page" : undefined}
+              title="Watchlist"
+            >
+              <BookmarkIcon className="size-4" />
+              <span class="sr-only">Watchlist</span>
+            </a>
+          </nav>
+          <FollowedDock client:idle />
           <ThemeToggle client:idle />
           <UserMenu client:idle />
-        </nav>
+        </div>
       </div>
     </header>
     <main class="mx-auto max-w-5xl p-4">

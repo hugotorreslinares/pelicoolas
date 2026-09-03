@@ -67,6 +67,14 @@ export function FollowedPeopleHero({ people }: FollowedPeopleHeroProps) {
       const cards = Array.from(
         container.querySelectorAll<HTMLElement>("[data-card]"),
       );
+      // Push-away target: a separate inner element per card, distinct from
+      // the outer `[data-card]` button. The button already owns y (idle
+      // float), x (pointer parallax) and scale (its own hover zoom) — layering
+      // a *neighbor's* hover-push onto the same x/y would fight those
+      // tweens. A dedicated node keeps the two effects independent.
+      const pushEls = cards.map((card) =>
+        card.querySelector<HTMLElement>("[data-push]")!,
+      );
 
       ctx = gsap.context(() => {
         gsap.set(cards, { y: (i) => OFFSETS[i % OFFSETS.length] });
@@ -117,28 +125,76 @@ export function FollowedPeopleHero({ people }: FollowedPeopleHeroProps) {
         container.addEventListener("pointermove", handlePointerMove);
         container.addEventListener("pointerleave", handlePointerLeave);
 
-        cards.forEach((card) => {
-          const enter = () =>
-            gsap.to(card, {
-              scale: 1.08,
-              duration: 0.35,
+        // Layout-based centers (offsetLeft/Top), not getBoundingClientRect —
+        // the latter reflects the *current* CSS transform, which would make
+        // the push math feed back into itself as cards move.
+        function cardCenter(card: HTMLElement) {
+          return {
+            x: card.offsetLeft + card.offsetWidth / 2,
+            y: card.offsetTop + card.offsetHeight / 2,
+          };
+        }
+
+        const PUSH_RADIUS = 150;
+        const MAX_PUSH = 26;
+
+        const enterHandlers = cards.map((card, i) => () => {
+          gsap.to(card, {
+            scale: 1.35,
+            zIndex: 20,
+            duration: 0.4,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+
+          const center = cardCenter(card);
+          cards.forEach((otherCard, j) => {
+            if (j === i) return;
+            const otherCenter = cardCenter(otherCard);
+            const dx = otherCenter.x - center.x;
+            const dy = otherCenter.y - center.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            if (distance >= PUSH_RADIUS) return;
+            const strength = 1 - distance / PUSH_RADIUS;
+            gsap.to(pushEls[j], {
+              x: (dx / distance) * MAX_PUSH * strength,
+              y: (dy / distance) * MAX_PUSH * strength,
+              duration: 0.4,
               ease: "power2.out",
               overwrite: "auto",
             });
-          const leave = () =>
-            gsap.to(card, {
-              scale: 1,
-              duration: 0.35,
-              ease: "power2.out",
-              overwrite: "auto",
-            });
-          card.addEventListener("pointerenter", enter);
-          card.addEventListener("pointerleave", leave);
+          });
+        });
+
+        const leaveHandlers = cards.map((card) => () => {
+          gsap.to(card, {
+            scale: 1,
+            zIndex: 0,
+            duration: 0.35,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+          gsap.to(pushEls, {
+            x: 0,
+            y: 0,
+            duration: 0.35,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+        });
+
+        cards.forEach((card, i) => {
+          card.addEventListener("pointerenter", enterHandlers[i]);
+          card.addEventListener("pointerleave", leaveHandlers[i]);
         });
 
         return () => {
           container.removeEventListener("pointermove", handlePointerMove);
           container.removeEventListener("pointerleave", handlePointerLeave);
+          cards.forEach((card, i) => {
+            card.removeEventListener("pointerenter", enterHandlers[i]);
+            card.removeEventListener("pointerleave", leaveHandlers[i]);
+          });
         };
       }, container);
     });
@@ -174,16 +230,21 @@ export function FollowedPeopleHero({ people }: FollowedPeopleHeroProps) {
           type="button"
           data-card
           onClick={() => (window.location.href = `/person/${person.tmdbId}`)}
-          className="focus-ring w-20 shrink-0 overflow-hidden rounded-xl border shadow-sm sm:w-28"
+          className="focus-ring w-20 shrink-0 sm:w-28"
           aria-label={`Go to ${person.name}'s filmography`}
         >
-          <img
-            src={tmdbImageUrl(person.profilePath!, 185)}
-            srcSet={tmdbDensitySrcSet(person.profilePath!, 185, 342)}
-            alt={person.name}
-            className="aspect-[3/4] w-full object-cover"
-            loading="eager"
-          />
+          <div
+            data-push
+            className="overflow-hidden rounded-xl border shadow-sm"
+          >
+            <img
+              src={tmdbImageUrl(person.profilePath!, 185)}
+              srcSet={tmdbDensitySrcSet(person.profilePath!, 185, 342)}
+              alt={person.name}
+              className="aspect-[3/4] w-full object-cover"
+              loading="eager"
+            />
+          </div>
         </button>
       ))}
     </div>

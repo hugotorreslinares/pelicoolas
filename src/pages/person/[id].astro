@@ -10,6 +10,7 @@ import { getPersonProfile } from "@/lib/tmdb/people";
 import { getFilmography } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { ArrowLeftIcon } from "lucide-react";
 import type { CreditDepartment } from "@/types/filmography";
 
 const MAX_DESCRIPTION_LENGTH = 160;
@@ -48,6 +49,43 @@ const description = profile
 const ogImage = profile?.profilePath
   ? tmdbImageUrl(profile.profilePath, 500)
   : undefined;
+
+// No client-side navigation history to rely on (every link here is a
+// plain full-page <a>), so "back to where you came from" comes from the
+// Referer header — only trusted for same-origin, known routes, so a
+// direct link or search-engine visit just shows no breadcrumb at all
+// instead of a misleading one.
+let backHref: string | null = null;
+let backLabel: string | null = null;
+const referer = Astro.request.headers.get("referer");
+if (referer) {
+  try {
+    const refUrl = new URL(referer);
+    if (refUrl.origin === Astro.url.origin) {
+      if (refUrl.pathname === "/watchlist") {
+        backHref = "/watchlist";
+        backLabel = "your watchlist";
+      } else if (
+        refUrl.pathname === "/" ||
+        refUrl.pathname === "/filmographies"
+      ) {
+        backHref = "/filmographies";
+        backLabel = "My Filmographies";
+      } else if (refUrl.pathname === "/search") {
+        backHref = "/search";
+        backLabel = "search";
+      } else if (
+        refUrl.pathname.startsWith("/person/") &&
+        refUrl.pathname !== Astro.url.pathname
+      ) {
+        backHref = refUrl.pathname;
+        backLabel = "the previous filmography";
+      }
+    }
+  } catch {
+    // Malformed Referer header — just skip the breadcrumb.
+  }
+}
 ---
 
 <Layout
@@ -56,6 +94,18 @@ const ogImage = profile?.profilePath
   image={ogImage}
   noindex={!profile}
 >
+  {
+    backHref && (
+      <a
+        href={backHref}
+        class="focus-ring mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeftIcon className="size-3.5" />
+        Back to {backLabel}
+      </a>
+    )
+  }
+
   <PersonSearch className="max-w-sm space-y-4" showRecent={false} client:load />
 
   {error && <p class="mt-4 text-destructive">{error}</p>}
