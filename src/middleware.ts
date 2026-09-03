@@ -23,6 +23,12 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' https://image.tmdb.org https://*.googleusercontent.com data:",
   "font-src 'self' data:",
+  // Sentry's browser SDK creates its event-sender as a blob: Worker — without
+  // worker-src, CSP falls back to script-src (self + specific hosts only,
+  // no blob:) and silently drops it: errors are captured client-side
+  // (visible in the console as `__sentry_captured__: true`) but never
+  // actually leave the browser, so nothing shows up in Sentry.
+  "worker-src 'self' blob:",
   `connect-src 'self' https://*.googleapis.com https://vitals.vercel-insights.com https://*.vercel-insights.com https://*.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io${emulatorConnectSrc}`,
   "frame-src https://*.firebaseapp.com https://accounts.google.com",
   "frame-ancestors 'none'",
