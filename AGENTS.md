@@ -24,7 +24,9 @@ pnpm test            # Vitest (lógica pura)
 pnpm build          # build completo (Vercel usa output: "server")
 ```
 
-CI (`.github/workflows/ci.yml`) corre las mismas cinco cosas en cada push/PR a `main`. Pre-commit (Husky + lint-staged) corre `eslint --fix` + `prettier --write` sobre los archivos staged — no hace typecheck completo ni tests, eso queda para CI.
+CI (`.github/workflows/ci.yml`, job `ci`) corre las mismas cinco cosas en cada push/PR a `main`. Pre-commit (Husky + lint-staged) corre `eslint --fix` + `prettier --write` sobre los archivos staged — no hace typecheck completo ni tests, eso queda para CI.
+
+Si el cambio toca `firestore.rules`, correr también `pnpm test:rules` (necesita Java — `brew install openjdk`; CI lo corre en un job separado, `firestore-rules`, que sí tiene JVM). No forma parte de la verificación estándar de arriba porque no todo entorno local tiene Java.
 
 ## Convenciones del repo
 

@@ -41,16 +41,17 @@ Copia `.env.example` a `.env` y completa:
 
 ## Comandos
 
-| Comando             | Acción                             |
-| :------------------ | :--------------------------------- |
-| `pnpm dev`          | Servidor local en `localhost:4321` |
-| `pnpm build`        | Build de producción a `./dist/`    |
-| `pnpm astro check`  | Typecheck                          |
-| `pnpm lint`         | ESLint                             |
-| `pnpm format:check` | Prettier                           |
-| `pnpm test`         | Vitest (lógica pura)               |
+| Comando             | Acción                                                                 |
+| :------------------ | :--------------------------------------------------------------------- |
+| `pnpm dev`          | Servidor local en `localhost:4321`                                     |
+| `pnpm build`        | Build de producción a `./dist/`                                        |
+| `pnpm astro check`  | Typecheck                                                              |
+| `pnpm lint`         | ESLint                                                                 |
+| `pnpm format:check` | Prettier                                                               |
+| `pnpm test`         | Vitest (lógica pura)                                                   |
+| `pnpm test:rules`   | Tests de `firestore.rules` contra el Firebase Emulator (necesita Java) |
 
-CI (GitHub Actions) corre las cinco cosas de arriba en cada push/PR a `main`. Pre-commit (Husky + lint-staged) hace `eslint --fix` + `prettier --write` sobre lo staged. Hay además dos workflows semanales/manuales: Lighthouse (performance) y axe-core (accesibilidad), ambos informativos contra producción.
+CI (GitHub Actions) corre las primeras cinco cosas de arriba en el job `ci`, y `pnpm test:rules` en un job separado (`firestore-rules`), en cada push/PR a `main`. Pre-commit (Husky + lint-staged) hace `eslint --fix` + `prettier --write` sobre lo staged. Hay además dos workflows semanales/manuales: Lighthouse (performance) y axe-core (accesibilidad), ambos informativos contra producción.
 
 ## Estructura
 

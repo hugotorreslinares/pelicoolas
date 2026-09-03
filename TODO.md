@@ -9,7 +9,7 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [x] **GitHub Actions** (`.github/workflows/ci.yml`): format:check → lint → astro check → build, en cada push/PR a `main`.
 - [x] **Vitest** para unit tests de lógica pura — `calculateAge`, `sortFilmography`/`dedupeByMovieId`/`toReleaseYear`, `toGender`, `recentSearches.ts` (17 tests). Config vía `getViteConfig` de `astro/config` (respeta el alias `@/` y env de Astro), `environment: "jsdom"` para los tests que tocan `localStorage`. `pnpm test` corre en CI justo antes del build.
 - [ ] **Playwright** E2E para el flujo core: buscar → seguir → marcar vista → ver progreso. Mockear TMDB con fixtures fijos para no depender de la API real ni gastar cuota.
-- [ ] **Firebase Emulator Suite** + tests de `firestore.rules` (`@firebase/rules-unit-testing`) — las reglas de seguridad nunca se han probado automáticamente, solo revisado a ojo.
+- [x] **Firebase Emulator Suite** + tests de `firestore.rules` — `tests/firestore.rules.test.ts` (8 tests con `@firebase/rules-unit-testing`), cubre: usuario lee/escribe su propio doc, otro usuario no puede leer/escribir el ajeno, cliente sin auth no puede nada, `followedPeople` + `watchedMovies` anidado, y `watchlist`. `pnpm test:rules` (`firebase emulators:exec`) — separado de `pnpm test`/CI principal porque necesita JVM; corre en su propio job de CI (`firestore-rules` en `ci.yml`, `ubuntu-latest` ya trae Java).
 - [ ] Agregar Playwright al CI cuando exista el E2E de arriba (Vitest ya corre en `ci.yml`).
 
 ## Observabilidad
@@ -49,5 +49,4 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 ## Prioridad sugerida si hay que elegir por dónde seguir
 
 1. **Activar Sentry** — código ya integrado, falta que crees el proyecto en sentry.io y pongas `PUBLIC_SENTRY_DSN` en Vercel (ver sección Observabilidad arriba)
-2. Firestore rules tests con el emulador — es tu única capa de seguridad real
-3. Resto, según lo que más te frustre en el día a día
+2. Resto, según lo que más te frustre en el día a día
