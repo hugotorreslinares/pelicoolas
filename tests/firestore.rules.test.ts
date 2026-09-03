@@ -125,3 +125,38 @@ describe("firestore.rules — watchlist", () => {
     await assertFails(deleteDoc(doc(db, "users/alice/watchlist/13")));
   });
 });
+
+describe("firestore.rules — badges", () => {
+  it("lets a user read and write their own earned badges", async () => {
+    const db = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/badges/person-complete-31"), {
+        type: "person-complete",
+        label: "Completed Tom Hanks",
+      }),
+    );
+    await assertSucceeds(
+      getDoc(doc(db, "users/alice/badges/person-complete-31")),
+    );
+  });
+
+  it("denies another authenticated user from reading or writing them", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), "users/alice/badges/person-complete-31"),
+        {
+          type: "person-complete",
+          label: "Completed Tom Hanks",
+        },
+      );
+    });
+    const db = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDoc(doc(db, "users/alice/badges/person-complete-31")));
+    await assertFails(
+      setDoc(doc(db, "users/alice/badges/person-complete-31"), {
+        type: "person-complete",
+        label: "Completed Tom Hanks",
+      }),
+    );
+  });
+});

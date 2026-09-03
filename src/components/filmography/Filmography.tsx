@@ -13,8 +13,12 @@ import {
   subscribeToWatchlist,
   unmarkMovieWatched,
 } from "@/lib/firebase/firestore";
+import { awardBadgeOnce } from "@/lib/firebase/badges";
+import engagement from "@/config/engagement.json";
 import type { FilmographyMovie } from "@/types/movie";
 import type { FilmographyFilter } from "@/types/filmography";
+
+const DECADE_SPAN_THRESHOLD = 5;
 
 interface FilmographyProps {
   readonly personId: number;
@@ -90,6 +94,45 @@ export function Filmography({
   }, [sorted, filter, watched]);
 
   const grouped = useMemo(() => groupByYear(filtered), [filtered]);
+
+  // Badge conditions re-evaluate on every `watched` change (any check/
+  // uncheck), but awardBadgeOnce is a no-op past the first time each
+  // condition is met — see its own comment for why that matters.
+  useEffect(() => {
+    if (!user || movies.length === 0) return;
+
+    if (
+      engagement.badges.personFilmographyComplete &&
+      watched.size === movies.length
+    ) {
+      void awardBadgeOnce(user.uid, {
+        id: `person-complete-${personId}`,
+        type: "person-complete",
+        label: `Completed ${personName}`,
+        description: `Watched all ${movies.length} movies in ${personName}'s filmography.`,
+        personId,
+        personName,
+      });
+    }
+
+    if (engagement.badges.decadeSpan) {
+      const decades = new Set(
+        movies
+          .filter((m) => watched.has(m.tmdbMovieId) && m.releaseYear !== null)
+          .map((m) => Math.floor(m.releaseYear! / 10) * 10),
+      );
+      if (decades.size >= DECADE_SPAN_THRESHOLD) {
+        void awardBadgeOnce(user.uid, {
+          id: `decade-span-${personId}`,
+          type: "decade-span",
+          label: `${personName}: Full Retrospective`,
+          description: `Watched ${personName}'s movies across ${decades.size} different decades.`,
+          personId,
+          personName,
+        });
+      }
+    }
+  }, [user, movies, watched, personId, personName]);
 
   async function toggleWatched(movie: FilmographyMovie, next: boolean) {
     if (!user) {

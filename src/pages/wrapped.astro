@@ -1,0 +1,17 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { WrappedStats } from "@/components/wrapped/WrappedStats";
+---
+
+<Layout
+  title="Your Year in Film — Filmo"
+  description="Your personal viewing stats across everyone you follow."
+  noindex
+>
+  <div class="space-y-4">
+    <h1 class="text-xl font-semibold">Your Year in Film</h1>
+    <WrappedStats client:load />
+  </div>
+</Layout>

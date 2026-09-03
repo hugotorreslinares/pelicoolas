@@ -9,11 +9,14 @@ import {
   removeFromWatchlist,
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
+import { awardBadgeOnce } from "@/lib/firebase/badges";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import engagement from "@/config/engagement.json";
 import type { WatchlistMovie } from "@/types/filmography";
 
 const POSTER_WIDTHS = [185, 342, 500];
 const POSTER_SIZES = "(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
+const WATCHLIST_MILESTONES = [10, 25, 50];
 
 type SortOrder = "newest" | "oldest";
 
@@ -44,6 +47,19 @@ export function WatchlistPage() {
     }
     return subscribeToWatchlist(user.uid, setMovies);
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !movies || !engagement.badges.watchlistMilestones) return;
+    for (const threshold of WATCHLIST_MILESTONES) {
+      if (movies.length < threshold) continue;
+      void awardBadgeOnce(user.uid, {
+        id: `watchlist-milestone-${threshold}`,
+        type: "watchlist-milestone",
+        label: `Watchlist of ${threshold}+`,
+        description: `Kept ${threshold} or more movies on your watchlist.`,
+      });
+    }
+  }, [user, movies]);
 
   // A tall 8-poster skeleton is right for "fetching a signed-in user's
   // watchlist", but auth resolving to "not signed in" is the common case

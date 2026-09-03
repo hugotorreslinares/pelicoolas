@@ -124,7 +124,11 @@ test("search → follow → mark watched → see progress", async ({ page }) => 
   });
 
   await page.goto("/filmographies");
-  await expect(page.getByText("Test Actor")).toBeVisible();
+  // exact: true, not a plain substring match — completing the filmography
+  // also earns badges/nav entries whose text *contains* "Test Actor"
+  // ("Completed Test Actor", "Go to Test Actor's filmography", the card's
+  // own full accessible name), which a non-exact getByText matches too.
+  await expect(page.getByText("Test Actor", { exact: true })).toBeVisible();
   await expect(page.getByText("1 / 1 · 0 remaining")).toBeVisible({
     timeout: 10_000,
   });

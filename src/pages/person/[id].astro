@@ -10,7 +10,8 @@ import { getPersonProfile } from "@/lib/tmdb/people";
 import { getFilmography } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, ClapperboardIcon } from "lucide-react";
+import engagement from "@/config/engagement.json";
 import type { CreditDepartment } from "@/types/filmography";
 
 const MAX_DESCRIPTION_LENGTH = 160;
@@ -49,6 +50,20 @@ const description = profile
 const ogImage = profile?.profilePath
   ? tmdbImageUrl(profile.profilePath, 500)
   : undefined;
+
+// "On this day": any movie in this filmography whose release month/day
+// matches today, any year — a small, cheap way to surface a fun fact from
+// data already fetched for the page, no extra requests.
+let onThisDayMovie: (typeof movies)[number] | null = null;
+if (engagement.onThisDay) {
+  const today = new Date();
+  onThisDayMovie =
+    movies.find((m) => {
+      if (!m.releaseDate) return false;
+      const [, month, day] = m.releaseDate.split("-").map(Number);
+      return month === today.getMonth() + 1 && day === today.getDate();
+    }) ?? null;
+}
 
 // No client-side navigation history to rely on (every link here is a
 // plain full-page <a>), so "back to where you came from" comes from the
@@ -109,6 +124,16 @@ if (referer) {
   <PersonSearch className="max-w-sm space-y-4" showRecent={false} client:load />
 
   {error && <p class="mt-4 text-destructive">{error}</p>}
+
+  {
+    onThisDayMovie && (
+      <p class="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <ClapperboardIcon className="size-4 shrink-0" />
+        On this day in {onThisDayMovie.releaseYear}, "{onThisDayMovie.title}"
+        was released.
+      </p>
+    )
+  }
 
   {
     profile && (

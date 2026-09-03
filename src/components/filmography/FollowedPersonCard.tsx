@@ -1,9 +1,14 @@
+import { TrophyIcon, FlameIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
+import engagement from "@/config/engagement.json";
 import type { FollowedPerson } from "@/types/filmography";
+
+const ALMOST_THERE_MAX_REMAINING = 3;
 
 interface FollowedPersonCardProps {
   readonly person: FollowedPerson;
@@ -21,6 +26,13 @@ export function FollowedPersonCard({
   const percent = totalCount
     ? Math.round((watchedCount / totalCount) * 100)
     : 0;
+  const remaining = totalCount ? totalCount - watchedCount : null;
+  const isComplete = totalCount !== null && totalCount > 0 && remaining === 0;
+  const isAlmostThere =
+    engagement.nudges.cardAlmostThere &&
+    remaining !== null &&
+    remaining > 0 &&
+    remaining <= ALMOST_THERE_MAX_REMAINING;
 
   return (
     <a href={`/person/${person.tmdbId}`} className="focus-ring block">
@@ -42,12 +54,24 @@ export function FollowedPersonCard({
             />
             <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className="min-w-0 flex-1">
             <CardTitle>{person.name}</CardTitle>
             {age !== null && (
               <p className="text-sm text-muted-foreground">{age} years old</p>
             )}
           </div>
+          {isComplete && (
+            <Badge variant="secondary" title="Filmography complete">
+              <TrophyIcon data-icon="inline-start" />
+              Complete
+            </Badge>
+          )}
+          {!isComplete && isAlmostThere && (
+            <Badge title={`${remaining} movies to complete this filmography`}>
+              <FlameIcon data-icon="inline-start" />
+              {remaining} to go
+            </Badge>
+          )}
         </CardHeader>
         <CardContent className="space-y-2">
           {totalCount === null ? (

@@ -9,6 +9,7 @@ function movie(
     title: `Movie ${overrides.tmdbMovieId}`,
     posterPath: null,
     releaseYear: null,
+    releaseDate: null,
     character: null,
     voteAverage: null,
     ...overrides,

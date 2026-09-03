@@ -50,6 +50,7 @@ export async function getFilmography(
     title: c.title ?? "Untitled",
     posterPath: c.poster_path,
     releaseYear: toReleaseYear(c.release_date),
+    releaseDate: c.release_date ?? null,
     character: "character" in c ? (c.character ?? null) : null,
     voteAverage: c.vote_average ?? null,
   }));

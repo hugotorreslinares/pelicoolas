@@ -4,6 +4,8 @@ export interface FilmographyMovie {
   readonly posterPath: string | null;
   /** null when TMDB has no release date; always sorts last, never guessed */
   readonly releaseYear: number | null;
+  /** Full "YYYY-MM-DD" from TMDB, null when unknown — needed for day-level matching ("on this day"), releaseYear alone isn't enough. */
+  readonly releaseDate: string | null;
   readonly character: string | null;
   readonly voteAverage: number | null;
 }

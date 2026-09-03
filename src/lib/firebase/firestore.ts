@@ -15,7 +15,7 @@ import type {
   WatchlistMovie,
 } from "@/types/filmography";
 
-function requireDb() {
+export function requireDb() {
   if (!db) throw new Error("Firebase is not configured");
   return db;
 }

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TrophyIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { FollowedPersonCard } from "./FollowedPersonCard";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { TrendingMovies } from "./TrendingMovies";
@@ -10,10 +12,16 @@ import {
   subscribeToWatchedMovies,
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
+import { awardBadgeOnce, subscribeToBadges } from "@/lib/firebase/badges";
 import { calculateAge } from "@/lib/age";
+import engagement from "@/config/engagement.json";
 import type { FollowedPerson } from "@/types/filmography";
 import type { PersonProfile } from "@/types/person";
 import type { TrendingMovie } from "@/types/movie";
+import type { Badge as BadgeRecord } from "@/types/badges";
+
+const FILMOGRAPHY_MILESTONES = [3, 10, 25];
+const ALMOST_THERE_MAX_REMAINING = 3;
 
 type SortMode = "recent" | "age" | "watched" | "watchlist";
 
@@ -42,6 +50,7 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
     Record<number, number>
   >({});
   const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [badges, setBadges] = useState<readonly BadgeRecord[]>([]);
   // Firestore's onSnapshot can re-emit the followed-people list with a new
   // array reference on metadata-only changes (not just real add/remove),
   // re-running the totalCount/age effect below on every emission. Without
@@ -126,6 +135,85 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
     });
   }, [user]);
 
+  useEffect(() => {
+    if (!user) {
+      setBadges([]);
+      return;
+    }
+    return subscribeToBadges(user.uid, setBadges);
+  }, [user]);
+
+  const completedPeople = useMemo(
+    () =>
+      (people ?? []).filter((person) => {
+        const stats = statsById[person.tmdbId];
+        return (
+          stats?.totalCount != null &&
+          stats.totalCount > 0 &&
+          stats.watchedCount === stats.totalCount
+        );
+      }),
+    [people, statsById],
+  );
+
+  // Re-checks on every stats change, but awardBadgeOnce is a no-op past the
+  // first time each one is earned, so this is cheap to call unconditionally.
+  useEffect(() => {
+    if (!user || completedPeople.length === 0) return;
+
+    if (engagement.badges.filmographyMilestones) {
+      for (const threshold of FILMOGRAPHY_MILESTONES) {
+        if (completedPeople.length < threshold) continue;
+        void awardBadgeOnce(user.uid, {
+          id: `filmography-milestone-${threshold}`,
+          type: "filmography-milestone",
+          label: `${threshold} Filmographies Complete`,
+          description: `Completed ${threshold} followed filmographies.`,
+        });
+      }
+    }
+
+    if (engagement.badges.actorDirectorMilestones) {
+      const hasCompletedActor = completedPeople.some(
+        (p) => p.knownForDepartment !== "Directing",
+      );
+      const hasCompletedDirector = completedPeople.some(
+        (p) => p.knownForDepartment === "Directing",
+      );
+      if (hasCompletedActor) {
+        void awardBadgeOnce(user.uid, {
+          id: "actor-first-complete",
+          type: "actor-milestone",
+          label: "Leading Role",
+          description: "Completed your first actor's filmography.",
+        });
+      }
+      if (hasCompletedDirector) {
+        void awardBadgeOnce(user.uid, {
+          id: "director-first-complete",
+          type: "director-milestone",
+          label: "Director's Cut",
+          description: "Completed your first director's filmography.",
+        });
+      }
+    }
+  }, [user, completedPeople]);
+
+  const almostThere = useMemo(() => {
+    if (!people) return [];
+    return people
+      .map((person) => {
+        const stats = statsById[person.tmdbId];
+        if (stats?.totalCount == null || stats.totalCount === 0) return null;
+        const remaining = stats.totalCount - stats.watchedCount;
+        if (remaining <= 0 || remaining > ALMOST_THERE_MAX_REMAINING)
+          return null;
+        return { person, remaining };
+      })
+      .filter((entry) => entry !== null)
+      .sort((a, b) => a.remaining - b.remaining);
+  }, [people, statsById]);
+
   const sortedPeople = useMemo(() => {
     if (!people || sortMode === "recent") return people;
     return [...people].sort((a, b) => {
@@ -200,7 +288,47 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
   return (
     <div className="space-y-4">
       <FollowedPeopleHero people={people} />
-      <h1 className="text-xl font-semibold">{heading}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">{heading}</h1>
+        {engagement.wrapped && (
+          <Button size="sm" variant="outline" render={<a href="/wrapped" />}>
+            Your Year in Film
+          </Button>
+        )}
+      </div>
+
+      {badges.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {badges.map((badge) => (
+            <Badge key={badge.id} variant="secondary" title={badge.description}>
+              <TrophyIcon data-icon="inline-start" />
+              {badge.label}
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {engagement.nudges.dashboardAlmostThere && almostThere.length > 0 && (
+        <div className="rounded-lg border bg-muted/40 p-3">
+          <p className="mb-2 text-sm font-medium">Almost there</p>
+          <ul className="space-y-1 text-sm">
+            {almostThere.map(({ person, remaining }) => (
+              <li key={person.tmdbId}>
+                <a
+                  href={`/person/${person.tmdbId}`}
+                  className="focus-ring hover:underline"
+                >
+                  {person.name}
+                </a>{" "}
+                <span className="text-muted-foreground">
+                  — {remaining} {remaining === 1 ? "movie" : "movies"} to
+                  complete
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">

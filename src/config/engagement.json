@@ -1,0 +1,15 @@
+{
+  "badges": {
+    "personFilmographyComplete": true,
+    "filmographyMilestones": true,
+    "watchlistMilestones": true,
+    "actorDirectorMilestones": true,
+    "decadeSpan": true
+  },
+  "nudges": {
+    "cardAlmostThere": true,
+    "dashboardAlmostThere": true
+  },
+  "wrapped": true,
+  "onThisDay": true
+}

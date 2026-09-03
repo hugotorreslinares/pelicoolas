@@ -37,6 +37,9 @@ users/{userId}/followedPeople/{personId}/watchedMovies/{movieId}
 
 users/{userId}/watchlist/{movieId}
   tmdbId, title, posterPath, releaseYear, sourcePersonId, sourcePersonName, addedAt
+
+users/{userId}/badges/{badgeId}
+  type, label, description, earnedAt, personId?, personName?
 ```
 
 Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firestore.rules](firestore.rules). **Cambios a este archivo requieren deploy manual** (Firebase Console o `firebase deploy --only firestore:rules`); no se aplican solos al hacer push.
@@ -153,6 +156,16 @@ Reemplazó a un experimento anterior con Three.js (sistema solar de caras orbita
 - Solo se muestra si hay al menos una persona seguida con foto; máximo 8 tarjetas.
 - **Precarga antes de mostrar**: las fotos se precargan con `new Image()` (`Promise.all`, cada una resuelve en `onload` u `onerror` — un error no cuelga el spinner, solo esa foto no cuenta como "lista") antes de montar las tarjetas; mientras tanto se ve un spinner simple (`Loader2Icon` girando). Evita el parpadeo de imágenes rotas/a medio cargar antes de que arranque la animación de entrada de GSAP.
 - **Gotcha real (no ambiguo, con causa raíz confirmada)**: `import gsap from "gsap"` a nivel de módulo tumbaba la función serverless en producción — `SyntaxError: Cannot use import statement outside a module`. Causa: Astro sigue renderizando este componente en el servidor para el HTML inicial aunque sea `client:load` (así funciona la hidratación), así que cualquier import de nivel superior termina también en el bundle del servidor; el paquete de gsap es ESM-only y el bundler de la función de Vercel no lo interopera bien vía `require()`. Fix: `import("gsap")` dinámico **dentro del `useEffect`** — el efecto nunca corre en el servidor, así que gsap nunca se evalúa ahí. Se encontró recién en el primer deploy a producción (el build local había pasado limpio) — antes de dar por bueno un cambio con dependencias nuevas usadas solo client-side, vale la pena revisar los logs de la función (`vercel logs <url>`), no solo el resultado del build.
+
+## Engagement (badges, nudges, Wrapped)
+
+- **`src/config/engagement.json`**: flag booleano por feature (`badges.*`, `nudges.*`, `wrapped`, `onThisDay`). JSON plano importado donde se necesita (`import engagement from "@/config/engagement.json"`) — funciona nativo en Vite/Astro, sin capa de config extra. Para desactivar algo, editar el archivo y redeployar (no hay panel de admin ni runtime toggle — no vale la pena para una app personal).
+- **Badges persistidos, no calculados en vivo**: `users/{userId}/badges/{badgeId}` (`src/lib/firebase/badges.ts`, `awardBadgeOnce`/`subscribeToBadges`). `awardBadgeOnce` primero hace `getDoc` y no escribe si ya existe — así `earnedAt` queda fijo la primera vez, y el badge sobrevive aunque después dejes de seguir a la persona o se vuelva falsa la condición que lo originó (nada borra badges). IDs determinísticos (`person-complete-{tmdbId}`, `filmography-milestone-{3|10|25}`, etc.) hacen la escritura idempotente sin necesitar una transacción.
+- **Dónde se evalúa cada condición** — en el componente que ya tiene los datos a mano, no en un service central: `Filmography.tsx` (completar una filmografía + década-span, tiene `watched`+`movies` de esa persona), `Dashboard.tsx` (milestones de N filmografías + actor/director, tiene `statsById` de todos los seguidos), `WatchlistPage.tsx` (milestones de watchlist, tiene la lista completa).
+- **Actor/director son dos badges únicos, no tiers**: la primera vez que completás la filmografía de un actor y la primera vez que completás la de un director, cada una premia una sola vez (`actor-first-complete` / `director-first-complete`) — no hay niveles 3/10/25 por separado para cada categoría, para no inflar la cantidad de badges.
+- **`FilmographyMovie.releaseDate`** (además de `releaseYear`, que ya existía): agregado específicamente para "on this day" en `/person/[id].astro` — necesita mes+día exactos, no solo el año. `getFilmography` en `lib/tmdb/movies.ts` guarda el `release_date` crudo de TMDB sin parsear.
+- **Wrapped (`/wrapped`) reutiliza el fetch por-persona que ya hace `Dashboard.tsx`** (`/api/person/{id}`, cacheado 6h en el CDN) en vez de agregar un endpoint nuevo — evita gastar cuota de TMDB en una feature de "ver mis stats" que ya tiene los datos disponibles en otro lado. Deliberadamente **sin "horas totales vistas"**: hubiera requerido `getMovieDetails` (con `runtime`) por cada película vista individualmente, que no está en `FilmographyMovie` — ese volumen de requests por persona con muchas películas vistas arriesgaba el rate limit de `/api/movie/{id}` para poco valor real.
+- **Firestore rules**: la subcolección `badges` necesitó su propio bloque en `firestore.rules` (mismo patrón `request.auth.uid == userId` que el resto) — **recordar publicarlo manualmente** (Firebase Console o `firebase deploy --only firestore:rules`) tras cualquier deploy que toque este archivo; si no, los `awardBadgeOnce` fallan silenciosamente con `permission-denied` en producción aunque el build pase limpio.
 
 ## Exportar datos
 
