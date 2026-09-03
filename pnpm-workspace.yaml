@@ -3,5 +3,6 @@ allowBuilds:
   sharp: true
   "@firebase/util": true
   protobufjs: true
+  "@sentry/cli": true
 
 minimumReleaseAge: 0

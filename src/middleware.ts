@@ -13,7 +13,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' https://image.tmdb.org data:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.googleapis.com https://vitals.vercel-insights.com https://*.vercel-insights.com",
+  "connect-src 'self' https://*.googleapis.com https://vitals.vercel-insights.com https://*.vercel-insights.com https://*.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io",
   "frame-src https://*.firebaseapp.com https://accounts.google.com",
   "frame-ancestors 'none'",
   "object-src 'none'",

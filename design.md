@@ -82,6 +82,16 @@ El footer de `/` muestra "Deployed {fecha}" de forma discreta. Se captura en bui
 
 `@vercel/analytics/astro` y `@vercel/speed-insights/astro` montados en `Layout.astro`. Requiere activarlos también en el dashboard de Vercel (Analytics y Speed Insights) para que empiecen a recolectar datos.
 
+### Sentry (errores)
+
+`@sentry/astro` en `astro.config.mjs`, captura cliente + servidor (SSR: la integración inyecta su propio middleware de instrumentación, independiente de `src/middleware.ts`). Sin config de cliente/servidor propia — el SDK lee `PUBLIC_SENTRY_DSN` automáticamente por convención del integration; si no está seteada, es un no-op silencioso (no rompe build ni runtime, verificado localmente sin esas env vars).
+
+`org`/`project`/`authToken` (para subir sourcemaps y tener stack traces legibles) solo se pasan cuando existe `SENTRY_AUTH_TOKEN` — si no, el paso de upload se saltea (`sentry-vite-plugin` solo imprime un warning informativo en build, no falla). `telemetry: false` siempre, para no mandar datos de uso del plugin a Sentry.
+
+`connect-src` en `src/middleware.ts` incluye `*.sentry.io` + los dos endpoints de ingest regionales (`*.ingest.us.sentry.io`, `*.ingest.de.sentry.io`) — sin esto el CSP bloquearía silenciosamente los reportes de error del cliente.
+
+**Pendiente de tu lado** (no se puede hacer desde el código): crear el proyecto en sentry.io y setear `PUBLIC_SENTRY_DSN` en Vercel (Production + Preview).
+
 ## Performance
 
 - **Bundle de Firebase aislado**: `astro.config.mjs` fuerza `firebase`/`@firebase/*` a su propio chunk vía `rollupOptions.output.manualChunks`. Antes se mezclaba con código UI compartido (`button.tsx`), generando un chunk de >500kB que cargaba toda página independientemente de si usaba Firebase. Ahora es un chunk propio, cacheable por separado. El tamaño (~500kB) es el SDK en sí — no baja más sin cambiar de SDK.

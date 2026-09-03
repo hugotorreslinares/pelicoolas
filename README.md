@@ -11,6 +11,7 @@ Sigue actores, actrices o directores y lleva registro de qué películas de su f
 - **Firebase** — Auth (Google) + Firestore
 - **TMDB API** — datos de personas y películas (proxied server-side, la API key nunca se expone al cliente)
 - **Vercel** — hosting, Analytics, Speed Insights
+- **Sentry** — error tracking cliente + servidor (requiere `PUBLIC_SENTRY_DSN`, ver `.env.example`)
 
 ## Funcionalidades
 
