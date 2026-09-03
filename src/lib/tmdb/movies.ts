@@ -1,25 +1,10 @@
 import { tmdbFetch } from "./client";
+import {
+  tmdbCombinedCreditsResponseSchema,
+  tmdbMovieDetailsResponseSchema,
+} from "@/types/tmdb";
 import type { CreditDepartment } from "@/types/filmography";
 import type { FilmographyMovie, MovieDetails } from "@/types/movie";
-
-interface TmdbCastCredit {
-  readonly id: number;
-  readonly title?: string;
-  readonly poster_path: string | null;
-  readonly release_date?: string;
-  readonly character?: string;
-  readonly media_type: string;
-  readonly vote_average?: number;
-}
-
-interface TmdbCrewCredit extends TmdbCastCredit {
-  readonly department?: string;
-}
-
-interface TmdbCombinedCreditsResponse {
-  readonly cast: readonly TmdbCastCredit[];
-  readonly crew: readonly TmdbCrewCredit[];
-}
 
 function toReleaseYear(releaseDate: string | undefined): number | null {
   if (!releaseDate) return null;
@@ -43,8 +28,9 @@ export async function getFilmography(
   personId: number,
   department: CreditDepartment,
 ): Promise<readonly FilmographyMovie[]> {
-  const data = await tmdbFetch<TmdbCombinedCreditsResponse>(
+  const data = await tmdbFetch(
     `/person/${personId}/combined_credits`,
+    tmdbCombinedCreditsResponseSchema,
   );
 
   const credits =
@@ -66,18 +52,11 @@ export async function getFilmography(
   return dedupeByMovieId(movies);
 }
 
-interface TmdbMovieDetailsResponse {
-  readonly id: number;
-  readonly title: string;
-  readonly poster_path: string | null;
-  readonly release_date?: string;
-  readonly overview: string | null;
-  readonly runtime: number | null;
-  readonly genres: readonly { readonly id: number; readonly name: string }[];
-}
-
 export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
-  const data = await tmdbFetch<TmdbMovieDetailsResponse>(`/movie/${movieId}`);
+  const data = await tmdbFetch(
+    `/movie/${movieId}`,
+    tmdbMovieDetailsResponseSchema,
+  );
 
   return {
     id: data.id,

@@ -1,31 +1,14 @@
 import { tmdbFetch } from "./client";
+import {
+  tmdbSearchPersonResponseSchema,
+  tmdbPersonDetailsResponseSchema,
+  tmdbPersonImagesResponseSchema,
+} from "@/types/tmdb";
 import type {
   PersonGender,
   PersonProfile,
   PersonSearchResult,
 } from "@/types/person";
-
-interface TmdbSearchPersonResponse {
-  readonly results: readonly {
-    readonly id: number;
-    readonly name: string;
-    readonly profile_path: string | null;
-    readonly known_for_department: string | null;
-  }[];
-}
-
-interface TmdbPersonDetailsResponse {
-  readonly id: number;
-  readonly name: string;
-  readonly profile_path: string | null;
-  readonly known_for_department: string | null;
-  readonly biography: string | null;
-  readonly gender: number;
-  readonly birthday: string | null;
-  readonly deathday: string | null;
-  readonly place_of_birth: string | null;
-  readonly also_known_as: readonly string[];
-}
 
 function toGender(gender: number): PersonGender {
   if (gender === 1) return "female";
@@ -37,10 +20,14 @@ function toGender(gender: number): PersonGender {
 export async function searchPerson(
   query: string,
 ): Promise<readonly PersonSearchResult[]> {
-  const data = await tmdbFetch<TmdbSearchPersonResponse>("/search/person", {
-    query,
-    include_adult: "false",
-  });
+  const data = await tmdbFetch(
+    "/search/person",
+    tmdbSearchPersonResponseSchema,
+    {
+      query,
+      include_adult: "false",
+    },
+  );
 
   return data.results.map((r) => ({
     id: r.id,
@@ -53,8 +40,9 @@ export async function searchPerson(
 export async function getPersonProfile(
   personId: number,
 ): Promise<PersonProfile> {
-  const data = await tmdbFetch<TmdbPersonDetailsResponse>(
+  const data = await tmdbFetch(
     `/person/${personId}`,
+    tmdbPersonDetailsResponseSchema,
   );
 
   return {
@@ -71,15 +59,12 @@ export async function getPersonProfile(
   };
 }
 
-interface TmdbPersonImagesResponse {
-  readonly profiles: readonly { readonly file_path: string }[];
-}
-
 export async function getPersonImages(
   personId: number,
 ): Promise<readonly string[]> {
-  const data = await tmdbFetch<TmdbPersonImagesResponse>(
+  const data = await tmdbFetch(
     `/person/${personId}/images`,
+    tmdbPersonImagesResponseSchema,
   );
   return data.profiles.map((p) => p.file_path);
 }

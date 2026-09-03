@@ -1,9 +1,12 @@
+import type { z } from "zod";
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 export class TmdbError extends Error {}
 
 export async function tmdbFetch<T>(
   path: string,
+  schema: z.ZodType<T>,
   params?: Record<string, string>,
 ): Promise<T> {
   const apiKey = import.meta.env.TMDB_API_KEY;
@@ -27,5 +30,11 @@ export async function tmdbFetch<T>(
     throw new TmdbError(`TMDB request failed: ${response.status} ${path}`);
   }
 
-  return response.json() as Promise<T>;
+  const result = schema.safeParse(await response.json());
+  if (!result.success) {
+    throw new TmdbError(
+      `TMDB response shape changed: ${path}: ${result.error.message}`,
+    );
+  }
+  return result.data;
 }

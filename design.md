@@ -47,6 +47,7 @@ Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firesto
 - Actores → créditos de `cast`; directores → créditos de `crew` con `department === "Directing"`.
 - Deduplicado por `tmdbMovieId`.
 - Orden por año (toggle reciente/antiguo); películas sin fecha van al final, nunca se inventa el año.
+- Validación en runtime con Zod: `src/types/tmdb.ts` define un schema por respuesta cruda de TMDB (snake_case), y el tipo se infiere del schema (`z.infer`) en vez de mantener una interface duplicada a mano. `tmdbFetch(path, schema, params?)` hace `schema.safeParse()` sobre el JSON y lanza `TmdbError` si no matchea — así un cambio de shape en la API externa falla ruidosamente en el momento del fetch en vez de propagar `undefined` silenciosamente hasta la UI.
 
 ## UI
 

@@ -43,9 +43,8 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 
 ## Arquitectura / DX
 
-- [ ] Extraer tipos de respuesta TMDB a un paquete/`types/tmdb.ts` compartido — hoy están duplicados como interfaces inline en cada archivo de `lib/tmdb/`.
+- [x] **Tipos de respuesta TMDB compartidos + validación en runtime** — `src/types/tmdb.ts` define un schema Zod por endpoint (`tmdbSearchPersonResponseSchema`, etc.), con el tipo inferido del propio schema en vez de una interface separada. `tmdbFetch` ahora recibe el schema y hace `safeParse`; si TMDB cambia el shape, `TmdbError` explota en el momento en vez de propagar `undefined` silenciosamente a la UI.
 - [ ] Documentar en `design.md` el porqué de cada decisión no obvia (ya iniciado) — mantenerlo vivo cada vez que se tome una decisión de arquitectura nueva.
-- [ ] Considerar Zod (o similar) para validar las respuestas de TMDB en runtime — hoy se confía ciegamente en el shape de la API externa; si TMDB cambia algo, falla silenciosamente en producción.
 
 ## Prioridad sugerida si hay que elegir por dónde seguir
 
