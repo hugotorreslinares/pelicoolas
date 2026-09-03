@@ -57,10 +57,13 @@ export async function getFilmography(
   return dedupeByMovieId(movies);
 }
 
+const CAST_LIMIT = 10;
+
 export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
   const data = await tmdbFetch(
     `/movie/${movieId}`,
     tmdbMovieDetailsResponseSchema,
+    { append_to_response: "credits" },
   );
 
   return {
@@ -71,6 +74,12 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
     overview: data.overview,
     runtimeMinutes: data.runtime,
     genres: data.genres.map((g) => g.name),
+    cast: (data.credits?.cast ?? []).slice(0, CAST_LIMIT).map((c) => ({
+      personId: c.id,
+      name: c.name,
+      character: c.character ?? null,
+      profilePath: c.profile_path,
+    })),
   };
 }
 

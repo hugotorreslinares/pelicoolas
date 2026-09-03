@@ -9,8 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { XIcon } from "lucide-react";
-import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import {
+  tmdbImageUrl,
+  tmdbWidthSrcSet,
+  tmdbDensitySrcSet,
+} from "@/lib/tmdb/image";
 import type { MovieDetails } from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
@@ -104,6 +109,48 @@ export function MovieDetailsDialog({
             <DialogDescription className="mt-2">
               {details.overview || "No overview available."}
             </DialogDescription>
+
+            {details.cast.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium">Cast</p>
+                <div className="flex gap-3 overflow-x-auto pb-1">
+                  {details.cast.map((member) => (
+                    <a
+                      key={member.personId}
+                      href={`/person/${member.personId}`}
+                      className="focus-ring flex w-16 shrink-0 flex-col items-center gap-1 text-center"
+                    >
+                      <Avatar>
+                        <AvatarImage
+                          src={
+                            member.profilePath
+                              ? tmdbImageUrl(member.profilePath, 92)
+                              : undefined
+                          }
+                          srcSet={
+                            member.profilePath
+                              ? tmdbDensitySrcSet(member.profilePath, 45, 92)
+                              : undefined
+                          }
+                          alt=""
+                        />
+                        <AvatarFallback>
+                          {member.name.slice(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="w-full truncate text-xs font-medium">
+                        {member.name}
+                      </p>
+                      {member.character && (
+                        <p className="w-full truncate text-xs text-muted-foreground">
+                          {member.character}
+                        </p>
+                      )}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </DialogContent>

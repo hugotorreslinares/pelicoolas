@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookmarkIcon } from "lucide-react";
+import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
@@ -34,6 +35,7 @@ export function WatchlistPage() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly WatchlistMovie[] | null>(null);
   const [order, setOrder] = useState<SortOrder>("newest");
+  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -124,20 +126,27 @@ export function WatchlistPage() {
         {sorted.map((movie) => (
           <div key={movie.tmdbId} className="mb-3 break-inside-avoid">
             <div className="group relative overflow-hidden rounded-lg border">
-              {movie.posterPath ? (
-                <img
-                  src={tmdbImageUrl(movie.posterPath, 342)}
-                  srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
-                  sizes={POSTER_SIZES}
-                  alt=""
-                  loading="lazy"
-                  className="w-full object-cover"
-                />
-              ) : (
-                <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
-                  No poster
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setOpenMovieId(movie.tmdbId)}
+                className="focus-ring block w-full"
+                aria-label={`View details for ${movie.title}`}
+              >
+                {movie.posterPath ? (
+                  <img
+                    src={tmdbImageUrl(movie.posterPath, 342)}
+                    srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
+                    sizes={POSTER_SIZES}
+                    alt=""
+                    loading="lazy"
+                    className="w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+                    No poster
+                  </div>
+                )}
+              </button>
 
               {typeof movie.voteAverage === "number" && (
                 <span className="absolute top-2 left-2 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-semibold shadow">
@@ -173,6 +182,14 @@ export function WatchlistPage() {
           </div>
         ))}
       </div>
+
+      {openMovieId !== null && (
+        <MovieDetailsDialog
+          movieId={openMovieId}
+          open={openMovieId !== null}
+          onOpenChange={(open) => !open && setOpenMovieId(null)}
+        />
+      )}
     </div>
   );
 }

@@ -16,6 +16,13 @@ export interface TrendingMovie {
   readonly voteAverage: number | null;
 }
 
+export interface CastMember {
+  readonly personId: number;
+  readonly name: string;
+  readonly character: string | null;
+  readonly profilePath: string | null;
+}
+
 export interface MovieDetails {
   readonly id: number;
   readonly title: string;
@@ -24,4 +31,5 @@ export interface MovieDetails {
   readonly overview: string | null;
   readonly runtimeMinutes: number | null;
   readonly genres: readonly string[];
+  readonly cast: readonly CastMember[];
 }

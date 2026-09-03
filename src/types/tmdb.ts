@@ -87,6 +87,20 @@ export const tmdbMovieDetailsResponseSchema = z.object({
   overview: z.string().nullable(),
   runtime: z.number().nullable(),
   genres: z.array(z.object({ id: z.number(), name: z.string() })),
+  // Present because getMovieDetails requests append_to_response=credits —
+  // optional here since a plain /movie/{id} call (no append) wouldn't have it.
+  credits: z
+    .object({
+      cast: z.array(
+        z.object({
+          id: z.number(),
+          name: z.string(),
+          character: z.string().optional(),
+          profile_path: z.string().nullable(),
+        }),
+      ),
+    })
+    .optional(),
 });
 export type TmdbMovieDetailsResponse = z.infer<
   typeof tmdbMovieDetailsResponseSchema
