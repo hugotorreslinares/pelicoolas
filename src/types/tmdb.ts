@@ -64,6 +64,21 @@ export type TmdbCombinedCreditsResponse = z.infer<
   typeof tmdbCombinedCreditsResponseSchema
 >;
 
+export const tmdbTrendingMoviesResponseSchema = z.object({
+  results: z.array(
+    z.object({
+      id: z.number(),
+      title: z.string(),
+      poster_path: z.string().nullable(),
+      release_date: z.string().optional(),
+      vote_average: z.number().optional(),
+    }),
+  ),
+});
+export type TmdbTrendingMoviesResponse = z.infer<
+  typeof tmdbTrendingMoviesResponseSchema
+>;
+
 export const tmdbMovieDetailsResponseSchema = z.object({
   id: z.number(),
   title: z.string(),

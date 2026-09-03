@@ -48,6 +48,7 @@ Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firesto
 - Deduplicado por `tmdbMovieId`.
 - Orden por año (toggle reciente/antiguo); películas sin fecha van al final, nunca se inventa el año.
 - Validación en runtime con Zod: `src/types/tmdb.ts` define un schema por respuesta cruda de TMDB (snake_case), y el tipo se infiere del schema (`z.infer`) en vez de mantener una interface duplicada a mano. `tmdbFetch(path, schema, params?)` hace `schema.safeParse()` sobre el JSON y lanza `TmdbError` si no matchea — así un cambio de shape en la API externa falla ruidosamente en el momento del fetch en vez de propagar `undefined` silenciosamente hasta la UI.
+- **Trending del home** (`getTrendingMovies()` en `lib/tmdb/movies.ts`, fuente `/trending/movie/week`): fetch server-side directo en `index.astro`, no vía `/api/*` — es contenido de la página en sí (como `getPersonProfile`/`getFilmography` en `/person/[id]`), no algo que el cliente pida por su cuenta, así que no necesita el hop extra ni el rate limiting de los endpoints `/api/*` (esos existen para proteger llamadas que sí origina el navegador). `<TrendingMovies>` reutiliza `MovieDetailsDialog` (el mismo modal que abre un poster en una filmografía) — un componente, dos puntos de entrada.
 
 ## UI
 

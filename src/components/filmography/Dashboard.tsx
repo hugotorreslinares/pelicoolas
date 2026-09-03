@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FollowedPersonCard } from "./FollowedPersonCard";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
+import { TrendingMovies } from "./TrendingMovies";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   subscribeToFollowedPeople,
@@ -12,6 +13,7 @@ import {
 import { calculateAge } from "@/lib/age";
 import type { FollowedPerson } from "@/types/filmography";
 import type { PersonProfile } from "@/types/person";
+import type { TrendingMovie } from "@/types/movie";
 
 type SortMode = "recent" | "age" | "watched" | "watchlist";
 
@@ -28,7 +30,11 @@ interface PersonStats {
   readonly age: number | null;
 }
 
-export function Dashboard() {
+interface DashboardProps {
+  readonly trendingMovies?: readonly TrendingMovie[];
+}
+
+export function Dashboard({ trendingMovies = [] }: DashboardProps) {
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [statsById, setStatsById] = useState<Record<number, PersonStats>>({});
@@ -155,10 +161,15 @@ export function Dashboard() {
 
   if (!user) {
     return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{heading}</h1>
-        <p>Follow the people whose movies you want to watch.</p>
-        <Button render={<a href="/search" />}>Search actors & directors</Button>
+      <div className="space-y-8">
+        <div className="space-y-3 text-center">
+          <h1 className="text-xl font-semibold">{heading}</h1>
+          <p>Follow the people whose movies you want to watch.</p>
+          <Button render={<a href="/search" />}>
+            Search actors & directors
+          </Button>
+        </div>
+        <TrendingMovies movies={trendingMovies} />
       </div>
     );
   }

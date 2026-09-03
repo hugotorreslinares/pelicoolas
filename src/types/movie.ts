@@ -8,6 +8,14 @@ export interface FilmographyMovie {
   readonly voteAverage: number | null;
 }
 
+export interface TrendingMovie {
+  readonly tmdbMovieId: number;
+  readonly title: string;
+  readonly posterPath: string | null;
+  readonly releaseYear: number | null;
+  readonly voteAverage: number | null;
+}
+
 export interface MovieDetails {
   readonly id: number;
   readonly title: string;

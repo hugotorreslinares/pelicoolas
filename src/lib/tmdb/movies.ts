@@ -2,9 +2,14 @@ import { tmdbFetch } from "./client";
 import {
   tmdbCombinedCreditsResponseSchema,
   tmdbMovieDetailsResponseSchema,
+  tmdbTrendingMoviesResponseSchema,
 } from "@/types/tmdb";
 import type { CreditDepartment } from "@/types/filmography";
-import type { FilmographyMovie, MovieDetails } from "@/types/movie";
+import type {
+  FilmographyMovie,
+  MovieDetails,
+  TrendingMovie,
+} from "@/types/movie";
 
 export function toReleaseYear(releaseDate: string | undefined): number | null {
   if (!releaseDate) return null;
@@ -67,6 +72,23 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
     runtimeMinutes: data.runtime,
     genres: data.genres.map((g) => g.name),
   };
+}
+
+const TRENDING_LIMIT = 12;
+
+export async function getTrendingMovies(): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch(
+    "/trending/movie/week",
+    tmdbTrendingMoviesResponseSchema,
+  );
+
+  return data.results.slice(0, TRENDING_LIMIT).map((m) => ({
+    tmdbMovieId: m.id,
+    title: m.title,
+    posterPath: m.poster_path,
+    releaseYear: toReleaseYear(m.release_date),
+    voteAverage: m.vote_average ?? null,
+  }));
 }
 
 export function sortFilmography(

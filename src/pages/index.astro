@@ -3,6 +3,17 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { Dashboard } from "@/components/filmography/Dashboard";
+import { getTrendingMovies } from "@/lib/tmdb/movies";
+import { TmdbError } from "@/lib/tmdb/client";
+
+// Best-effort: if TMDB is down, the dashboard still renders fine without
+// the trending row rather than breaking the whole page over it.
+let trendingMovies: Awaited<ReturnType<typeof getTrendingMovies>> = [];
+try {
+  trendingMovies = await getTrendingMovies();
+} catch (e) {
+  if (!(e instanceof TmdbError)) throw e;
+}
 ---
 
 <Layout
@@ -11,5 +22,5 @@ import { Dashboard } from "@/components/filmography/Dashboard";
   showDeployInfo
   noindex
 >
-  <Dashboard client:load />
+  <Dashboard client:load trendingMovies={trendingMovies} />
 </Layout>
