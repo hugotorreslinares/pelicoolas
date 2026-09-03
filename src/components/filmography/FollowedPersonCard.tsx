@@ -1,38 +1,21 @@
-import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/lib/hooks/useAuth";
-import { subscribeToWatchedMovies } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import type { FollowedPerson } from "@/types/filmography";
 
 interface FollowedPersonCardProps {
   readonly person: FollowedPerson;
+  readonly watchedCount: number;
+  readonly totalCount: number | null;
 }
 
-export function FollowedPersonCard({ person }: FollowedPersonCardProps) {
-  const { user } = useAuth();
-  const [watchedCount, setWatchedCount] = useState(0);
-  const [totalCount, setTotalCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    return subscribeToWatchedMovies(user.uid, person.tmdbId, (watched) =>
-      setWatchedCount(watched.size),
-    );
-  }, [user, person.tmdbId]);
-
-  useEffect(() => {
-    fetch(`/api/person/${person.tmdbId}`)
-      .then((r) => r.json())
-      .then((data: { movies: readonly unknown[] }) =>
-        setTotalCount(data.movies.length),
-      )
-      .catch(() => setTotalCount(0));
-  }, [person.tmdbId]);
-
+export function FollowedPersonCard({
+  person,
+  watchedCount,
+  totalCount,
+}: FollowedPersonCardProps) {
   const percent = totalCount
     ? Math.round((watchedCount / totalCount) * 100)
     : 0;

@@ -1,5 +1,6 @@
 ---
 import type { PersonProfile } from "@/types/person";
+import { calculateAge } from "@/lib/age";
 
 interface Props {
   profile: PersonProfile;
@@ -16,19 +17,6 @@ function formatDate(iso: string): string {
   });
 }
 
-function ageAt(
-  birthday: string,
-  until: string = new Date().toISOString(),
-): number {
-  const birth = new Date(birthday);
-  const end = new Date(until);
-  let age = end.getFullYear() - birth.getFullYear();
-  const monthDiff = end.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && end.getDate() < birth.getDate()))
-    age--;
-  return age;
-}
-
 const genderLabel =
   profile.gender === "female"
     ? "Female"
@@ -40,8 +28,8 @@ const genderLabel =
 
 const birthdayLine = profile.birthday
   ? profile.deathday
-    ? `${formatDate(profile.birthday)} — ${formatDate(profile.deathday)} (${ageAt(profile.birthday, profile.deathday)} years old)`
-    : `${formatDate(profile.birthday)} (${ageAt(profile.birthday)} years old)`
+    ? `${formatDate(profile.birthday)} — ${formatDate(profile.deathday)} (${calculateAge(profile.birthday, profile.deathday)} years old)`
+    : `${formatDate(profile.birthday)} (${calculateAge(profile.birthday)} years old)`
   : null;
 ---
 

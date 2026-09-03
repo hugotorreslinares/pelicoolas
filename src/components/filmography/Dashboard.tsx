@@ -1,15 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FollowedPersonCard } from "./FollowedPersonCard";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
+import {
+  subscribeToFollowedPeople,
+  subscribeToWatchedMovies,
+  subscribeToWatchlist,
+} from "@/lib/firebase/firestore";
+import { calculateAge } from "@/lib/age";
 import type { FollowedPerson } from "@/types/filmography";
+import type { PersonProfile } from "@/types/person";
+
+type SortMode = "recent" | "age" | "watched" | "watchlist";
+
+const SORT_OPTIONS: readonly { value: SortMode; label: string }[] = [
+  { value: "recent", label: "Recently followed" },
+  { value: "age", label: "Age" },
+  { value: "watched", label: "Most watched" },
+  { value: "watchlist", label: "Watchlist size" },
+];
+
+interface PersonStats {
+  readonly watchedCount: number;
+  readonly totalCount: number | null;
+  readonly age: number | null;
+}
 
 export function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
+  const [statsById, setStatsById] = useState<Record<number, PersonStats>>({});
+  const [watchlistCountById, setWatchlistCountById] = useState<
+    Record<number, number>
+  >({});
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
 
   useEffect(() => {
     if (!user) {
@@ -18,6 +44,97 @@ export function Dashboard() {
     }
     return subscribeToFollowedPeople(user.uid, setPeople);
   }, [user]);
+
+  // One watched-movies listener per followed person — same data
+  // FollowedPersonCard used to fetch on its own, lifted up here so the
+  // parent can sort by it instead of every card resolving independently.
+  useEffect(() => {
+    if (!user || !people) return;
+    const unsubscribers = people.map((person) =>
+      subscribeToWatchedMovies(user.uid, person.tmdbId, (watched) => {
+        setStatsById((prev) => ({
+          ...prev,
+          [person.tmdbId]: {
+            totalCount: prev[person.tmdbId]?.totalCount ?? null,
+            age: prev[person.tmdbId]?.age ?? null,
+            watchedCount: watched.size,
+          },
+        }));
+      }),
+    );
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+  }, [user, people]);
+
+  // Total filmography size + age both come from the same TMDB proxy call
+  // already used to render each person's progress bar.
+  useEffect(() => {
+    if (!people) return;
+    people.forEach((person) => {
+      fetch(`/api/person/${person.tmdbId}`)
+        .then((r) => r.json())
+        .then(
+          (data: { profile: PersonProfile; movies: readonly unknown[] }) => {
+            const age = data.profile.birthday
+              ? calculateAge(data.profile.birthday)
+              : null;
+            setStatsById((prev) => ({
+              ...prev,
+              [person.tmdbId]: {
+                watchedCount: prev[person.tmdbId]?.watchedCount ?? 0,
+                totalCount: data.movies.length,
+                age,
+              },
+            }));
+          },
+        )
+        .catch(() => {
+          setStatsById((prev) => ({
+            ...prev,
+            [person.tmdbId]: {
+              watchedCount: prev[person.tmdbId]?.watchedCount ?? 0,
+              totalCount: 0,
+              age: null,
+            },
+          }));
+        });
+    });
+  }, [people]);
+
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToWatchlist(user.uid, (movies) => {
+      const counts: Record<number, number> = {};
+      for (const movie of movies) {
+        counts[movie.sourcePersonId] = (counts[movie.sourcePersonId] ?? 0) + 1;
+      }
+      setWatchlistCountById(counts);
+    });
+  }, [user]);
+
+  const sortedPeople = useMemo(() => {
+    if (!people || sortMode === "recent") return people;
+    return [...people].sort((a, b) => {
+      if (sortMode === "watchlist") {
+        return (
+          (watchlistCountById[b.tmdbId] ?? 0) -
+          (watchlistCountById[a.tmdbId] ?? 0)
+        );
+      }
+      if (sortMode === "watched") {
+        return (
+          (statsById[b.tmdbId]?.watchedCount ?? 0) -
+          (statsById[a.tmdbId]?.watchedCount ?? 0)
+        );
+      }
+      // age: people without a known birthday sort to the end, regardless of direction.
+      const ageA = statsById[a.tmdbId]?.age;
+      const ageB = statsById[b.tmdbId]?.age;
+      if (ageA == null && ageB == null) return 0;
+      if (ageA == null) return 1;
+      if (ageB == null) return -1;
+      return ageB - ageA;
+    });
+  }, [people, sortMode, statsById, watchlistCountById]);
 
   // A page-level h1 that renders in every state (including the loading
   // skeleton, which is what search engines and pre-hydration crawlers see)
@@ -64,12 +181,33 @@ export function Dashboard() {
     <div className="space-y-4">
       <FollowedPeopleHero people={people} />
       <h1 className="text-xl font-semibold">{heading}</h1>
-      <p className="text-sm text-muted-foreground">
-        {people.length} people you're following
-      </p>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">
+          {people.length} people you're following
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {SORT_OPTIONS.map((option) => (
+            <Button
+              key={option.value}
+              size="sm"
+              variant={sortMode === option.value ? "default" : "outline"}
+              onClick={() => setSortMode(option.value)}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {people.map((person) => (
-          <FollowedPersonCard key={person.tmdbId} person={person} />
+        {sortedPeople!.map((person) => (
+          <FollowedPersonCard
+            key={person.tmdbId}
+            person={person}
+            watchedCount={statsById[person.tmdbId]?.watchedCount ?? 0}
+            totalCount={statsById[person.tmdbId]?.totalCount ?? null}
+          />
         ))}
       </div>
     </div>
