@@ -9,12 +9,14 @@ interface FollowedPersonCardProps {
   readonly person: FollowedPerson;
   readonly watchedCount: number;
   readonly totalCount: number | null;
+  readonly age: number | null;
 }
 
 export function FollowedPersonCard({
   person,
   watchedCount,
   totalCount,
+  age,
 }: FollowedPersonCardProps) {
   const percent = totalCount
     ? Math.round((watchedCount / totalCount) * 100)
@@ -40,7 +42,12 @@ export function FollowedPersonCard({
             />
             <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
           </Avatar>
-          <CardTitle>{person.name}</CardTitle>
+          <div>
+            <CardTitle>{person.name}</CardTitle>
+            {age !== null && (
+              <p className="text-sm text-muted-foreground">{age} years old</p>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {totalCount === null ? (

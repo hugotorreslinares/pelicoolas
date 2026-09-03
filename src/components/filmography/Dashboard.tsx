@@ -227,6 +227,7 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
             person={person}
             watchedCount={statsById[person.tmdbId]?.watchedCount ?? 0}
             totalCount={statsById[person.tmdbId]?.totalCount ?? null}
+            age={statsById[person.tmdbId]?.age ?? null}
           />
         ))}
       </div>
