@@ -8,9 +8,8 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [x] **Husky + lint-staged** — `eslint --fix` + `prettier --write` en pre-commit, solo sobre staged.
 - [x] **GitHub Actions** (`.github/workflows/ci.yml`): format:check → lint → astro check → build, en cada push/PR a `main`.
 - [x] **Vitest** para unit tests de lógica pura — `calculateAge`, `sortFilmography`/`dedupeByMovieId`/`toReleaseYear`, `toGender`, `recentSearches.ts` (17 tests). Config vía `getViteConfig` de `astro/config` (respeta el alias `@/` y env de Astro), `environment: "jsdom"` para los tests que tocan `localStorage`. `pnpm test` corre en CI justo antes del build.
-- [ ] **Playwright** E2E para el flujo core: buscar → seguir → marcar vista → ver progreso. Mockear TMDB con fixtures fijos para no depender de la API real ni gastar cuota.
+- [x] **Playwright** E2E del flujo core: buscar → seguir → marcar vista → ver progreso (`tests-e2e/core-flow.spec.ts`). TMDB mockeado con un servidor de fixtures propio (`tests-e2e/mock-tmdb-server.mjs`, apuntado vía `TMDB_API_BASE_URL`) — nunca toca la API real ni gasta cuota. Auth/Firestore reales via emulador (usuario sembrado por REST en el Auth emulator, sign-in vía un bypass del popup de Google expuesto solo bajo `PUBLIC_USE_FIREBASE_EMULATOR`). `pnpm test:e2e` corre en su propio job de CI (`e2e` en `ci.yml`). Detalle completo en `design.md`.
 - [x] **Firebase Emulator Suite** + tests de `firestore.rules` — `tests/firestore.rules.test.ts` (8 tests con `@firebase/rules-unit-testing`), cubre: usuario lee/escribe su propio doc, otro usuario no puede leer/escribir el ajeno, cliente sin auth no puede nada, `followedPeople` + `watchedMovies` anidado, y `watchlist`. `pnpm test:rules` (`firebase emulators:exec`) — separado de `pnpm test`/CI principal porque necesita JVM; corre en su propio job de CI (`firestore-rules` en `ci.yml`, `ubuntu-latest` ya trae Java).
-- [ ] Agregar Playwright al CI cuando exista el E2E de arriba (Vitest ya corre en `ci.yml`).
 
 ## Observabilidad
 
@@ -32,7 +31,7 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [x] **Rate limiting** en los 4 endpoints `/api/*` — 30 req/min por IP, en memoria (`src/lib/rateLimit.ts`). Ver `design.md`.
 - [x] Cabeceras de seguridad (CSP, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) vía `src/middleware.ts`. Login con Google confirmado funcionando en producción tras el cambio.
 - [x] Auditoría de dependencias automática — `.github/dependabot.yml` (npm semanal + GitHub Actions).
-- [ ] **Firebase App Check** — hoy cualquiera con la `PUBLIC_FIREBASE_API_KEY` (pública por diseño, pero aun así) podría golpear Firestore directo si no hay reglas perfectas. App Check añade una capa de "esto viene de mi app real". Requiere que registres una site key de reCAPTCHA v3 y actives "Enforce" en la consola de Firebase — no se puede completar solo desde el código.
+- [ ] **Firebase App Check** — hoy cualquiera con la `PUBLIC_FIREBASE_API_KEY` (pública por diseño, pero aun así) podría golpear Firestore directo si no hay reglas perfectas. App Check añade una capa de "esto viene de mi app real". **Bloqueado en ti**: requiere que registres una site key de reCAPTCHA v3 en tu cuenta de Google y actives "Enforce" en la consola de Firebase — son cuentas/consolas tuyas, no se puede completar desde el código ni con las credenciales que ya tengo.
 
 ## Producto (sin agregar features sociales)
 

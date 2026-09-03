@@ -50,8 +50,9 @@ Copia `.env.example` a `.env` y completa:
 | `pnpm format:check` | Prettier                                                               |
 | `pnpm test`         | Vitest (lógica pura)                                                   |
 | `pnpm test:rules`   | Tests de `firestore.rules` contra el Firebase Emulator (necesita Java) |
+| `pnpm test:e2e`     | Playwright: flujo core buscar → seguir → marcar vista (necesita Java)  |
 
-CI (GitHub Actions) corre las primeras cinco cosas de arriba en el job `ci`, y `pnpm test:rules` en un job separado (`firestore-rules`), en cada push/PR a `main`. Pre-commit (Husky + lint-staged) hace `eslint --fix` + `prettier --write` sobre lo staged. Hay además dos workflows semanales/manuales: Lighthouse (performance) y axe-core (accesibilidad), ambos informativos contra producción.
+CI (GitHub Actions) corre las primeras cinco cosas de arriba en el job `ci`, y `pnpm test:rules`/`pnpm test:e2e` cada uno en su propio job (`firestore-rules`, `e2e`), en cada push/PR a `main`. Pre-commit (Husky + lint-staged) hace `eslint --fix` + `prettier --write` sobre lo staged. Hay además dos workflows semanales/manuales: Lighthouse (performance) y axe-core (accesibilidad), ambos informativos contra producción.
 
 ## Estructura
 

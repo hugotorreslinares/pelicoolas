@@ -1,6 +1,15 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import {
+  connectAuthEmulator,
+  getAuth,
+  signInWithEmailAndPassword,
+  type Auth,
+} from "firebase/auth";
+import {
+  connectFirestoreEmulator,
+  getFirestore,
+  type Firestore,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
@@ -24,3 +33,22 @@ export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
 export const db: Firestore | null = firebaseApp
   ? getFirestore(firebaseApp)
   : null;
+
+// Playwright E2E only (see tests-e2e/) — this flag is never set in dev or
+// on Vercel, so this block is dead code outside that harness. Emulator
+// connection must happen once, before the SDK issues its first request.
+// __e2eSignIn is a bypass for the Google popup (unautomatable in a
+// headless browser): tests call it directly via page.evaluate() with a
+// user seeded into the Auth emulator over its REST API beforehand.
+if (auth && db && import.meta.env.PUBLIC_USE_FIREBASE_EMULATOR === "true") {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  if (typeof window !== "undefined") {
+    (
+      window as unknown as {
+        __e2eSignIn: (email: string, password: string) => Promise<unknown>;
+      }
+    ).__e2eSignIn = (email, password) =>
+      signInWithEmailAndPassword(auth, email, password);
+  }
+}

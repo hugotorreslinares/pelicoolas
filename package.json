@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only firestore --project filmo-rules-test \"vitest run --config vitest.rules.config.ts\"",
+    "test:e2e": "playwright test",
     "prepare": "husky"
   },
   "dependencies": {
@@ -60,6 +61,7 @@
     "@eslint/js": "^10.0.1",
     "@firebase/rules-unit-testing": "^5.0.2",
     "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.62.1",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-astro": "^3.1.0",

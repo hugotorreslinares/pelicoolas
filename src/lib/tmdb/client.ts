@@ -1,6 +1,10 @@
 import type { z } from "zod";
 
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+// Overridable only by the Playwright E2E harness (tests-e2e/), which points
+// this at a local fixture server instead of the real TMDB API — never set
+// in dev or production.
+const TMDB_BASE_URL =
+  import.meta.env.TMDB_API_BASE_URL || "https://api.themoviedb.org/3";
 
 export class TmdbError extends Error {}
 

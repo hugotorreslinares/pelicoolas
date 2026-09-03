@@ -15,6 +15,12 @@ firestore-debug.log
 firebase-debug.log
 .firebase/
 
+# Playwright E2E
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 
 # environment variables
 .env
