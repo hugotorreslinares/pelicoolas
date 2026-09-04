@@ -21,7 +21,7 @@ export function TrendingMovies({ movies }: TrendingMoviesProps) {
         Trending this week
       </p>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
-        {movies.map((movie) => (
+        {movies.map((movie, index) => (
           <button
             key={movie.tmdbMovieId}
             type="button"
@@ -35,7 +35,11 @@ export function TrendingMovies({ movies }: TrendingMoviesProps) {
                   srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
                   sizes={POSTER_SIZES}
                   alt=""
-                  loading="lazy"
+                  // First poster is the likely LCP element for a signed-out
+                  // visitor (top of the fold, no auth/JS gating) — eager +
+                  // high priority instead of lazy like the rest of the row.
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : undefined}
                   className="aspect-[2/3] w-full object-cover transition-transform group-hover:scale-105"
                 />
               ) : (

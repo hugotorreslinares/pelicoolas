@@ -10,6 +10,18 @@ import sentry from "@sentry/astro";
 // is set — without it the integration still captures errors via
 // PUBLIC_SENTRY_DSN, it just skips the upload step. Keeps local dev and any
 // fork of this repo buildable without Sentry credentials.
+//
+// bundleSizeOptimizations.excludeTracing + replaysSessionSampleRate/
+// replaysOnErrorSampleRate: 0 tree-shake browserTracingIntegration and the
+// Session Replay integration out of the client bundle — neither is used
+// (no APM, no replay), but @sentry/astro bundles both by default regardless
+// of whether tracesSampleRate/replay options are set. Session Replay alone
+// was the bulk of a ~271kB client chunk.
+const sentryClientOptions = {
+  bundleSizeOptimizations: { excludeTracing: true },
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
+};
 const sentryIntegration = sentry(
   process.env.SENTRY_AUTH_TOKEN
     ? {
@@ -17,8 +29,9 @@ const sentryIntegration = sentry(
         project: process.env.SENTRY_PROJECT,
         authToken: process.env.SENTRY_AUTH_TOKEN,
         telemetry: false,
+        ...sentryClientOptions,
       }
-    : { telemetry: false },
+    : { telemetry: false, ...sentryClientOptions },
 );
 
 // https://astro.build/config
