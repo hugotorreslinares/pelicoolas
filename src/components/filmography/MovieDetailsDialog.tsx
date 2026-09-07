@@ -51,7 +51,7 @@ export function MovieDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[85vh] overflow-y-auto sm:max-w-md"
+        className="max-h-[85vh] w-full min-w-0 overflow-x-hidden overflow-y-auto sm:max-w-md"
       >
         <DialogClose
           render={
@@ -82,7 +82,11 @@ export function MovieDetailsDialog({
         )}
 
         {!error && details && (
-          <>
+          // min-w-0: DialogContent is a CSS grid, and grid items default to
+          // min-width:auto — without this, a slightly-too-wide child (the
+          // ratings row, a long unbroken word) stretches the whole dialog
+          // and forces horizontal scroll instead of wrapping.
+          <div className="min-w-0">
             {details.posterPath && (
               <img
                 src={tmdbImageUrl(details.posterPath, 342)}
@@ -177,7 +181,7 @@ export function MovieDetailsDialog({
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>
