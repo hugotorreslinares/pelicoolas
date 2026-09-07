@@ -24,4 +24,5 @@ jobs:
             https://pelicoolas.vercel.app/ \
             https://pelicoolas.vercel.app/search \
             https://pelicoolas.vercel.app/watchlist \
-            --chrome-options=no-sandbox,headless
+            --chrome-options=no-sandbox,headless \
+            --load-delay 1500
