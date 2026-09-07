@@ -167,7 +167,7 @@ export interface ExportedUserData {
     readonly tmdbId: number;
     readonly title: string;
     readonly releaseYear: number | null;
-    readonly sourcePersonName: string;
+    readonly sourcePersonName?: string;
     readonly addedAt: string | null;
   }[];
 }

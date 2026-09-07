@@ -27,8 +27,11 @@ export interface WatchlistMovie {
   readonly posterPath: string | null;
   readonly releaseYear: number | null;
   readonly voteAverage: number | null;
-  readonly sourcePersonId: number;
-  readonly sourcePersonName: string;
+  // Absent when added straight from a movie search result rather than
+  // through a followed person's filmography — there's no "via" person to
+  // attribute it to.
+  readonly sourcePersonId?: number;
+  readonly sourcePersonName?: string;
   readonly addedAt: string;
 }
 

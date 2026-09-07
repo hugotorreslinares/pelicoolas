@@ -187,13 +187,19 @@ export function WatchlistPage() {
 
             <p className="mt-1 truncate font-medium">{movie.title}</p>
             <p className="text-sm text-muted-foreground">
-              {movie.releaseYear ?? "Unknown"} · via{" "}
-              <a
-                href={`/person/${movie.sourcePersonId}`}
-                className="focus-ring hover:underline"
-              >
-                {movie.sourcePersonName}
-              </a>
+              {movie.releaseYear ?? "Unknown"}
+              {movie.sourcePersonId != null && movie.sourcePersonName && (
+                <>
+                  {" "}
+                  · via{" "}
+                  <a
+                    href={`/person/${movie.sourcePersonId}`}
+                    className="focus-ring hover:underline"
+                  >
+                    {movie.sourcePersonName}
+                  </a>
+                </>
+              )}
             </p>
           </div>
         ))}

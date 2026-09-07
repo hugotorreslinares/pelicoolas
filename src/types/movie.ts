@@ -25,6 +25,13 @@ export interface CastMember {
   readonly profilePath: string | null;
 }
 
+/** IMDb/Rotten Tomatoes/Metacritic scores from OMDb — TMDB has no equivalent. */
+export interface ExternalRatings {
+  readonly imdb: string | null;
+  readonly rottenTomatoes: string | null;
+  readonly metacritic: string | null;
+}
+
 export interface MovieDetails {
   readonly id: number;
   readonly title: string;
@@ -34,4 +41,6 @@ export interface MovieDetails {
   readonly runtimeMinutes: number | null;
   readonly genres: readonly string[];
   readonly cast: readonly CastMember[];
+  /** null when TMDB has no imdb_id for this movie, or OMDb has nothing/is unreachable — never blocks the rest of the details. */
+  readonly externalRatings: ExternalRatings | null;
 }

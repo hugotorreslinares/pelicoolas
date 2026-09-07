@@ -129,6 +129,7 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
     return subscribeToWatchlist(user.uid, (movies) => {
       const counts: Record<number, number> = {};
       for (const movie of movies) {
+        if (movie.sourcePersonId == null) continue;
         counts[movie.sourcePersonId] = (counts[movie.sourcePersonId] ?? 0) + 1;
       }
       setWatchlistCountById(counts);

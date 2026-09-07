@@ -110,6 +110,32 @@ export function MovieDetailsDialog({
               {details.overview || "No overview available."}
             </DialogDescription>
 
+            {details.externalRatings &&
+              (details.externalRatings.imdb ||
+                details.externalRatings.rottenTomatoes ||
+                details.externalRatings.metacritic) && (
+                <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                  {details.externalRatings.imdb && (
+                    <span>
+                      <span className="font-medium">IMDb</span>{" "}
+                      {details.externalRatings.imdb}
+                    </span>
+                  )}
+                  {details.externalRatings.rottenTomatoes && (
+                    <span>
+                      <span className="font-medium">Rotten Tomatoes</span>{" "}
+                      {details.externalRatings.rottenTomatoes}
+                    </span>
+                  )}
+                  {details.externalRatings.metacritic && (
+                    <span>
+                      <span className="font-medium">Metacritic</span>{" "}
+                      {details.externalRatings.metacritic}
+                    </span>
+                  )}
+                </div>
+              )}
+
             {details.cast.length > 0 && (
               <div className="mt-4 space-y-2">
                 <p className="text-sm font-medium">Cast</p>

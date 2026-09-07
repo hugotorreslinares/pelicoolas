@@ -87,6 +87,9 @@ export const tmdbMovieDetailsResponseSchema = z.object({
   overview: z.string().nullable(),
   runtime: z.number().nullable(),
   genres: z.array(z.object({ id: z.number(), name: z.string() })),
+  // Present on every /movie/{id} response by default, no append_to_response
+  // needed — null for movies with no IMDb entry.
+  imdb_id: z.string().nullable().optional(),
   // Present because getMovieDetails requests append_to_response=credits —
   // optional here since a plain /movie/{id} call (no append) wouldn't have it.
   credits: z

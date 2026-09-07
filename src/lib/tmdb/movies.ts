@@ -1,4 +1,5 @@
 import { tmdbFetch } from "./client";
+import { getExternalRatings } from "@/lib/omdb";
 import {
   tmdbCombinedCreditsResponseSchema,
   tmdbMovieDetailsResponseSchema,
@@ -67,6 +68,8 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
     { append_to_response: "credits" },
   );
 
+  const externalRatings = await getExternalRatings(data.imdb_id);
+
   return {
     id: data.id,
     title: data.title,
@@ -81,7 +84,28 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
       character: c.character ?? null,
       profilePath: c.profile_path,
     })),
+    externalRatings,
   };
+}
+
+export async function searchMovie(
+  query: string,
+): Promise<readonly TrendingMovie[]> {
+  // /search/movie returns the same shape as /trending/movie/week, so the
+  // trending schema/type are reused rather than duplicated.
+  const data = await tmdbFetch(
+    "/search/movie",
+    tmdbTrendingMoviesResponseSchema,
+    { query, include_adult: "false" },
+  );
+
+  return data.results.map((m) => ({
+    tmdbMovieId: m.id,
+    title: m.title,
+    posterPath: m.poster_path,
+    releaseYear: toReleaseYear(m.release_date),
+    voteAverage: m.vote_average ?? null,
+  }));
 }
 
 const TRENDING_LIMIT = 12;
