@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MovieWatchlistButton } from "./MovieWatchlistButton";
+import { MovieResultRow } from "./MovieResultRow";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
-import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import type { TrendingMovie } from "@/types/movie";
 
 const DEBOUNCE_MS = 350;
@@ -71,38 +70,11 @@ export function MovieSearch() {
       {!loading && results.length > 0 && (
         <div className="space-y-2 text-left">
           {results.map((movie) => (
-            <div
+            <MovieResultRow
               key={movie.tmdbMovieId}
-              className="flex items-center gap-3 rounded-lg border p-2"
-            >
-              <button
-                type="button"
-                onClick={() => setOpenMovieId(movie.tmdbMovieId)}
-                className="focus-ring flex flex-1 items-center gap-3 text-left"
-              >
-                {movie.posterPath ? (
-                  <img
-                    src={tmdbImageUrl(movie.posterPath, 45)}
-                    srcSet={tmdbDensitySrcSet(movie.posterPath, 45, 92)}
-                    alt=""
-                    loading="lazy"
-                    className="h-14 w-10 rounded object-cover"
-                  />
-                ) : (
-                  <div className="flex h-14 w-10 shrink-0 items-center justify-center rounded bg-muted text-[10px] text-muted-foreground">
-                    N/A
-                  </div>
-                )}
-                <div>
-                  <p className="font-medium">{movie.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {movie.releaseYear ?? "Release date: Unknown"}
-                  </p>
-                </div>
-              </button>
-
-              <MovieWatchlistButton movie={movie} />
-            </div>
+              movie={movie}
+              onClick={() => setOpenMovieId(movie.tmdbMovieId)}
+            />
           ))}
         </div>
       )}

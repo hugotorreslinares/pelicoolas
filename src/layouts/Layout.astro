@@ -4,7 +4,8 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { FollowedDock } from "@/components/filmography/FollowedDock";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
-import { SearchIcon, FilmIcon, BookmarkIcon } from "lucide-react";
+import { HeaderSearch } from "@/components/search/HeaderSearch";
+import { FilmIcon, BookmarkIcon } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 
@@ -131,15 +132,10 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
             aria-label="Main"
             class="flex items-center gap-1 rounded-full border p-1"
           >
-            <a
-              href="/search"
-              class={navLinkClass(isSearchActive)}
-              aria-current={isSearchActive ? "page" : undefined}
-              title="Search"
-            >
-              <SearchIcon className="size-4" />
-              <span class="sr-only">Search</span>
-            </a>
+            <HeaderSearch
+              className={navLinkClass(isSearchActive)}
+              client:idle
+            />
             <a
               href="/filmographies"
               class={navLinkClass(isFilmographiesActive)}
