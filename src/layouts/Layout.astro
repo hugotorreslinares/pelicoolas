@@ -41,8 +41,11 @@ const isSearchActive = pathname === "/search";
 const isFilmographiesActive = pathname === "/" || pathname === "/filmographies";
 const isWatchlistActive = pathname === "/watchlist";
 
+// size-11 (44px): minimum comfortable touch target on mobile — these are
+// icon-only links (visible label is sr-only), so padding alone previously
+// left them at ~28-32px, smaller than a thumb tap.
 const navLinkClass = (active: boolean) =>
-  `focus-ring flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors ${
+  `focus-ring flex size-11 items-center justify-center rounded-full text-sm transition-colors ${
     active
       ? "bg-foreground text-background"
       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -115,6 +118,12 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
     </script>
   </head>
   <body class="min-h-screen bg-background text-foreground">
+    <a
+      href="#main-content"
+      class="focus-ring sr-only rounded-full bg-foreground px-4 py-2 text-background focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50"
+    >
+      Skip to content
+    </a>
     <div id="a11y-announcer" role="status" aria-live="polite" class="sr-only">
     </div>
     <div class="film-perforations film-perforations-left" aria-hidden="true">
@@ -161,7 +170,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
         </div>
       </div>
     </header>
-    <main class="mx-auto max-w-5xl p-4">
+    <main id="main-content" class="mx-auto max-w-5xl p-4">
       <slot />
     </main>
     <OnboardingCarousel client:idle />
@@ -171,7 +180,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
       <p>
         This product uses the TMDB API but is not endorsed or certified by TMDB.
       </p>
-      {showDeployInfo && <p class="opacity-70">Deployed {deployedAt}</p>}
+      {showDeployInfo && <p>Deployed {deployedAt}</p>}
     </footer>
   </body>
 </html>

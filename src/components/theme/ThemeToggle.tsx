@@ -12,6 +12,7 @@ export function ThemeToggle() {
       type="button"
       variant="ghost"
       size="icon"
+      className="size-11 rounded-full"
       aria-label="Toggle theme"
       onClick={toggle}
     >

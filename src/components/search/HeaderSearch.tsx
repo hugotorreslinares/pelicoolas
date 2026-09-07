@@ -128,7 +128,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-2 w-80 space-y-3 rounded-xl border bg-popover p-3 text-popover-foreground shadow-lg sm:w-96">
+        <div className="absolute top-full left-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] space-y-3 rounded-xl border bg-popover p-3 text-popover-foreground shadow-lg sm:w-96">
           <div className="flex items-center gap-2">
             <Input
               ref={inputRef}
