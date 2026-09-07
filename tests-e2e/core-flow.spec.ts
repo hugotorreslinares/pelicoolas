@@ -52,6 +52,15 @@ test.beforeAll(async () => {
 });
 
 test("search → follow → mark watched → see progress", async ({ page }) => {
+  // The onboarding carousel modal opens on every first visit (no
+  // localStorage flag yet) and would otherwise sit on top of the page,
+  // blocking the very search interaction this test exercises — it isn't
+  // what's under test here, so mark it seen before the app's own scripts
+  // ever run.
+  await page.addInitScript(() => {
+    localStorage.setItem("filmo:onboardingSeen", "true");
+  });
+
   await page.goto("/search");
   // On a cold dev server, this first real browser hit is what makes Vite
   // discover it needs to pre-bundle a dependency (e.g. @sentry/astro, only
