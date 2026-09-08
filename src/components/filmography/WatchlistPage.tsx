@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookmarkIcon } from "lucide-react";
@@ -7,9 +7,11 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
   removeFromWatchlist,
+  setWatchlistGenres,
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
+import { fetchMovieDetails } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
 import engagement from "@/config/engagement.json";
@@ -53,6 +55,34 @@ export function WatchlistPage() {
     }
     return subscribeToWatchlist(user.uid, setMovies);
   }, [user]);
+
+  // Entries added before genreIds existed have no such field at all
+  // (`undefined`, not an empty array — that's a real "TMDB has no genres
+  // for this movie"). Backfill them once in the background so the genre
+  // filter below actually has something to work with; the Firestore
+  // listener above picks the update straight back up.
+  const backfilledRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    if (!user || !movies) return;
+    const toBackfill = movies.filter(
+      (m) => m.genreIds === undefined && !backfilledRef.current.has(m.tmdbId),
+    );
+    if (toBackfill.length === 0) return;
+
+    (async () => {
+      for (const movie of toBackfill) {
+        backfilledRef.current.add(movie.tmdbId);
+        try {
+          const details = await fetchMovieDetails(movie.tmdbId);
+          if (details) {
+            await setWatchlistGenres(user.uid, movie.tmdbId, details.genreIds);
+          }
+        } catch {
+          // Best-effort backfill — leave this one for next visit.
+        }
+      }
+    })();
+  }, [user, movies]);
 
   useEffect(() => {
     if (!user || !movies || !engagement.badges.watchlistMilestones) return;

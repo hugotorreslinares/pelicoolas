@@ -43,6 +43,8 @@ export interface MovieDetails {
   readonly overview: string | null;
   readonly runtimeMinutes: number | null;
   readonly genres: readonly string[];
+  /** Same genres as `genres`, as TMDB ids — for filtering (see `lib/tmdb/genres.ts`) rather than display. */
+  readonly genreIds: readonly number[];
   readonly cast: readonly CastMember[];
   /** null when TMDB has no imdb_id for this movie, or OMDb has nothing/is unreachable — never blocks the rest of the details. */
   readonly externalRatings: ExternalRatings | null;

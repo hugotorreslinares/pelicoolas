@@ -79,6 +79,7 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
     overview: data.overview,
     runtimeMinutes: data.runtime,
     genres: data.genres.map((g) => g.name),
+    genreIds: data.genres.map((g) => g.id),
     cast: (data.credits?.cast ?? []).slice(0, CAST_LIMIT).map((c) => ({
       personId: c.id,
       name: c.name,

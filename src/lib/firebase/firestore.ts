@@ -7,6 +7,7 @@ import {
   onSnapshot,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "./client";
 import type {
@@ -134,6 +135,15 @@ export async function removeFromWatchlist(
   movieId: number,
 ): Promise<void> {
   await deleteDoc(watchlistMovieRef(userId, movieId));
+}
+
+/** Backfills genreIds on a watchlist entry added before that field existed. */
+export async function setWatchlistGenres(
+  userId: string,
+  movieId: number,
+  genreIds: readonly number[],
+): Promise<void> {
+  await updateDoc(watchlistMovieRef(userId, movieId), { genreIds });
 }
 
 export async function isInWatchlist(
