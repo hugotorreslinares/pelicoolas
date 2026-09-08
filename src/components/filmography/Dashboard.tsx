@@ -14,9 +14,9 @@ import {
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce, subscribeToBadges } from "@/lib/firebase/badges";
 import { calculateAge } from "@/lib/age";
+import { fetchPersonData } from "@/lib/movieData";
 import engagement from "@/config/engagement.json";
 import type { FollowedPerson } from "@/types/filmography";
-import type { PersonProfile } from "@/types/person";
 import type { TrendingMovie } from "@/types/movie";
 import type { Badge as BadgeRecord } from "@/types/badges";
 
@@ -88,29 +88,30 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
   }, [user, people]);
 
   // Total filmography size + age both come from the same TMDB proxy call
-  // already used to render each person's progress bar.
+  // already used to render each person's progress bar. fetchPersonData
+  // caches per person in localStorage (6h, matching the server's own
+  // cache) — following 30-50 people otherwise means 30-50 real requests
+  // on every single page load.
   useEffect(() => {
     if (!people) return;
     people.forEach((person) => {
       if (fetchedPersonIdsRef.current.has(person.tmdbId)) return;
       fetchedPersonIdsRef.current.add(person.tmdbId);
-      fetch(`/api/person/${person.tmdbId}`)
-        .then((r) => r.json())
-        .then(
-          (data: { profile: PersonProfile; movies: readonly unknown[] }) => {
-            const age = data.profile.birthday
-              ? calculateAge(data.profile.birthday)
-              : null;
-            setStatsById((prev) => ({
-              ...prev,
-              [person.tmdbId]: {
-                watchedCount: prev[person.tmdbId]?.watchedCount ?? 0,
-                totalCount: data.movies.length,
-                age,
-              },
-            }));
-          },
-        )
+      fetchPersonData(person.tmdbId)
+        .then((data) => {
+          if (!data) throw new Error("request failed");
+          const age = data.profile.birthday
+            ? calculateAge(data.profile.birthday)
+            : null;
+          setStatsById((prev) => ({
+            ...prev,
+            [person.tmdbId]: {
+              watchedCount: prev[person.tmdbId]?.watchedCount ?? 0,
+              totalCount: data.movies.length,
+              age,
+            },
+          }));
+        })
         .catch(() => {
           setStatsById((prev) => ({
             ...prev,

@@ -6,6 +6,8 @@ import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog"
 import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
+import { fetchMovieDetails, fetchPersonData } from "@/lib/movieData";
+import { readCache, writeCache } from "@/lib/clientCache";
 import type { FollowedPerson } from "@/types/filmography";
 import type { CastMember, FilmographyMovie } from "@/types/movie";
 
@@ -31,6 +33,7 @@ interface SharedCastGroup {
 // page load.
 const MAX_SCAN_MOVIES = 150;
 const SCAN_CONCURRENCY = 4;
+const SCAN_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // matches fetchMovieDetails' own cache — no point outliving the data it's built from
 
 function MoviePoster({
   movie,
@@ -89,6 +92,18 @@ export function ConnectionsPage() {
     return subscribeToFollowedPeople(user.uid, setFollowed);
   }, [user]);
 
+  // Restore a previous deep scan instead of making the user click "Find
+  // shared actors" again on every visit — the scan itself isn't cheap, so
+  // this is on top of (not instead of) fetchMovieDetails' own cache.
+  useEffect(() => {
+    if (!user) return;
+    const cached = readCache<readonly SharedCastGroup[]>(
+      `connections:sharedCast:${user.uid}`,
+      SCAN_CACHE_MAX_AGE_MS,
+    );
+    if (cached) setSharedCastGroups(cached);
+  }, [user]);
+
   useEffect(() => {
     if (!followed) return;
     const toFetch = followed.filter(
@@ -104,11 +119,8 @@ export function ConnectionsPage() {
       for (const person of toFetch) {
         fetchedPersonRef.current.add(person.tmdbId);
         try {
-          const res = await fetch(`/api/person/${person.tmdbId}`);
-          if (!res.ok) continue;
-          const data = (await res.json()) as {
-            movies: readonly FilmographyMovie[];
-          };
+          const data = await fetchPersonData(person.tmdbId);
+          if (!data) continue;
           results.push({ person, movies: data.movies });
         } catch {
           // Skip this person rather than failing the whole page.
@@ -163,17 +175,11 @@ export function ConnectionsPage() {
       while (index < targets.length) {
         const movie = targets[index++];
         try {
-          const res = await fetch(`/api/movie/${movie.tmdbMovieId}`);
-          if (res.ok) {
-            const data = (await res.json()) as {
-              movie: { cast: readonly CastMember[] };
-            };
-            for (const member of data.movie.cast) {
-              const entry = castByMember.get(member.personId);
-              if (entry) entry.movies.push(movie);
-              else
-                castByMember.set(member.personId, { member, movies: [movie] });
-            }
+          const details = await fetchMovieDetails(movie.tmdbMovieId);
+          for (const member of details?.cast ?? []) {
+            const entry = castByMember.get(member.personId);
+            if (entry) entry.movies.push(movie);
+            else castByMember.set(member.personId, { member, movies: [movie] });
           }
         } catch {
           // Skip this movie's cast, keep scanning the rest.
@@ -189,6 +195,7 @@ export function ConnectionsPage() {
       .sort((a, b) => b.movies.length - a.movies.length)
       .slice(0, 30);
     setSharedCastGroups(groups);
+    if (user) writeCache(`connections:sharedCast:${user.uid}`, groups);
     setScanning(false);
   }
 

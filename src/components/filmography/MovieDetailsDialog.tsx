@@ -16,6 +16,7 @@ import {
   tmdbWidthSrcSet,
   tmdbDensitySrcSet,
 } from "@/lib/tmdb/image";
+import { fetchMovieDetails } from "@/lib/movieData";
 import type { MovieDetails } from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
@@ -38,12 +39,11 @@ export function MovieDetailsDialog({
     if (!open) return;
     setDetails(null);
     setError(null);
-    fetch(`/api/movie/${movieId}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("request failed");
-        return r.json();
+    fetchMovieDetails(movieId)
+      .then((movie) => {
+        if (!movie) throw new Error("request failed");
+        setDetails(movie);
       })
-      .then((data: { movie: MovieDetails }) => setDetails(data.movie))
       .catch(() => setError("We couldn't load this movie. Please try again."));
   }, [open, movieId]);
 

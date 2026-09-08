@@ -6,6 +6,7 @@ import {
   subscribeToFollowedPeople,
   subscribeToWatchedMovies,
 } from "@/lib/firebase/firestore";
+import { fetchPersonData } from "@/lib/movieData";
 import type { FollowedPerson } from "@/types/filmography";
 import type { FilmographyMovie } from "@/types/movie";
 
@@ -51,16 +52,16 @@ export function WrappedStats() {
   }, [user, people]);
 
   // Movie list (with release years) is the same TMDB proxy response
-  // FollowedPersonCard/Dashboard already fetch — CDN-cached, so re-fetching
-  // here for the same people isn't wasted quota.
+  // FollowedPersonCard/Dashboard already fetch — fetchPersonData caches it
+  // in localStorage, so this doesn't cost a fresh request per visit.
   useEffect(() => {
     if (!people) return;
     people.forEach((person) => {
       if (fetchedMoviesRef.current.has(person.tmdbId)) return;
       fetchedMoviesRef.current.add(person.tmdbId);
-      fetch(`/api/person/${person.tmdbId}`)
-        .then((r) => r.json())
-        .then((data: { movies: readonly FilmographyMovie[] }) => {
+      fetchPersonData(person.tmdbId)
+        .then((data) => {
+          if (!data) throw new Error("request failed");
           setDataById((prev) => ({
             ...prev,
             [person.tmdbId]: {
