@@ -129,13 +129,16 @@ export function PersonSearch({
                   variant="secondary"
                   size="icon"
                   aria-label={`Remove ${person.name} from recent searches`}
-                  className="absolute top-1 right-1 size-6 rounded-full shadow"
+                  // Full 44px here would swallow a big chunk of a 2-column
+                  // mobile card — 36px is the compromise for a tightly
+                  // packed grid (still well above the old 24px).
+                  className="absolute top-1 right-1 size-9 rounded-full shadow"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeRecent(person);
                   }}
                 >
-                  <XIcon className="size-3.5" />
+                  <XIcon className="size-4" />
                 </Button>
               </div>
             ))}

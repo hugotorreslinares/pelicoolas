@@ -39,7 +39,7 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-full">
+      <DropdownMenuTrigger className="focus-ring flex size-11 items-center justify-center rounded-full">
         <Avatar>
           <AvatarImage
             src={user.photoURL ?? undefined}

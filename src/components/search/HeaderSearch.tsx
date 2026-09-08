@@ -140,6 +140,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
               type="button"
               variant="ghost"
               size="icon"
+              className="size-11 shrink-0"
               aria-label="Close search"
               onClick={close}
             >

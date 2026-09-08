@@ -175,7 +175,7 @@ export function WatchlistPage() {
                 variant="secondary"
                 size="icon"
                 aria-label={`Remove ${movie.title} from watchlist`}
-                className="absolute top-2 right-2 size-8 rounded-full shadow"
+                className="absolute top-2 right-2 size-11 rounded-full shadow"
                 onClick={() => {
                   void removeFromWatchlist(user.uid, movie.tmdbId);
                   announce(`Removed ${movie.title} from watchlist`);

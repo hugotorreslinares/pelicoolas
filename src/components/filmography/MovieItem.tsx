@@ -56,6 +56,7 @@ export function MovieItem({
         type="button"
         variant="ghost"
         size="icon"
+        className="size-11"
         aria-label={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
         onClick={(e) => {
           e.stopPropagation();

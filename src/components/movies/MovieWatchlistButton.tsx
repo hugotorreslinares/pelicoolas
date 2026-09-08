@@ -65,6 +65,7 @@ export function MovieWatchlistButton({ movie }: MovieWatchlistButtonProps) {
         type="button"
         variant="ghost"
         size="icon"
+        className="size-11"
         aria-label={
           inWatchlist
             ? `Remove ${movie.title} from watchlist`
