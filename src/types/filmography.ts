@@ -33,6 +33,8 @@ export interface WatchlistMovie {
   readonly sourcePersonId?: number;
   readonly sourcePersonName?: string;
   readonly addedAt: string;
+  /** Absent on watchlist entries added before this field existed. */
+  readonly genreIds?: readonly number[];
 }
 
 export type FilmographyFilter = "all" | "watched" | "unwatched";

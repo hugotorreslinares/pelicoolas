@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { FollowedDock } from "@/components/filmography/FollowedDock";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
-import { FilmIcon, BookmarkIcon } from "lucide-react";
+import { FilmIcon, BookmarkIcon, NetworkIcon } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 
@@ -40,6 +40,7 @@ const pathname = Astro.url.pathname;
 const isSearchActive = pathname === "/search";
 const isFilmographiesActive = pathname === "/" || pathname === "/filmographies";
 const isWatchlistActive = pathname === "/watchlist";
+const isConnectionsActive = pathname === "/connections";
 
 // size-11 (44px): minimum comfortable touch target on mobile — these are
 // icon-only links (visible label is sr-only), so padding alone previously
@@ -162,6 +163,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
             >
               <BookmarkIcon className="size-4" />
               <span class="sr-only">Watchlist</span>
+            </a>
+            <a
+              href="/connections"
+              class={navLinkClass(isConnectionsActive)}
+              aria-current={isConnectionsActive ? "page" : undefined}
+              title="Connections"
+            >
+              <NetworkIcon className="size-4" />
+              <span class="sr-only">Connections</span>
             </a>
           </nav>
           <FollowedDock client:idle />

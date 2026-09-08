@@ -8,6 +8,8 @@ export interface FilmographyMovie {
   readonly releaseDate: string | null;
   readonly character: string | null;
   readonly voteAverage: number | null;
+  /** TMDB genre ids (see `lib/tmdb/genres.ts`) — empty when TMDB returned none. */
+  readonly genreIds: readonly number[];
 }
 
 export interface TrendingMovie {
@@ -16,6 +18,7 @@ export interface TrendingMovie {
   readonly posterPath: string | null;
   readonly releaseYear: number | null;
   readonly voteAverage: number | null;
+  readonly genreIds: readonly number[];
 }
 
 export interface CastMember {

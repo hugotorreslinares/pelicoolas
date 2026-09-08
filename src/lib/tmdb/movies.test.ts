@@ -12,6 +12,7 @@ function movie(
     releaseDate: null,
     character: null,
     voteAverage: null,
+    genreIds: [],
     ...overrides,
   };
 }

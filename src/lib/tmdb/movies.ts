@@ -54,6 +54,7 @@ export async function getFilmography(
     releaseDate: c.release_date ?? null,
     character: "character" in c ? (c.character ?? null) : null,
     voteAverage: c.vote_average ?? null,
+    genreIds: c.genre_ids ?? [],
   }));
 
   return dedupeByMovieId(movies);
@@ -105,6 +106,7 @@ export async function searchMovie(
     posterPath: m.poster_path,
     releaseYear: toReleaseYear(m.release_date),
     voteAverage: m.vote_average ?? null,
+    genreIds: m.genre_ids ?? [],
   }));
 }
 
@@ -122,6 +124,7 @@ export async function getTrendingMovies(): Promise<readonly TrendingMovie[]> {
     posterPath: m.poster_path,
     releaseYear: toReleaseYear(m.release_date),
     voteAverage: m.vote_average ?? null,
+    genreIds: m.genre_ids ?? [],
   }));
 }
 

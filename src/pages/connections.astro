@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+import Layout from "@/layouts/Layout.astro";
+import { ConnectionsPage } from "@/components/connections/ConnectionsPage";
+---
+
+<Layout
+  title="Connections — Filmo"
+  description="See how the movies and people in your filmography connect — shared cast, actors who worked together."
+  noindex
+>
+  <ConnectionsPage client:load />
+</Layout>

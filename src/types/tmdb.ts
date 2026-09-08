@@ -50,6 +50,7 @@ const tmdbCastCreditSchema = z.object({
   character: z.string().optional(),
   media_type: z.string(),
   vote_average: z.number().optional(),
+  genre_ids: z.array(z.number()).optional(),
 });
 
 const tmdbCrewCreditSchema = tmdbCastCreditSchema.extend({
@@ -72,6 +73,7 @@ export const tmdbTrendingMoviesResponseSchema = z.object({
       poster_path: z.string().nullable(),
       release_date: z.string().optional(),
       vote_average: z.number().optional(),
+      genre_ids: z.array(z.number()).optional(),
     }),
   ),
 });

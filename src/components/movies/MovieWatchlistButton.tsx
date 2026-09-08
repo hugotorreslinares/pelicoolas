@@ -51,6 +51,7 @@ export function MovieWatchlistButton({ movie }: MovieWatchlistButtonProps) {
         posterPath: movie.posterPath,
         releaseYear: movie.releaseYear,
         voteAverage: movie.voteAverage,
+        genreIds: movie.genreIds,
       });
       setInWatchlist(true);
       announce(`Added ${movie.title} to watchlist`);

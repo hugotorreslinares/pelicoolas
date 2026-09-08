@@ -11,6 +11,7 @@ import {
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import { genreName } from "@/lib/tmdb/genres";
 import engagement from "@/config/engagement.json";
 import type { WatchlistMovie } from "@/types/filmography";
 
@@ -34,10 +35,15 @@ function sortMovies(
   return [...sorted, ...withoutYear];
 }
 
+const ALL_GENRES = "all";
+
 export function WatchlistPage() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly WatchlistMovie[] | null>(null);
   const [order, setOrder] = useState<SortOrder>("newest");
+  const [genreFilter, setGenreFilter] = useState<number | typeof ALL_GENRES>(
+    ALL_GENRES,
+  );
   const [openMovieId, setOpenMovieId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -119,7 +125,25 @@ export function WatchlistPage() {
     );
   }
 
-  const sorted = sortMovies(movies, order);
+  // Genres present in the watchlist, sorted by how many movies carry each —
+  // most useful ones first instead of alphabetical noise. Movies added
+  // before genreIds existed just don't show up in any genre chip below (but
+  // still show under "All").
+  const genreCounts = new Map<number, number>();
+  for (const movie of movies) {
+    for (const id of movie.genreIds ?? []) {
+      genreCounts.set(id, (genreCounts.get(id) ?? 0) + 1);
+    }
+  }
+  const availableGenres = [...genreCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([id]) => id);
+
+  const filtered =
+    genreFilter === ALL_GENRES
+      ? movies
+      : movies.filter((m) => m.genreIds?.includes(genreFilter));
+  const sorted = sortMovies(filtered, order);
 
   return (
     <div className="space-y-4">
@@ -127,7 +151,7 @@ export function WatchlistPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          {movies.length} movies on your radar
+          {sorted.length} of {movies.length} movies on your radar
         </p>
         <Button
           size="sm"
@@ -137,6 +161,28 @@ export function WatchlistPage() {
           {order === "newest" ? "Most recent" : "Oldest"}
         </Button>
       </div>
+
+      {availableGenres.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant={genreFilter === ALL_GENRES ? "default" : "outline"}
+            onClick={() => setGenreFilter(ALL_GENRES)}
+          >
+            All genres
+          </Button>
+          {availableGenres.map((id) => (
+            <Button
+              key={id}
+              size="sm"
+              variant={genreFilter === id ? "default" : "outline"}
+              onClick={() => setGenreFilter(id)}
+            >
+              {genreName(id) ?? "Other"}
+            </Button>
+          ))}
+        </div>
+      )}
 
       <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
         {sorted.map((movie) => (
