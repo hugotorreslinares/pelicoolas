@@ -30,7 +30,8 @@ Si el cambio toca `firestore.rules`, correr también `pnpm test:rules` (necesita
 
 ## Convenciones del repo
 
-- TMDB solo se consulta server-side (`src/lib/tmdb/`, `src/pages/api/`) — nunca exponer `TMDB_API_KEY` a componentes React.
+- TMDB solo se consulta server-side (`src/lib/tmdb/`, `src/pages/api/`) — nunca exponer `TMDB_API_KEY` a componentes React. Igual con `OMDB_API_KEY` (`src/lib/omdb.ts`).
+- **Componentes que necesitan datos de `/api/person/{id}` o `/api/movie/{id}` usan `fetchPersonData`/`fetchMovieDetails` de `src/lib/movieData.ts`, nunca `fetch()` directo a esas rutas.** Esos wrappers cachean en `localStorage` (TTL igual al `Cache-Control` del propio endpoint) — el `Cache-Control` de `/api/*` solo trae `s-maxage` (cache de CDN), así que sin este wrapper cada carga de página es un round-trip de red real aunque la respuesta ya esté en el edge. Ver design.md, sección Performance.
 - Componentes React solo para lo interactivo; páginas/routing/SSR en `.astro`.
 - shadcn: agregar solo el componente que se necesita (`pnpm dlx shadcn@latest add <component>`), no instalar el catálogo completo.
 - Botones tipo link usan `render={<a href="..." />}` (API de base-ui), no `asChild` con `<button><a>` anidado.
