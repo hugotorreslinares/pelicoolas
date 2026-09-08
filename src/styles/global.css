@@ -127,6 +127,12 @@
   html {
     @apply font-sans;
   }
+  /* Browsers default <button> to cursor:default, not :pointer (only <a href>
+     gets the hand natively) — every button in the app is clickable, so this
+     is a correction, not a stylistic default. */
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @layer utilities {
