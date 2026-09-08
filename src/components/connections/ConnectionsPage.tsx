@@ -254,33 +254,35 @@ export function ConnectionsPage() {
         )}
 
         {coStarGroups.length > 0 && (
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {coStarGroups.map(({ movie, people }) => (
-              <div
+              <button
                 key={movie.tmdbMovieId}
-                className="flex items-center gap-3 rounded-lg border p-3"
+                type="button"
+                onClick={() => setOpenMovieId(movie.tmdbMovieId)}
+                className="focus-ring space-y-1 text-left"
               >
-                <MoviePoster
-                  movie={movie}
-                  onClick={() => setOpenMovieId(movie.tmdbMovieId)}
-                />
-                <div className="min-w-0 flex-1 space-y-1">
-                  <p className="text-sm text-muted-foreground">
-                    {movie.releaseYear ?? "Unknown"}
-                  </p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    {people.map((person) => (
-                      <a
-                        key={person.tmdbId}
-                        href={`/person/${person.tmdbId}`}
-                        className="focus-ring text-sm font-medium hover:underline"
-                      >
-                        {person.name}
-                      </a>
-                    ))}
+                {movie.posterPath ? (
+                  <img
+                    src={tmdbImageUrl(movie.posterPath, 185)}
+                    srcSet={tmdbDensitySrcSet(movie.posterPath, 185, 342)}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-[2/3] w-full rounded-lg border object-cover"
+                  />
+                ) : (
+                  <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
+                    No poster
                   </div>
-                </div>
-              </div>
+                )}
+                <p className="truncate text-sm font-medium">{movie.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {movie.releaseYear ?? "Unknown"}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {people.map((p) => p.name).join(", ")}
+                </p>
+              </button>
             ))}
           </div>
         )}
