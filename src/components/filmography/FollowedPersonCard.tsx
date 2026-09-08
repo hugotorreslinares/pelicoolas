@@ -38,27 +38,34 @@ export function FollowedPersonCard({
     <a href={`/person/${person.tmdbId}`} className="focus-ring block">
       <Card className="transition-colors hover:bg-accent">
         <CardHeader className="flex-row items-center gap-2">
-          <Avatar>
-            <AvatarImage
-              src={
-                person.profilePath
-                  ? tmdbImageUrl(person.profilePath, 45)
-                  : undefined
-              }
-              srcSet={
-                person.profilePath
-                  ? tmdbDensitySrcSet(person.profilePath, 45, 92)
-                  : undefined
-              }
-              alt={person.name}
-            />
-            <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-          </Avatar>
+          <div className="relative shrink-0">
+            <Avatar>
+              <AvatarImage
+                src={
+                  person.profilePath
+                    ? tmdbImageUrl(person.profilePath, 45)
+                    : undefined
+                }
+                srcSet={
+                  person.profilePath
+                    ? tmdbDensitySrcSet(person.profilePath, 45, 92)
+                    : undefined
+                }
+                alt={person.name}
+              />
+              <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+            </Avatar>
+            {age !== null && (
+              <span
+                className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full border-2 border-card bg-secondary text-[10px] font-semibold text-secondary-foreground"
+                title={`${age} years old`}
+              >
+                {age}
+              </span>
+            )}
+          </div>
           <div className="min-w-0 flex-1">
             <CardTitle>{person.name}</CardTitle>
-            {age !== null && (
-              <p className="text-sm text-muted-foreground">{age} years old</p>
-            )}
           </div>
           {isComplete && (
             <Badge variant="secondary" title="Filmography complete">
