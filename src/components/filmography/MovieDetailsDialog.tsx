@@ -17,6 +17,7 @@ import {
   tmdbDensitySrcSet,
 } from "@/lib/tmdb/image";
 import { fetchMovieDetails } from "@/lib/movieData";
+import { MovieWatchlistButton } from "@/components/movies/MovieWatchlistButton";
 import type { MovieDetails } from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
@@ -97,7 +98,19 @@ export function MovieDetailsDialog({
               />
             )}
             <DialogHeader>
-              <DialogTitle>{details.title}</DialogTitle>
+              <div className="flex items-start justify-between gap-2">
+                <DialogTitle>{details.title}</DialogTitle>
+                <MovieWatchlistButton
+                  movie={{
+                    tmdbMovieId: details.id,
+                    title: details.title,
+                    posterPath: details.posterPath,
+                    releaseYear: details.releaseYear,
+                    voteAverage: details.voteAverage,
+                    genreIds: details.genreIds,
+                  }}
+                />
+              </div>
               <p className="text-sm text-muted-foreground">
                 {[
                   details.releaseYear ?? "Unknown",

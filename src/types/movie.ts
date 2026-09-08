@@ -42,6 +42,7 @@ export interface MovieDetails {
   readonly releaseYear: number | null;
   readonly overview: string | null;
   readonly runtimeMinutes: number | null;
+  readonly voteAverage: number | null;
   readonly genres: readonly string[];
   /** Same genres as `genres`, as TMDB ids — for filtering (see `lib/tmdb/genres.ts`) rather than display. */
   readonly genreIds: readonly number[];

@@ -88,6 +88,7 @@ export const tmdbMovieDetailsResponseSchema = z.object({
   release_date: z.string().optional(),
   overview: z.string().nullable(),
   runtime: z.number().nullable(),
+  vote_average: z.number().optional(),
   genres: z.array(z.object({ id: z.number(), name: z.string() })),
   // Present on every /movie/{id} response by default, no append_to_response
   // needed — null for movies with no IMDb entry.
