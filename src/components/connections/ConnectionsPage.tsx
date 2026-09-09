@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { MovieMap } from "./MovieMap";
+import { PosterCarousel } from "./PosterCarousel";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
@@ -43,37 +44,6 @@ const TABS: readonly { value: ConnectionsTab; label: string }[] = [
   { value: "cast", label: "Shared cast" },
   { value: "map", label: "Movie map" },
 ];
-
-function MoviePoster({
-  movie,
-  onClick,
-}: {
-  readonly movie: FilmographyMovie;
-  readonly onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="focus-ring w-20 shrink-0 text-left"
-    >
-      {movie.posterPath ? (
-        <img
-          src={tmdbImageUrl(movie.posterPath, 92)}
-          srcSet={tmdbDensitySrcSet(movie.posterPath, 92, 185)}
-          alt=""
-          loading="lazy"
-          className="aspect-[2/3] w-full rounded-lg object-cover"
-        />
-      ) : (
-        <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg bg-muted text-xs text-muted-foreground">
-          No poster
-        </div>
-      )}
-      <p className="mt-1 truncate text-xs font-medium">{movie.title}</p>
-    </button>
-  );
-}
 
 export function ConnectionsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -385,15 +355,7 @@ export function ConnectionsPage() {
                         — {movies.length} movies
                       </span>
                     </a>
-                    <div className="flex gap-3 overflow-x-auto pb-1">
-                      {movies.map((movie) => (
-                        <MoviePoster
-                          key={movie.tmdbMovieId}
-                          movie={movie}
-                          onClick={() => setOpenMovieId(movie.tmdbMovieId)}
-                        />
-                      ))}
-                    </div>
+                    <PosterCarousel movies={movies} onSelect={setOpenMovieId} />
                   </div>
                 ))}
               </div>
