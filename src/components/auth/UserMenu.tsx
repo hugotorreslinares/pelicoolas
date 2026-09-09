@@ -49,6 +49,9 @@ export function UserMenu() {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem render={<a href={`/board/${user.uid}`} />}>
+          My recommendations board
+        </DropdownMenuItem>
         <DropdownMenuItem
           disabled={exporting}
           onSelect={() => void handleExport()}

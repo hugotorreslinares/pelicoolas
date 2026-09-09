@@ -18,6 +18,7 @@ import {
 } from "@/lib/tmdb/image";
 import { fetchMovieDetails } from "@/lib/movieData";
 import { MovieWatchlistButton } from "@/components/movies/MovieWatchlistButton";
+import { MovieRecommendButton } from "@/components/movies/MovieRecommendButton";
 import type { MovieDetails } from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
@@ -100,16 +101,28 @@ export function MovieDetailsDialog({
             <DialogHeader>
               <div className="flex items-start justify-between gap-2">
                 <DialogTitle>{details.title}</DialogTitle>
-                <MovieWatchlistButton
-                  movie={{
-                    tmdbMovieId: details.id,
-                    title: details.title,
-                    posterPath: details.posterPath,
-                    releaseYear: details.releaseYear,
-                    voteAverage: details.voteAverage,
-                    genreIds: details.genreIds,
-                  }}
-                />
+                <div className="flex shrink-0">
+                  <MovieRecommendButton
+                    movie={{
+                      tmdbMovieId: details.id,
+                      title: details.title,
+                      posterPath: details.posterPath,
+                      releaseYear: details.releaseYear,
+                      voteAverage: details.voteAverage,
+                      genreIds: details.genreIds,
+                    }}
+                  />
+                  <MovieWatchlistButton
+                    movie={{
+                      tmdbMovieId: details.id,
+                      title: details.title,
+                      posterPath: details.posterPath,
+                      releaseYear: details.releaseYear,
+                      voteAverage: details.voteAverage,
+                      genreIds: details.genreIds,
+                    }}
+                  />
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">
                 {[

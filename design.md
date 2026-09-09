@@ -40,9 +40,12 @@ users/{userId}/watchlist/{movieId}
 
 users/{userId}/badges/{badgeId}
   type, label, description, earnedAt, personId?, personName?
+
+users/{userId}/recommendations/{movieId}
+  tmdbId, title, posterPath, releaseYear, voteAverage, addedAt
 ```
 
-Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firestore.rules](firestore.rules). **Cambios a este archivo requieren deploy manual** (Firebase Console o `firebase deploy --only firestore:rules`); no se aplican solos al hacer push.
+Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firestore.rules](firestore.rules). **Cambios a este archivo requieren deploy manual** (Firebase Console o `firebase deploy --only firestore:rules`); no se aplican solos al hacer push. **Excepción deliberada**: `recommendations` tiene `allow read: if true` — es el tablón público (`/board/{userId}`), pensado para compartir sin login; solo el dueño puede escribir.
 
 ## Filmografía (TMDB)
 
@@ -55,6 +58,13 @@ Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firesto
 - **Búsqueda de películas** (`/api/search-movie`, `searchMovie()` en `lib/tmdb/movies.ts`, fuente `/search/movie`): mismo shape de respuesta que `/trending/movie/week`, así que reutiliza el schema Zod y el tipo `TrendingMovie` en vez de duplicarlos. `/search` (`SearchTabs.tsx`) alterna entre `PersonSearch` y el nuevo `MovieSearch` con dos botones — resultados de persona y de película nunca se mezclan en una sola lista. Click en un resultado abre `MovieDetailsDialog` (cast con links a `/person/{id}`, ya existía); el botón de watchlist es un componente aparte (`MovieWatchlistButton`) porque acá no hay un "seguido" (`sourcePersonId`) del que colgar la película — ver siguiente punto.
 - **Ratings externos (OMDb)** (`src/lib/omdb.ts`, `getExternalRatings()`): TMDB no tiene Rotten Tomatoes ni Metacritic, solo su propio voto — `getMovieDetails()` los suma vía OMDb, usando el `imdb_id` que TMDB ya trae gratis en `/movie/{id}` (sin `append_to_response` extra), así no hace falta buscar por título (evitaría falsos positivos entre películas homónimas). `OMDB_API_KEY` server-only (`.env`, nunca al cliente); si falta la key, OMDb no responde, o la película no tiene `imdb_id`, `getExternalRatings()` devuelve `null` sin romper el resto del detalle — mismo criterio que el resto de las integraciones externas de la app (TMDB caído no tira abajo la home). No es un endpoint propio: piggybackea en la cache de 1 día que ya tiene `/api/movie/[id]`, así que no suma presión al free tier de OMDb (1000 req/día).
 - **`WatchlistMovie.sourcePersonId`/`sourcePersonName` son opcionales**: una película agregada desde la filmografía de alguien que seguís lleva esos campos (el "via X" que se ve en `/watchlist`); una agregada desde la búsqueda de películas, no — no hay una persona de la que colgarla. `WatchlistPage` y el conteo por-persona en `Dashboard` (usado por el sort "Watchlist size") ignoran las entradas sin `sourcePersonId`.
+
+## Tablón público de recomendaciones (`/board/{userId}`)
+
+- **Objetivo: crecimiento**, no solo funcionalidad — pensado para compartir en redes. Cualquiera puede ver el tablón de cualquier usuario sin cuenta ni login; el resto de la app sigue exigiendo sign-in. El botón de estrella (`MovieRecommendButton.tsx`, junto al de watchlist en `MovieDetailsDialog`) es la única forma de agregar — separado del watchlist a propósito: watchlist es "quiero verla", esto es "la recomiendo a otros".
+- **URL = uid de Firebase directo**, sin sistema de usernames — no hay uno en la app, y agregar uno solo para esto sería sobre-ingeniería. El uid no es secreto (ya es público de facto en cualquier app con perfiles), así que no es un problema de seguridad exponerlo en la URL.
+- **`RecommendationsBoard.tsx` sirve dos vistas con el mismo componente**: si `user?.uid === userId` (dueño viendo su propio tablón, con sesión), aparecen botón de "Copy link" y controles para quitar películas; para cualquier otro visitante (con sesión ajena o sin sesión) es de solo lectura, con un CTA al final invitando a probar la app. Evita mantener dos componentes para la misma data.
+- **Sin lectura server-side**: a diferencia de las páginas que traen datos de TMDB en el frontmatter de Astro, acá la página (`src/pages/board/[userId].astro`) solo pasa el `userId` de la URL — toda la lectura de Firestore pasa por el listener `onSnapshot` de siempre, client-side, sin necesitar sesión (permitido por la regla `allow read: if true`). Coherente con que el resto de la app nunca lee Firestore desde el servidor.
 
 ## UI
 

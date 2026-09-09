@@ -1,0 +1,15 @@
+---
+export const prerender = false;
+import Layout from "@/layouts/Layout.astro";
+import { RecommendationsBoard } from "@/components/board/RecommendationsBoard";
+
+const { userId } = Astro.params;
+if (!userId) return Astro.redirect("/");
+---
+
+<Layout
+  title="Movie Recommendations — Filmo"
+  description="Movies worth watching, picked by a Filmo user — no account needed to browse."
+>
+  <RecommendationsBoard userId={userId} client:load />
+</Layout>

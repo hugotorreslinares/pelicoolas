@@ -38,3 +38,13 @@ export interface WatchlistMovie {
 }
 
 export type FilmographyFilter = "all" | "watched" | "unwatched";
+
+/** An entry on a user's public recommendations board (`/board/{userId}`). */
+export interface RecommendedMovie {
+  readonly tmdbId: number;
+  readonly title: string;
+  readonly posterPath: string | null;
+  readonly releaseYear: number | null;
+  readonly voteAverage: number | null;
+  readonly addedAt: string;
+}

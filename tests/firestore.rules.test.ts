@@ -160,3 +160,47 @@ describe("firestore.rules — badges", () => {
     );
   });
 });
+
+describe("firestore.rules — recommendations (public board)", () => {
+  it("lets a user add, read, and remove their own recommendations", async () => {
+    const db = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/recommendations/13"), {
+        title: "Forrest Gump",
+        tmdbId: 13,
+      }),
+    );
+    await assertSucceeds(getDoc(doc(db, "users/alice/recommendations/13")));
+    await assertSucceeds(deleteDoc(doc(db, "users/alice/recommendations/13")));
+  });
+
+  it("lets anyone read a board, signed in or not", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/recommendations/13"), {
+        title: "Forrest Gump",
+        tmdbId: 13,
+      });
+    });
+    const anon = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(anon, "users/alice/recommendations/13")));
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(bob, "users/alice/recommendations/13")));
+  });
+
+  it("denies anyone but the owner from writing to it", async () => {
+    const anon = testEnv.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(anon, "users/alice/recommendations/13"), {
+        title: "Forrest Gump",
+        tmdbId: 13,
+      }),
+    );
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      setDoc(doc(bob, "users/alice/recommendations/13"), {
+        title: "Forrest Gump",
+        tmdbId: 13,
+      }),
+    );
+  });
+});

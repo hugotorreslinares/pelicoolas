@@ -12,6 +12,7 @@ import {
 import { db } from "./client";
 import type {
   FollowedPerson,
+  RecommendedMovie,
   WatchedMovie,
   WatchlistMovie,
 } from "@/types/filmography";
@@ -39,6 +40,10 @@ function watchedMovieRef(userId: string, personId: number, movieId: number) {
 
 function watchlistMovieRef(userId: string, movieId: number) {
   return doc(requireDb(), "users", userId, "watchlist", String(movieId));
+}
+
+function recommendedMovieRef(userId: string, movieId: number) {
+  return doc(requireDb(), "users", userId, "recommendations", String(movieId));
 }
 
 export async function followPerson(
@@ -242,6 +247,45 @@ export function subscribeToWatchlist(
     collection(requireDb(), "users", userId, "watchlist"),
     (snapshot) => {
       callback(snapshot.docs.map((d) => d.data() as WatchlistMovie));
+    },
+  );
+}
+
+export async function addToRecommendations(
+  userId: string,
+  movie: Omit<RecommendedMovie, "addedAt">,
+): Promise<void> {
+  await setDoc(recommendedMovieRef(userId, movie.tmdbId), {
+    ...movie,
+    addedAt: serverTimestamp(),
+  });
+}
+
+export async function removeFromRecommendations(
+  userId: string,
+  movieId: number,
+): Promise<void> {
+  await deleteDoc(recommendedMovieRef(userId, movieId));
+}
+
+export async function isInRecommendations(
+  userId: string,
+  movieId: number,
+): Promise<boolean> {
+  const snapshot = await getDoc(recommendedMovieRef(userId, movieId));
+  return snapshot.exists();
+}
+
+// No auth check here on purpose — this backs the public board
+// (/board/{userId}), readable by anyone per firestore.rules.
+export function subscribeToRecommendations(
+  userId: string,
+  callback: (movies: readonly RecommendedMovie[]) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "recommendations"),
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as RecommendedMovie));
     },
   );
 }
