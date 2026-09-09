@@ -201,16 +201,18 @@ export function Filmography({
             <h2 className="text-sm font-semibold text-muted-foreground">
               {year}
             </h2>
-            {yearMovies.map((movie) => (
-              <MovieItem
-                key={movie.tmdbMovieId}
-                movie={movie}
-                watched={watched.has(movie.tmdbMovieId)}
-                onToggle={(next) => void toggleWatched(movie, next)}
-                inWatchlist={watchlist.has(movie.tmdbMovieId)}
-                onToggleWatchlist={() => void toggleWatchlist(movie)}
-              />
-            ))}
+            <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+              {yearMovies.map((movie) => (
+                <MovieItem
+                  key={movie.tmdbMovieId}
+                  movie={movie}
+                  watched={watched.has(movie.tmdbMovieId)}
+                  onToggle={(next) => void toggleWatched(movie, next)}
+                  inWatchlist={watchlist.has(movie.tmdbMovieId)}
+                  onToggleWatchlist={() => void toggleWatchlist(movie)}
+                />
+              ))}
+            </div>
           </div>
         ))}
       </div>
