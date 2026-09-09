@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
+import { InfoIcon } from "lucide-react";
 import { fetchSimilarMovies } from "@/lib/movieData";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
 import type { TrendingMovie } from "@/types/movie";
@@ -464,6 +465,30 @@ export function MovieMap() {
                   />
                 )}
                 <title>{node.title}</title>
+
+                {/* Clicking a poster expands the map from it — this is the
+                    only way to peek at cast/ratings/watchlist for a node
+                    you don't want to expand (yet). stopPropagation keeps
+                    the click from also triggering the parent <g>'s expand. */}
+                <foreignObject
+                  x={size - 18}
+                  y={posterY - 4}
+                  width={22}
+                  height={22}
+                  className="overflow-visible"
+                >
+                  <button
+                    type="button"
+                    aria-label={`View details for ${node.title}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDetailsMovieId(node.id);
+                    }}
+                    className="focus-ring flex size-[22px] items-center justify-center rounded-full border bg-background text-foreground shadow"
+                  >
+                    <InfoIcon className="size-3" />
+                  </button>
+                </foreignObject>
               </g>
             );
           })}
