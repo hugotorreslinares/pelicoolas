@@ -9,12 +9,11 @@ import type { TrendingMovie } from "@/types/movie";
 
 // A force-directed take on movie-map.com/rec: instead of a static page of
 // plain-text titles positioned by a precomputed embedding, this fetches
-// TMDB's own "similar movies" ranking for whichever title is centered and
-// lays it out live — closer to the center = higher in TMDB's similarity
-// ranking. Clicking any node re-centers the map on it (the same "wander
-// through the graph" navigation as the reference), with posters instead of
-// text, animated settling instead of a hard page jump, pan/zoom, and a back
-// button so you don't lose your place.
+// TMDB's own "similar movies" ranking live. Unlike the reference (and an
+// earlier version of this component), clicking a related movie doesn't
+// replace the map — it *expands* it: that movie becomes its own hub with
+// its own ring of similar titles, added onto the existing graph, so you can
+// click your way several movies deep without losing where you came from.
 
 interface Node {
   readonly id: number;
@@ -26,49 +25,27 @@ interface Node {
   vy: number;
 }
 
+interface Edge {
+  readonly a: number;
+  readonly b: number;
+  readonly targetDist: number;
+}
+
 const WIDTH = 800;
 const HEIGHT = 520;
 const CENTER_X = WIDTH / 2;
 const CENTER_Y = HEIGHT / 2;
-const MIN_EDGE_DIST = 90;
-const EDGE_RANGE = 220; // rank 0 sits at MIN_EDGE_DIST, the last rank at MIN_EDGE_DIST + EDGE_RANGE
-const REPULSION = 12000;
+const MIN_EDGE_DIST = 80;
+const EDGE_RANGE = 160; // rank 0 sits at MIN_EDGE_DIST, the last rank at MIN_EDGE_DIST + EDGE_RANGE
+const REPULSION = 9000;
 const DAMPING = 0.82;
+const GRAVITY = 0.001; // weak pull toward canvas center so the graph doesn't drift off-screen as it grows
 const SETTLE_VELOCITY = 0.05;
-const MAX_TICKS = 400;
+const MAX_TICKS_PER_EXPANSION = 300;
+const MAX_NODES = 80; // keeps the O(n^2) repulsion pass and the SVG cheap as the map grows
 
-function buildInitialNodes(
-  center: TrendingMovie,
-  similar: readonly TrendingMovie[],
-): Node[] {
-  const nodes: Node[] = [
-    {
-      id: center.tmdbMovieId,
-      title: center.title,
-      posterPath: center.posterPath,
-      x: CENTER_X,
-      y: CENTER_Y,
-      vx: 0,
-      vy: 0,
-    },
-  ];
-  similar.forEach((movie, i) => {
-    // Seed on a circle, ordered by rank, so the simulation starts close to
-    // its resting shape instead of untangling from a random scatter.
-    const angle = (i / similar.length) * Math.PI * 2;
-    const radius =
-      MIN_EDGE_DIST + (i / Math.max(1, similar.length - 1)) * EDGE_RANGE;
-    nodes.push({
-      id: movie.tmdbMovieId,
-      title: movie.title,
-      posterPath: movie.posterPath,
-      x: CENTER_X + Math.cos(angle) * radius,
-      y: CENTER_Y + Math.sin(angle) * radius,
-      vx: 0,
-      vy: 0,
-    });
-  });
-  return nodes;
+function targetDistFor(rank: number, count: number): number {
+  return MIN_EDGE_DIST + (rank / Math.max(1, count - 1)) * EDGE_RANGE;
 }
 
 export function MovieMap() {
@@ -76,12 +53,16 @@ export function MovieMap() {
   const [searchResults, setSearchResults] = useState<readonly TrendingMovie[]>(
     [],
   );
-  const [center, setCenter] = useState<TrendingMovie | null>(null);
-  const [history, setHistory] = useState<readonly TrendingMovie[]>([]);
   const [nodes, setNodes] = useState<readonly Node[]>([]);
+  const [edges, setEdges] = useState<readonly Edge[]>([]);
+  const [focusedId, setFocusedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailsMovieId, setDetailsMovieId] = useState<number | null>(null);
+
   const nodesRef = useRef<Node[]>([]);
+  const edgesRef = useRef<Edge[]>([]);
+  const expandedRef = useRef<Set<number>>(new Set());
+  const [simGeneration, setSimGeneration] = useState(0);
 
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: WIDTH, h: HEIGHT });
   const panRef = useRef<{
@@ -117,103 +98,185 @@ export function MovieMap() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  async function goTo(movie: TrendingMovie, pushHistory: boolean) {
-    if (pushHistory && center) setHistory((h) => [...h, center]);
-    setCenter(movie);
+  function focusOn(id: number, x: number, y: number) {
+    setFocusedId(id);
+    setViewBox((prev) => {
+      const w = Math.max(prev.w * 0.85, WIDTH * 0.3);
+      const h = w * (HEIGHT / WIDTH);
+      return { x: x - w / 2, y: y - h / 2, w, h };
+    });
+  }
+
+  // Expands the graph from `id` (already present as a node) with its
+  // similar movies — new nodes/edges are added on top of whatever's already
+  // there, never replacing it. Re-clicking an already-expanded node just
+  // refocuses the view on it instead of re-fetching.
+  async function expand(id: number) {
+    const originNode = nodesRef.current.find((n) => n.id === id);
+    if (originNode) focusOn(id, originNode.x, originNode.y);
+
+    if (expandedRef.current.has(id)) return;
+    expandedRef.current.add(id);
+
+    if (nodesRef.current.length >= MAX_NODES) return;
+
+    setLoading(true);
+    const similar = await fetchSimilarMovies(id);
+    setLoading(false);
+
+    const origin = nodesRef.current.find((n) => n.id === id);
+    if (!origin) return; // shouldn't happen, but don't crash the map over it
+
+    let added = false;
+    similar.forEach((movie, i) => {
+      const dist = targetDistFor(i, similar.length);
+      let node = nodesRef.current.find((n) => n.id === movie.tmdbMovieId);
+      if (!node) {
+        if (nodesRef.current.length >= MAX_NODES) return;
+        const angle = Math.random() * Math.PI * 2;
+        node = {
+          id: movie.tmdbMovieId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          x: origin.x + Math.cos(angle) * dist,
+          y: origin.y + Math.sin(angle) * dist,
+          vx: 0,
+          vy: 0,
+        };
+        nodesRef.current.push(node);
+      }
+      const edgeExists = edgesRef.current.some(
+        (e) =>
+          (e.a === id && e.b === node!.id) || (e.a === node!.id && e.b === id),
+      );
+      if (!edgeExists) {
+        edgesRef.current.push({ a: id, b: node.id, targetDist: dist });
+      }
+      added = true;
+    });
+
+    if (added) {
+      setNodes([...nodesRef.current]);
+      setEdges([...edgesRef.current]);
+      setSimGeneration((g) => g + 1);
+    }
+  }
+
+  async function startFrom(movie: TrendingMovie) {
     setQuery("");
     setSearchResults([]);
-    setLoading(true);
-    const similar = await fetchSimilarMovies(movie.tmdbMovieId);
-    nodesRef.current = buildInitialNodes(movie, similar);
-    setNodes(nodesRef.current);
+    const alreadyThere = nodesRef.current.some(
+      (n) => n.id === movie.tmdbMovieId,
+    );
+    if (!alreadyThere) {
+      nodesRef.current.push({
+        id: movie.tmdbMovieId,
+        title: movie.title,
+        posterPath: movie.posterPath,
+        x:
+          nodesRef.current.length === 0
+            ? CENTER_X
+            : CENTER_X + (Math.random() - 0.5) * 60,
+        y:
+          nodesRef.current.length === 0
+            ? CENTER_Y
+            : CENTER_Y + (Math.random() - 0.5) * 60,
+        vx: 0,
+        vy: 0,
+      });
+      setNodes([...nodesRef.current]);
+    }
+    await expand(movie.tmdbMovieId);
+  }
+
+  function resetMap() {
+    nodesRef.current = [];
+    edgesRef.current = [];
+    expandedRef.current = new Set();
+    setNodes([]);
+    setEdges([]);
+    setFocusedId(null);
     setViewBox({ x: 0, y: 0, w: WIDTH, h: HEIGHT });
-    setLoading(false);
   }
 
-  function goBack() {
-    const prev = history[history.length - 1];
-    if (!prev) return;
-    setHistory((h) => h.slice(0, -1));
-    void goTo(prev, false);
-  }
-
-  // Force simulation: repel every pair, pull edges (center <-> each other
-  // node) toward a target distance set by similarity rank, damp, and stop
-  // once it settles instead of animating forever.
+  // Force simulation: repel every node pair, pull each edge toward its
+  // target distance (closer = more similar, per whichever hub added it), a
+  // weak centering gravity so the graph doesn't wander off, damp, and stop
+  // once it settles rather than animating forever. Re-runs (without
+  // resetting existing positions) whenever expand() adds nodes/edges.
   useEffect(() => {
-    if (nodes.length === 0) return;
+    if (nodesRef.current.length === 0) return;
     let tick = 0;
     let raf: number;
 
     function step() {
       const current = nodesRef.current;
-      let maxSpeed = 0;
+      const currentEdges = edgesRef.current;
+      const byId = new Map(current.map((n) => [n.id, n]));
+      const fx = new Map<number, number>(current.map((n) => [n.id, 0]));
+      const fy = new Map<number, number>(current.map((n) => [n.id, 0]));
 
       for (let i = 0; i < current.length; i++) {
-        const a = current[i];
-        let fx = 0;
-        let fy = 0;
-
-        for (let j = 0; j < current.length; j++) {
-          if (i === j) continue;
+        for (let j = i + 1; j < current.length; j++) {
+          const a = current[i];
           const b = current[j];
           const dx = a.x - b.x;
           const dy = a.y - b.y;
           const distSq = Math.max(dx * dx + dy * dy, 1);
           const force = REPULSION / distSq;
           const dist = Math.sqrt(distSq);
-          fx += (dx / dist) * force;
-          fy += (dy / dist) * force;
+          const fxv = (dx / dist) * force;
+          const fyv = (dy / dist) * force;
+          fx.set(a.id, fx.get(a.id)! + fxv);
+          fy.set(a.id, fy.get(a.id)! + fyv);
+          fx.set(b.id, fx.get(b.id)! - fxv);
+          fy.set(b.id, fy.get(b.id)! - fyv);
         }
+      }
 
-        if (i > 0) {
-          const target = current[0];
-          const rank = i - 1;
-          const targetDist =
-            MIN_EDGE_DIST +
-            (rank / Math.max(1, current.length - 2)) * EDGE_RANGE;
-          const dx = target.x - a.x;
-          const dy = target.y - a.y;
-          const dist = Math.max(Math.hypot(dx, dy), 1);
-          const pull = (dist - targetDist) * 0.02;
-          fx += (dx / dist) * pull;
-          fy += (dy / dist) * pull;
-        }
+      for (const edge of currentEdges) {
+        const a = byId.get(edge.a);
+        const b = byId.get(edge.b);
+        if (!a || !b) continue;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.max(Math.hypot(dx, dy), 1);
+        const pull = (dist - edge.targetDist) * 0.02;
+        const fxv = (dx / dist) * pull;
+        const fyv = (dy / dist) * pull;
+        fx.set(a.id, fx.get(a.id)! + fxv);
+        fy.set(a.id, fy.get(a.id)! + fyv);
+        fx.set(b.id, fx.get(b.id)! - fxv);
+        fy.set(b.id, fy.get(b.id)! - fyv);
+      }
 
-        if (i === 0) {
-          // Center node stays put — it's the thing everything else is
-          // ranked against.
-          a.vx = 0;
-          a.vy = 0;
-          continue;
-        }
-
-        a.vx = (a.vx + fx) * DAMPING;
-        a.vy = (a.vy + fy) * DAMPING;
-        a.x += a.vx;
-        a.y += a.vy;
-        maxSpeed = Math.max(maxSpeed, Math.abs(a.vx), Math.abs(a.vy));
+      let maxSpeed = 0;
+      for (const n of current) {
+        const gx = (CENTER_X - n.x) * GRAVITY;
+        const gy = (CENTER_Y - n.y) * GRAVITY;
+        n.vx = (n.vx + fx.get(n.id)! + gx) * DAMPING;
+        n.vy = (n.vy + fy.get(n.id)! + gy) * DAMPING;
+        n.x += n.vx;
+        n.y += n.vy;
+        maxSpeed = Math.max(maxSpeed, Math.abs(n.vx), Math.abs(n.vy));
       }
 
       setNodes([...current]);
       tick++;
-      if (tick < MAX_TICKS && maxSpeed > SETTLE_VELOCITY) {
+      if (tick < MAX_TICKS_PER_EXPANSION && maxSpeed > SETTLE_VELOCITY) {
         raf = requestAnimationFrame(step);
       }
     }
 
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-    // Only re-run when the node *set* changes (a new center movie) — the
-    // simulation owns positions via nodesRef from then on.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [center?.tmdbMovieId]);
+  }, [simGeneration]);
 
   function handleWheel(e: React.WheelEvent<SVGSVGElement>) {
     e.preventDefault();
     const scale = e.deltaY > 0 ? 1.1 : 0.9;
     setViewBox((prev) => {
-      const w = Math.min(Math.max(prev.w * scale, WIDTH * 0.3), WIDTH * 2.5);
+      const w = Math.min(Math.max(prev.w * scale, WIDTH * 0.25), WIDTH * 3);
       const h = w * (HEIGHT / WIDTH);
       return {
         x: prev.x + (prev.w - w) / 2,
@@ -228,7 +291,7 @@ export function MovieMap() {
     // Only start panning when the gesture begins on the empty background —
     // capturing the pointer here for a press that started on a node would
     // redirect that node's own pointerup/click to the <svg> instead, so
-    // clicking a node to re-center silently did nothing.
+    // clicking a node to expand/focus silently did nothing.
     if (e.target !== e.currentTarget) return;
     panRef.current = {
       pointerId: e.pointerId,
@@ -254,18 +317,22 @@ export function MovieMap() {
     if (panRef.current?.pointerId === e.pointerId) panRef.current = null;
   }
 
+  const focusedNode = nodes.find((n) => n.id === focusedId) ?? null;
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        {history.length > 0 && (
-          <Button type="button" size="sm" variant="outline" onClick={goBack}>
-            ← Back
+        {nodes.length > 0 && (
+          <Button type="button" size="sm" variant="outline" onClick={resetMap}>
+            Reset map
           </Button>
         )}
         <div className="relative min-w-48 flex-1">
           <Input
             placeholder={
-              center ? `Jump to another movie…` : "Search a movie to start…"
+              nodes.length > 0
+                ? "Add another movie…"
+                : "Search a movie to start…"
             }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -276,7 +343,7 @@ export function MovieMap() {
                 <button
                   key={movie.tmdbMovieId}
                   type="button"
-                  onClick={() => void goTo(movie, true)}
+                  onClick={() => void startFrom(movie)}
                   className="focus-ring block w-full truncate rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
                 >
                   {movie.title}
@@ -291,22 +358,23 @@ export function MovieMap() {
             </div>
           )}
         </div>
-        {center && (
+        {focusedNode && (
           <Button
             type="button"
             size="sm"
             variant="outline"
-            onClick={() => setDetailsMovieId(center.tmdbMovieId)}
+            onClick={() => setDetailsMovieId(focusedNode.id)}
           >
-            View {center.title}
+            View {focusedNode.title}
           </Button>
         )}
       </div>
 
-      {!center && !loading && (
+      {nodes.length === 0 && !loading && (
         <p className="text-sm text-muted-foreground">
-          Search a movie above to map out what's similar to it — click any
-          result on the map to re-center and keep exploring.
+          Search a movie above to map out what's similar to it. Click any result
+          on the map to pull in its own similar movies too — the map keeps
+          growing, nothing gets replaced.
         </p>
       )}
 
@@ -314,7 +382,7 @@ export function MovieMap() {
         <Skeleton className="h-[400px] w-full rounded-lg" />
       )}
 
-      {center && nodes.length > 0 && (
+      {nodes.length > 0 && (
         <svg
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
           className="h-[400px] w-full touch-none rounded-lg border bg-muted/20"
@@ -324,21 +392,26 @@ export function MovieMap() {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
         >
-          {nodes.slice(1).map((node) => (
-            <line
-              key={`edge-${node.id}`}
-              x1={nodes[0].x}
-              y1={nodes[0].y}
-              x2={node.x}
-              y2={node.y}
-              stroke="currentColor"
-              className="text-muted-foreground/25"
-              strokeWidth={1}
-            />
-          ))}
+          {edges.map((edge) => {
+            const a = nodes.find((n) => n.id === edge.a);
+            const b = nodes.find((n) => n.id === edge.b);
+            if (!a || !b) return null;
+            return (
+              <line
+                key={`${edge.a}-${edge.b}`}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                stroke="currentColor"
+                className="text-muted-foreground/25"
+                strokeWidth={1}
+              />
+            );
+          })}
           <defs>
-            {nodes.map((node, i) => {
-              const size = i === 0 ? 56 : 40;
+            {nodes.map((node) => {
+              const size = node.id === focusedId ? 56 : 40;
               const h = size * 1.5;
               return (
                 <clipPath key={`clip-${node.id}`} id={`poster-clip-${node.id}`}>
@@ -347,9 +420,10 @@ export function MovieMap() {
               );
             })}
           </defs>
-          {nodes.map((node, i) => {
-            const isCenter = i === 0;
-            const size = isCenter ? 56 : 40;
+          {nodes.map((node) => {
+            const isFocused = node.id === focusedId;
+            const isExpanded = expandedRef.current.has(node.id);
+            const size = isFocused ? 56 : 40;
             const h = size * 1.5;
             const posterY = -((h - size) / 2);
             return (
@@ -357,20 +431,9 @@ export function MovieMap() {
                 key={node.id}
                 transform={`translate(${node.x - size / 2}, ${node.y - size / 2})`}
                 className="cursor-pointer"
-                onClick={() => {
-                  if (isCenter) return;
-                  const movie: TrendingMovie = {
-                    tmdbMovieId: node.id,
-                    title: node.title,
-                    posterPath: node.posterPath,
-                    releaseYear: null,
-                    voteAverage: null,
-                    genreIds: [],
-                  };
-                  void goTo(movie, true);
-                }}
+                onClick={() => void expand(node.id)}
               >
-                {isCenter && (
+                {isFocused && (
                   <rect
                     width={size + 4}
                     height={h + 4}
@@ -389,6 +452,7 @@ export function MovieMap() {
                     y={posterY}
                     preserveAspectRatio="xMidYMid slice"
                     clipPath={`url(#poster-clip-${node.id})`}
+                    opacity={isExpanded ? 1 : 0.85}
                   />
                 ) : (
                   <rect
@@ -406,11 +470,11 @@ export function MovieMap() {
         </svg>
       )}
 
-      {center && (
+      {nodes.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          Scroll to zoom, drag to pan. Closer to{" "}
-          <span className="font-medium">{center.title}</span> means more
-          similar, per TMDB.
+          Scroll to zoom, drag to pan. Click a poster to pull in what's similar
+          to it — the highlighted one is your current focus.
+          {nodes.length >= MAX_NODES && " Map is at its size limit."}
         </p>
       )}
 
