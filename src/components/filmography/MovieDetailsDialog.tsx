@@ -53,7 +53,7 @@ export function MovieDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[85vh] w-full min-w-0 overflow-x-hidden overflow-y-auto sm:max-w-md"
+        className="max-h-[85vh] w-full min-w-0 overflow-x-hidden overflow-y-auto sm:max-w-lg md:max-w-2xl"
       >
         <DialogClose
           render={
@@ -76,7 +76,7 @@ export function MovieDetailsDialog({
 
         {!error && !details && (
           <div className="space-y-3">
-            <Skeleton className="h-64 w-full rounded-lg" />
+            <Skeleton className="h-64 w-full rounded-lg md:h-96" />
             <Skeleton className="h-5 w-2/3" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-full" />
@@ -95,7 +95,7 @@ export function MovieDetailsDialog({
                 srcSet={tmdbWidthSrcSet(details.posterPath, POSTER_WIDTHS)}
                 sizes="(min-width: 640px) 448px, 100vw"
                 alt=""
-                className="mb-2 h-64 w-full rounded-lg object-cover"
+                className="mb-2 h-64 w-full rounded-lg object-cover md:h-96"
               />
             )}
             <DialogHeader>
