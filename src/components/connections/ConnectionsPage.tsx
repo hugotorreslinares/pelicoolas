@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
+import { MovieMap } from "./MovieMap";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
@@ -222,17 +223,7 @@ export function ConnectionsPage() {
     );
   }
 
-  if (!followed || followed.length === 0) {
-    return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{heading}</h1>
-        <p className="text-muted-foreground">
-          Follow a few actors or directors to see how their movies connect.
-        </p>
-        <Button render={<a href="/search" />}>Search actors & directors</Button>
-      </div>
-    );
-  }
+  const hasFollowed = !!followed && followed.length > 0;
 
   return (
     <div className="space-y-8">
@@ -243,129 +234,170 @@ export function ConnectionsPage() {
         </p>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="font-medium">People who worked together</h2>
-
-        {loadingFilmographies && byPerson.length === 0 && (
-          <div className="space-y-2">
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-20 w-full" />
-          </div>
-        )}
-
-        {!loadingFilmographies && coStarGroups.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No overlaps yet — the people you follow haven't shared a movie
-            (that's in their tracked filmography).
+      {!hasFollowed && (
+        <div className="space-y-3 text-center">
+          <p className="text-muted-foreground">
+            Follow a few actors or directors to see how their movies connect.
           </p>
-        )}
-
-        {coStarGroups.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {coStarGroups.map(({ movie, people }) => (
-              <button
-                key={movie.tmdbMovieId}
-                type="button"
-                onClick={() => setOpenMovieId(movie.tmdbMovieId)}
-                className="focus-ring space-y-1 text-left"
-              >
-                {movie.posterPath ? (
-                  <img
-                    src={tmdbImageUrl(movie.posterPath, 185)}
-                    srcSet={tmdbDensitySrcSet(movie.posterPath, 185, 342)}
-                    alt=""
-                    loading="lazy"
-                    className="aspect-[2/3] w-full rounded-lg border object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-                    No poster
-                  </div>
-                )}
-                <p className="truncate text-sm font-medium">{movie.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {movie.releaseYear ?? "Unknown"}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {people.map((p) => p.name).join(", ")}
-                </p>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-medium">Shared cast across your filmography</h2>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={scanning || allMovies.length === 0}
-            onClick={() => void runScan()}
-          >
-            {scanning
-              ? `Scanning ${scanProgress}/${scanTotal}…`
-              : sharedCastGroups
-                ? "Re-scan"
-                : "Find shared actors"}
+          <Button render={<a href="/search" />}>
+            Search actors & directors
           </Button>
         </div>
+      )}
 
-        {!sharedCastGroups && !scanning && (
-          <p className="text-sm text-muted-foreground">
-            Checks the full cast of every movie in your filmography for actors
-            who show up more than once — not just the people you follow.
-            {allMovies.length > MAX_SCAN_MOVIES &&
-              ` Limited to the first ${MAX_SCAN_MOVIES} movies.`}
-          </p>
-        )}
+      {hasFollowed && (
+        <>
+          <section className="space-y-3">
+            <h2 className="font-medium">People who worked together</h2>
 
-        {sharedCastGroups && sharedCastGroups.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No actor appears in more than one of these movies.
-          </p>
-        )}
-
-        {sharedCastGroups && sharedCastGroups.length > 0 && (
-          <div className="space-y-4">
-            {sharedCastGroups.map(({ member, movies }) => (
-              <div key={member.personId} className="space-y-2">
-                <a
-                  href={`/person/${member.personId}`}
-                  className="focus-ring flex items-center gap-2"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={
-                        member.profilePath
-                          ? tmdbImageUrl(member.profilePath, 45)
-                          : undefined
-                      }
-                      alt=""
-                    />
-                    <AvatarFallback>{member.name.slice(0, 1)}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium hover:underline">
-                    {member.name}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    — {movies.length} movies
-                  </span>
-                </a>
-                <div className="flex gap-3 overflow-x-auto pb-1">
-                  {movies.map((movie) => (
-                    <MoviePoster
-                      key={movie.tmdbMovieId}
-                      movie={movie}
-                      onClick={() => setOpenMovieId(movie.tmdbMovieId)}
-                    />
-                  ))}
-                </div>
+            {loadingFilmographies && byPerson.length === 0 && (
+              <div className="space-y-2">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
               </div>
-            ))}
-          </div>
-        )}
+            )}
+
+            {!loadingFilmographies && coStarGroups.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No overlaps yet — the people you follow haven't shared a movie
+                (that's in their tracked filmography).
+              </p>
+            )}
+
+            {coStarGroups.length > 0 && (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {coStarGroups.map(({ movie, people }) => (
+                  <button
+                    key={movie.tmdbMovieId}
+                    type="button"
+                    onClick={() => setOpenMovieId(movie.tmdbMovieId)}
+                    className="focus-ring space-y-1 text-left"
+                  >
+                    {movie.posterPath ? (
+                      <img
+                        src={tmdbImageUrl(movie.posterPath, 185)}
+                        srcSet={tmdbDensitySrcSet(movie.posterPath, 185, 342)}
+                        alt=""
+                        loading="lazy"
+                        className="aspect-[2/3] w-full rounded-lg border object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
+                        No poster
+                      </div>
+                    )}
+                    <p className="truncate text-sm font-medium">
+                      {movie.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {movie.releaseYear ?? "Unknown"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {people.map((p) => p.name).join(", ")}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-medium">
+                Shared cast across your filmography
+              </h2>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={scanning || allMovies.length === 0}
+                onClick={() => void runScan()}
+              >
+                {scanning
+                  ? `Scanning ${scanProgress}/${scanTotal}…`
+                  : sharedCastGroups
+                    ? "Re-scan"
+                    : "Find shared actors"}
+              </Button>
+            </div>
+
+            {!sharedCastGroups && !scanning && (
+              <p className="text-sm text-muted-foreground">
+                Checks the full cast of every movie in your filmography for
+                actors who show up more than once — not just the people you
+                follow.
+                {allMovies.length > MAX_SCAN_MOVIES &&
+                  ` Limited to the first ${MAX_SCAN_MOVIES} movies.`}
+              </p>
+            )}
+
+            {sharedCastGroups && sharedCastGroups.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No actor appears in more than one of these movies.
+              </p>
+            )}
+
+            {sharedCastGroups && sharedCastGroups.length > 0 && (
+              <div className="space-y-4">
+                {sharedCastGroups.map(({ member, movies }) => (
+                  <div key={member.personId} className="space-y-2">
+                    <a
+                      href={`/person/${member.personId}`}
+                      className="focus-ring flex items-center gap-2"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={
+                            member.profilePath
+                              ? tmdbImageUrl(member.profilePath, 45)
+                              : undefined
+                          }
+                          alt=""
+                        />
+                        <AvatarFallback>
+                          {member.name.slice(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium hover:underline">
+                        {member.name}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        — {movies.length} movies
+                      </span>
+                    </a>
+                    <div className="flex gap-3 overflow-x-auto pb-1">
+                      {movies.map((movie) => (
+                        <MoviePoster
+                          key={movie.tmdbMovieId}
+                          movie={movie}
+                          onClick={() => setOpenMovieId(movie.tmdbMovieId)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="font-medium">Movie map</h2>
+          <p className="text-sm text-muted-foreground">
+            Explore any movie's neighborhood — inspired by{" "}
+            <a
+              href="https://www.movie-map.com"
+              target="_blank"
+              rel="noreferrer"
+              className="focus-ring underline"
+            >
+              movie-map.com
+            </a>
+            , with posters, live layout, and pan/zoom.
+          </p>
+        </div>
+        <MovieMap />
       </section>
 
       {openMovieId !== null && (

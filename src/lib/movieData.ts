@@ -1,7 +1,11 @@
 import { readCache, writeCache } from "@/lib/clientCache";
 import type { PersonProfile } from "@/types/person";
 import type { CreditDepartment } from "@/types/filmography";
-import type { FilmographyMovie, MovieDetails } from "@/types/movie";
+import type {
+  FilmographyMovie,
+  MovieDetails,
+  TrendingMovie,
+} from "@/types/movie";
 
 // Client-side cached wrappers around this app's own /api/* proxies (never
 // TMDB directly — see src/lib/tmdb/* for the server-only client). Centralized
@@ -45,4 +49,21 @@ export async function fetchMovieDetails(
   const data = (await res.json()) as { movie: MovieDetails };
   writeCache(cacheKey, data.movie);
   return data.movie;
+}
+
+export async function fetchSimilarMovies(
+  movieId: number,
+): Promise<readonly TrendingMovie[]> {
+  const cacheKey = `similar:${movieId}`;
+  const cached = readCache<readonly TrendingMovie[]>(
+    cacheKey,
+    MOVIE_CACHE_MAX_AGE_MS,
+  );
+  if (cached) return cached;
+
+  const res = await fetch(`/api/movie/${movieId}/similar`);
+  if (!res.ok) return [];
+  const data = (await res.json()) as { results: readonly TrendingMovie[] };
+  writeCache(cacheKey, data.results);
+  return data.results;
 }

@@ -91,25 +91,35 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
   };
 }
 
-export async function searchMovie(
-  query: string,
-): Promise<readonly TrendingMovie[]> {
-  // /search/movie returns the same shape as /trending/movie/week, so the
-  // trending schema/type are reused rather than duplicated.
-  const data = await tmdbFetch(
-    "/search/movie",
-    tmdbTrendingMoviesResponseSchema,
-    { query, include_adult: "false" },
-  );
-
-  return data.results.map((m) => ({
+// /search/movie, /trending/movie/week, and /movie/{id}/similar all return
+// this same summary shape — one mapper instead of duplicating it three times.
+function toTrendingMovie(m: {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  release_date?: string;
+  vote_average?: number;
+  genre_ids?: number[];
+}): TrendingMovie {
+  return {
     tmdbMovieId: m.id,
     title: m.title,
     posterPath: m.poster_path,
     releaseYear: toReleaseYear(m.release_date),
     voteAverage: m.vote_average ?? null,
     genreIds: m.genre_ids ?? [],
-  }));
+  };
+}
+
+export async function searchMovie(
+  query: string,
+): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch(
+    "/search/movie",
+    tmdbTrendingMoviesResponseSchema,
+    { query, include_adult: "false" },
+  );
+  return data.results.map(toTrendingMovie);
 }
 
 const TRENDING_LIMIT = 12;
@@ -119,15 +129,22 @@ export async function getTrendingMovies(): Promise<readonly TrendingMovie[]> {
     "/trending/movie/week",
     tmdbTrendingMoviesResponseSchema,
   );
+  return data.results.slice(0, TRENDING_LIMIT).map(toTrendingMovie);
+}
 
-  return data.results.slice(0, TRENDING_LIMIT).map((m) => ({
-    tmdbMovieId: m.id,
-    title: m.title,
-    posterPath: m.poster_path,
-    releaseYear: toReleaseYear(m.release_date),
-    voteAverage: m.vote_average ?? null,
-    genreIds: m.genre_ids ?? [],
-  }));
+const SIMILAR_LIMIT = 12;
+
+// TMDB's own ordering is the ranking signal here — index 0 is "most
+// similar" — callers that want a closer/farther layout should preserve
+// array order, not re-sort by anything else.
+export async function getSimilarMovies(
+  movieId: number,
+): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch(
+    `/movie/${movieId}/similar`,
+    tmdbTrendingMoviesResponseSchema,
+  );
+  return data.results.slice(0, SIMILAR_LIMIT).map(toTrendingMovie);
 }
 
 export function sortFilmography(
