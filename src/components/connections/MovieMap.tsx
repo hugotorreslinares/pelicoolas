@@ -225,6 +225,11 @@ export function MovieMap() {
   }
 
   function handlePointerDown(e: React.PointerEvent<SVGSVGElement>) {
+    // Only start panning when the gesture begins on the empty background —
+    // capturing the pointer here for a press that started on a node would
+    // redirect that node's own pointerup/click to the <svg> instead, so
+    // clicking a node to re-center silently did nothing.
+    if (e.target !== e.currentTarget) return;
     panRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
