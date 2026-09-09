@@ -36,6 +36,14 @@ const MAX_SCAN_MOVIES = 150;
 const SCAN_CONCURRENCY = 4;
 const SCAN_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // matches fetchMovieDetails' own cache — no point outliving the data it's built from
 
+type ConnectionsTab = "people" | "cast" | "map";
+
+const TABS: readonly { value: ConnectionsTab; label: string }[] = [
+  { value: "people", label: "People who worked together" },
+  { value: "cast", label: "Shared cast" },
+  { value: "map", label: "Movie map" },
+];
+
 function MoviePoster({
   movie,
   onClick,
@@ -77,6 +85,7 @@ export function ConnectionsPage() {
   const fetchedPersonRef = useRef<Set<number>>(new Set());
 
   const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [tab, setTab] = useState<ConnectionsTab>("people");
 
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
@@ -234,7 +243,23 @@ export function ConnectionsPage() {
         </p>
       </div>
 
-      {!hasFollowed && (
+      <div className="flex flex-wrap gap-2" role="tablist">
+        {TABS.map((t) => (
+          <Button
+            key={t.value}
+            type="button"
+            size="sm"
+            variant={tab === t.value ? "default" : "outline"}
+            role="tab"
+            aria-selected={tab === t.value}
+            onClick={() => setTab(t.value)}
+          >
+            {t.label}
+          </Button>
+        ))}
+      </div>
+
+      {!hasFollowed && tab !== "map" && (
         <div className="space-y-3 text-center">
           <p className="text-muted-foreground">
             Follow a few actors or directors to see how their movies connect.
@@ -245,11 +270,9 @@ export function ConnectionsPage() {
         </div>
       )}
 
-      {hasFollowed && (
+      {hasFollowed && tab === "people" && (
         <>
           <section className="space-y-3">
-            <h2 className="font-medium">People who worked together</h2>
-
             {loadingFilmographies && byPerson.length === 0 && (
               <div className="space-y-2">
                 <Skeleton className="h-20 w-full" />
@@ -300,12 +323,20 @@ export function ConnectionsPage() {
               </div>
             )}
           </section>
+        </>
+      )}
 
+      {hasFollowed && tab === "cast" && (
+        <>
           <section className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-medium">
-                Shared cast across your filmography
-              </h2>
+              <p className="text-sm text-muted-foreground">
+                Checks the full cast of every movie in your filmography for
+                actors who show up more than once — not just the people you
+                follow.
+                {allMovies.length > MAX_SCAN_MOVIES &&
+                  ` Limited to the first ${MAX_SCAN_MOVIES} movies.`}
+              </p>
               <Button
                 size="sm"
                 variant="outline"
@@ -319,16 +350,6 @@ export function ConnectionsPage() {
                     : "Find shared actors"}
               </Button>
             </div>
-
-            {!sharedCastGroups && !scanning && (
-              <p className="text-sm text-muted-foreground">
-                Checks the full cast of every movie in your filmography for
-                actors who show up more than once — not just the people you
-                follow.
-                {allMovies.length > MAX_SCAN_MOVIES &&
-                  ` Limited to the first ${MAX_SCAN_MOVIES} movies.`}
-              </p>
-            )}
 
             {sharedCastGroups && sharedCastGroups.length === 0 && (
               <p className="text-sm text-muted-foreground">
@@ -381,9 +402,8 @@ export function ConnectionsPage() {
         </>
       )}
 
-      <section className="space-y-3">
-        <div>
-          <h2 className="font-medium">Movie map</h2>
+      {tab === "map" && (
+        <section className="space-y-3">
           <p className="text-sm text-muted-foreground">
             Explore any movie's neighborhood — inspired by{" "}
             <a
@@ -396,9 +416,9 @@ export function ConnectionsPage() {
             </a>
             , with posters, live layout, and pan/zoom.
           </p>
-        </div>
-        <MovieMap />
-      </section>
+          <MovieMap />
+        </section>
+      )}
 
       {openMovieId !== null && (
         <MovieDetailsDialog
