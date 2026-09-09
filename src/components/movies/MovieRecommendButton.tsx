@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { StarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
@@ -12,12 +13,18 @@ import type { TrendingMovie } from "@/types/movie";
 
 interface MovieRecommendButtonProps {
   readonly movie: TrendingMovie;
+  /** See MovieWatchlistButton's prop of the same name — lets a parent that
+   * renders both buttons show a single shared sign-in prompt. */
+  readonly onRequireSignIn?: () => void;
 }
 
 // Toggles a movie on the signed-in user's public recommendations board
 // (/board/{uid}) — a separate list from the watchlist: watchlist is "I want
 // to see this", this is "I'm telling other people to see this".
-export function MovieRecommendButton({ movie }: MovieRecommendButtonProps) {
+export function MovieRecommendButton({
+  movie,
+  onRequireSignIn,
+}: MovieRecommendButtonProps) {
   const { user, loading: authLoading } = useAuth();
   const [recommended, setRecommended] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -37,7 +44,8 @@ export function MovieRecommendButton({ movie }: MovieRecommendButtonProps) {
   async function toggleRecommended(e: React.MouseEvent) {
     e.stopPropagation();
     if (!user) {
-      setShowSignInHint(true);
+      if (onRequireSignIn) onRequireSignIn();
+      else setShowSignInHint(true);
       return;
     }
     if (recommended) {
@@ -75,11 +83,7 @@ export function MovieRecommendButton({ movie }: MovieRecommendButtonProps) {
       >
         <StarIcon className={recommended ? "fill-current" : ""} />
       </Button>
-      {showSignInHint && (
-        <p className="text-xs text-muted-foreground">
-          Sign in to build your recommendations board.
-        </p>
-      )}
+      {showSignInHint && <LoginButton size="sm" />}
     </div>
   );
 }

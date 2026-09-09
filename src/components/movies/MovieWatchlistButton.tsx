@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BookmarkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
@@ -12,12 +13,20 @@ import type { TrendingMovie } from "@/types/movie";
 
 interface MovieWatchlistButtonProps {
   readonly movie: TrendingMovie;
+  /** When provided, a signed-out click reports up instead of showing its
+   * own inline sign-in button — lets a parent with multiple toggles (e.g.
+   * MovieDetailsDialog, which also has MovieRecommendButton) show a single
+   * shared prompt instead of one per button. */
+  readonly onRequireSignIn?: () => void;
 }
 
 // Standalone toggle for contexts with no followed-person to attribute the
 // movie to (movie search results) — unlike Filmography's watchlist toggle,
 // which is driven by a parent that already knows sourcePersonId/Name.
-export function MovieWatchlistButton({ movie }: MovieWatchlistButtonProps) {
+export function MovieWatchlistButton({
+  movie,
+  onRequireSignIn,
+}: MovieWatchlistButtonProps) {
   const { user, loading: authLoading } = useAuth();
   const [inWatchlist, setInWatchlist] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -37,7 +46,8 @@ export function MovieWatchlistButton({ movie }: MovieWatchlistButtonProps) {
   async function toggleWatchlist(e: React.MouseEvent) {
     e.stopPropagation();
     if (!user) {
-      setShowSignInHint(true);
+      if (onRequireSignIn) onRequireSignIn();
+      else setShowSignInHint(true);
       return;
     }
     if (inWatchlist) {
@@ -76,11 +86,7 @@ export function MovieWatchlistButton({ movie }: MovieWatchlistButtonProps) {
       >
         <BookmarkIcon className={inWatchlist ? "fill-current" : ""} />
       </Button>
-      {showSignInHint && (
-        <p className="text-xs text-muted-foreground">
-          Sign in to use your watchlist.
-        </p>
-      )}
+      {showSignInHint && <LoginButton size="sm" />}
     </div>
   );
 }

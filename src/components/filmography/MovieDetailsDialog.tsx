@@ -19,6 +19,7 @@ import {
 import { fetchMovieDetails } from "@/lib/movieData";
 import { MovieWatchlistButton } from "@/components/movies/MovieWatchlistButton";
 import { MovieRecommendButton } from "@/components/movies/MovieRecommendButton";
+import { LoginButton } from "@/components/auth/LoginButton";
 import type { MovieDetails } from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
@@ -36,6 +37,7 @@ export function MovieDetailsDialog({
 }: MovieDetailsDialogProps) {
   const [details, setDetails] = useState<MovieDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSignIn, setShowSignIn] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -111,6 +113,7 @@ export function MovieDetailsDialog({
                       voteAverage: details.voteAverage,
                       genreIds: details.genreIds,
                     }}
+                    onRequireSignIn={() => setShowSignIn(true)}
                   />
                   <MovieWatchlistButton
                     movie={{
@@ -121,9 +124,18 @@ export function MovieDetailsDialog({
                       voteAverage: details.voteAverage,
                       genreIds: details.genreIds,
                     }}
+                    onRequireSignIn={() => setShowSignIn(true)}
                   />
                 </div>
               </div>
+              {showSignIn && (
+                <div className="flex items-center gap-2">
+                  <LoginButton size="sm" />
+                  <span className="text-xs text-muted-foreground">
+                    to recommend or save movies
+                  </span>
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">
                 {[
                   details.releaseYear ?? "Unknown",
