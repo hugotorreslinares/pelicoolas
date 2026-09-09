@@ -204,3 +204,34 @@ describe("firestore.rules — recommendations (public board)", () => {
     );
   });
 });
+
+describe("firestore.rules — seen (personal watched log)", () => {
+  it("lets a user mark, read, and unmark a movie as seen", async () => {
+    const db = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/seen/13"), {
+        title: "Forrest Gump",
+        tmdbId: 13,
+      }),
+    );
+    await assertSucceeds(getDoc(doc(db, "users/alice/seen/13")));
+    await assertSucceeds(deleteDoc(doc(db, "users/alice/seen/13")));
+  });
+
+  it("denies another authenticated user from reading or writing it", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/seen/13"), {
+        title: "Forrest Gump",
+        tmdbId: 13,
+      });
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDoc(doc(bob, "users/alice/seen/13")));
+    await assertFails(
+      setDoc(doc(bob, "users/alice/seen/13"), {
+        title: "Forrest Gump",
+        tmdbId: 13,
+      }),
+    );
+  });
+});

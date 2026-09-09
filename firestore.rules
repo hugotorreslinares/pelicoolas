@@ -21,6 +21,12 @@ service cloud.firestore {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
+      // Personal "I've seen this" log, independent of followedPeople/{id}/watchedMovies
+      // (which tracks completion per filmography). Not public — unlike recommendations.
+      match /seen/{movieId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
       // Public by design — this is the shareable recommendations board
       // (/board/{userId}), meant to be viewed by anyone without signing in.
       // Only the owner can add/remove from it.

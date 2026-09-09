@@ -48,3 +48,20 @@ export interface RecommendedMovie {
   readonly voteAverage: number | null;
   readonly addedAt: string;
 }
+
+/**
+ * A movie marked watched from a generic context (search, watchlist,
+ * recommendations board, Connections) with no specific followed person's
+ * filmography to check it off in. Deliberately separate from `WatchedMovie`
+ * (nested under `followedPeople/{personId}/watchedMovies`, which drives
+ * filmography-completion progress/badges) — marking a movie here does not
+ * check it off in any filmography, and vice versa.
+ */
+export interface SeenMovie {
+  readonly tmdbId: number;
+  readonly title: string;
+  readonly posterPath: string | null;
+  readonly releaseYear: number | null;
+  readonly voteAverage: number | null;
+  readonly watchedAt: string;
+}

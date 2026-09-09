@@ -43,6 +43,9 @@ users/{userId}/badges/{badgeId}
 
 users/{userId}/recommendations/{movieId}
   tmdbId, title, posterPath, releaseYear, voteAverage, addedAt
+
+users/{userId}/seen/{movieId}
+  tmdbId, title, posterPath, releaseYear, voteAverage, watchedAt
 ```
 
 Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firestore.rules](firestore.rules). **Cambios a este archivo requieren deploy manual** (Firebase Console o `firebase deploy --only firestore:rules`); no se aplican solos al hacer push. **Excepción deliberada**: `recommendations` tiene `allow read: if true` — es el tablón público (`/board/{userId}`), pensado para compartir sin login; solo el dueño puede escribir.
@@ -65,6 +68,8 @@ Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firesto
 - **URL = uid de Firebase directo**, sin sistema de usernames — no hay uno en la app, y agregar uno solo para esto sería sobre-ingeniería. El uid no es secreto (ya es público de facto en cualquier app con perfiles), así que no es un problema de seguridad exponerlo en la URL.
 - **`RecommendationsBoard.tsx` sirve dos vistas con el mismo componente**: si `user?.uid === userId` (dueño viendo su propio tablón, con sesión), aparecen botón de "Copy link" y controles para quitar películas; para cualquier otro visitante (con sesión ajena o sin sesión) es de solo lectura, con un CTA al final invitando a probar la app. Evita mantener dos componentes para la misma data.
 - **Sin lectura server-side**: a diferencia de las páginas que traen datos de TMDB en el frontmatter de Astro, acá la página (`src/pages/board/[userId].astro`) solo pasa el `userId` de la URL — toda la lectura de Firestore pasa por el listener `onSnapshot` de siempre, client-side, sin necesitar sesión (permitido por la regla `allow read: if true`). Coherente con que el resto de la app nunca lee Firestore desde el servidor.
+- **`MovieDetailsDialog` termina con tres toggles** (`MovieSeenButton`, `MovieRecommendButton`, `MovieWatchlistButton`), cada uno una colección Firestore aparte (`seen`, `recommendations`, `watchlist`) bajo `users/{userId}`, y los tres comparten el patrón `onRequireSignIn?` para que el diálogo muestre un único `LoginButton` sin sesión en vez de que cada botón dispare el suyo (pasó exactamente eso al agregar el segundo botón: dos prompts de "sign in" apilados).
+- **`SeenMovie` (`users/{userId}/seen/{movieId}`) es un log personal separado de `WatchedMovie`** (`followedPeople/{personId}/watchedMovies/{movieId}`, el que alimenta el % de avance de una filmografía y los badges). No están sincronizados a propósito: marcar "vista" desde el diálogo genérico (búsqueda, watchlist, tablón de recomendaciones, Connections) no tiene una persona/filmografía específica a la que atribuirse, así que no puede tocar el modelo existente sin inventar una atribución falsa. Es deliberadamente un concepto distinto ("vi esta película alguna vez") del que ya existe ("la vi dentro de la filmografía de esta persona que sigo").
 
 ## UI
 

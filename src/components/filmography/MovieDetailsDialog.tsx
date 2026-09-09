@@ -19,10 +19,24 @@ import {
 import { fetchMovieDetails } from "@/lib/movieData";
 import { MovieWatchlistButton } from "@/components/movies/MovieWatchlistButton";
 import { MovieRecommendButton } from "@/components/movies/MovieRecommendButton";
+import { MovieSeenButton } from "@/components/movies/MovieSeenButton";
 import { LoginButton } from "@/components/auth/LoginButton";
-import type { MovieDetails } from "@/types/movie";
+import type { MovieDetails, TrendingMovie } from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
+
+// The three toggle buttons (seen/recommend/watchlist) each just need the
+// same handful of summary fields off MovieDetails.
+function movieSummary(details: MovieDetails): TrendingMovie {
+  return {
+    tmdbMovieId: details.id,
+    title: details.title,
+    posterPath: details.posterPath,
+    releaseYear: details.releaseYear,
+    voteAverage: details.voteAverage,
+    genreIds: details.genreIds,
+  };
+}
 
 interface MovieDetailsDialogProps {
   readonly movieId: number;
@@ -104,26 +118,16 @@ export function MovieDetailsDialog({
               <div className="flex items-start justify-between gap-2">
                 <DialogTitle>{details.title}</DialogTitle>
                 <div className="flex shrink-0">
+                  <MovieSeenButton
+                    movie={movieSummary(details)}
+                    onRequireSignIn={() => setShowSignIn(true)}
+                  />
                   <MovieRecommendButton
-                    movie={{
-                      tmdbMovieId: details.id,
-                      title: details.title,
-                      posterPath: details.posterPath,
-                      releaseYear: details.releaseYear,
-                      voteAverage: details.voteAverage,
-                      genreIds: details.genreIds,
-                    }}
+                    movie={movieSummary(details)}
                     onRequireSignIn={() => setShowSignIn(true)}
                   />
                   <MovieWatchlistButton
-                    movie={{
-                      tmdbMovieId: details.id,
-                      title: details.title,
-                      posterPath: details.posterPath,
-                      releaseYear: details.releaseYear,
-                      voteAverage: details.voteAverage,
-                      genreIds: details.genreIds,
-                    }}
+                    movie={movieSummary(details)}
                     onRequireSignIn={() => setShowSignIn(true)}
                   />
                 </div>
@@ -132,7 +136,7 @@ export function MovieDetailsDialog({
                 <div className="flex items-center gap-2">
                   <LoginButton size="sm" />
                   <span className="text-xs text-muted-foreground">
-                    to recommend or save movies
+                    to track, save, or recommend movies
                   </span>
                 </div>
               )}

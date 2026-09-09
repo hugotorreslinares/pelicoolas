@@ -13,6 +13,7 @@ import { db } from "./client";
 import type {
   FollowedPerson,
   RecommendedMovie,
+  SeenMovie,
   WatchedMovie,
   WatchlistMovie,
 } from "@/types/filmography";
@@ -44,6 +45,10 @@ function watchlistMovieRef(userId: string, movieId: number) {
 
 function recommendedMovieRef(userId: string, movieId: number) {
   return doc(requireDb(), "users", userId, "recommendations", String(movieId));
+}
+
+function seenMovieRef(userId: string, movieId: number) {
+  return doc(requireDb(), "users", userId, "seen", String(movieId));
 }
 
 export async function followPerson(
@@ -288,4 +293,29 @@ export function subscribeToRecommendations(
       callback(snapshot.docs.map((d) => d.data() as RecommendedMovie));
     },
   );
+}
+
+export async function markMovieSeen(
+  userId: string,
+  movie: Omit<SeenMovie, "watchedAt">,
+): Promise<void> {
+  await setDoc(seenMovieRef(userId, movie.tmdbId), {
+    ...movie,
+    watchedAt: serverTimestamp(),
+  });
+}
+
+export async function unmarkMovieSeen(
+  userId: string,
+  movieId: number,
+): Promise<void> {
+  await deleteDoc(seenMovieRef(userId, movieId));
+}
+
+export async function isMovieSeen(
+  userId: string,
+  movieId: number,
+): Promise<boolean> {
+  const snapshot = await getDoc(seenMovieRef(userId, movieId));
+  return snapshot.exists();
 }
