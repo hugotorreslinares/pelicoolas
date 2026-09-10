@@ -262,7 +262,9 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
     return (
       <div className="space-y-8">
         <div className="space-y-3 text-center">
-          <h1 className="text-xl font-semibold">{heading}</h1>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {heading}
+          </h1>
           <p>Follow the people whose movies you want to watch.</p>
           <Button render={<a href="/search" />}>
             Search actors & directors

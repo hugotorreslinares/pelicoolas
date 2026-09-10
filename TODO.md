@@ -53,12 +53,12 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 Repasé la app entera (home, `/search`, `/person/[id]`, `/watchlist`, `/connections`, `/board`) en desktop y mobile, claro y oscuro. Conclusión: funcionalmente está fuerte, pero visualmente se siente genérica — es básicamente el theme "neutral" de shadcn sin tocar. Ítems concretos, de mayor a menor impacto:
 
 - [x] **Paleta 100% monocromática — cero color en toda la app** (2026-09-10) — `--primary`/`--primary-foreground` (claro y oscuro) pasaron de `oklch(X 0 0)` a un acento dorado/ámbar (`oklch(0.52 0.16 45)` claro, `oklch(0.78 0.15 65)` oscuro), contraste verificado ≥5.7:1. Recolorea Button/Badge/Progress/Checkbox por defecto en toda la app vía ese único token. `--ring` (foco) se dejó sin tocar a propósito.
-- [ ] **Sin profundidad/elevación.** Cards y filas son `border` plano sobre fondo plano — nada "flota" ni tiene jerarquía. `box-shadow` sutil en cards/posters al hover (ya existe algo de esto en `hover:bg-accent`, pero es solo cambio de color plano, no de elevación) daría sensación más premium sin rediseñar nada.
-- [ ] **`/search` se ve vacía.** Mucho whitespace sin usar, título centrado + un input, nada más — no hay ningún elemento visual de apoyo (imagen, patrón, textura) hasta que escribís algo. Con `TrendingMovies` ya reutilizable, podría mostrar contenido de fondo (ej. posters trending atenuados) o al menos comprimir el layout verticalmente.
-- [ ] **Tipografía de una sola nota.** Geist Variable es un variable font de verdad (peso/optical size ajustables) pero solo se usa `font-semibold` a un par de tamaños — ningún momento "hero" real (ej. el h1 de home/person podría ser bastante más grande/expresivo sin romper nada).
+- [x] **Sin profundidad/elevación** (2026-09-10) — utilidad compartida `.card-elevated` (`global.css`: lift + shadow al hover) aplicada a todas las cards de póster/filas de resultado (filmografía, watchlist, trending, tablón de recomendaciones, connections, resultados de búsqueda).
+- [x] **`/search` se ve vacía** (2026-09-10) — reutiliza `TrendingMovies` (mismo fetch server-side que la home) como contenido de fondo mientras no hay query, en ambas pestañas (actores/películas).
+- [x] **Tipografía de una sola nota** (2026-09-10) — h1 "hero" (home sin sesión, `/search`, `PersonHeader`) pasaron de `text-xl/2xl font-semibold` a `text-3xl sm:text-4xl font-bold tracking-tight`. El resto (dashboards/utilitario) se dejó igual a propósito.
 - [x] **Placeholder de poster faltante en la lista de filmografía** (2026-09-09, arreglado junto con el rediseño de arriba) — `MovieItem.tsx` ya tiene la misma rama `else` con "No poster" que `WatchlistPage`/`TrendingMovies`/`ConnectionsPage`.
 - [x] **La lista de filmografía es más "checklist" que "vitrina"** (2026-09-09) — `MovieItem.tsx` pasó de fila angosta (poster 40x56) a tarjeta de póster grande, mismo lenguaje visual que el watchlist: rating arriba-izquierda, watchlist arriba-derecha, checkbox de vista abajo-izquierda sobre la imagen, grid tipo masonry (`columns-2/3/4`) en vez de lista apilada. Vista = poster atenuado (`opacity-40`), da progreso legible de un vistazo en todo el grid, no solo por ítem. De paso, agregado el placeholder "No poster" que faltaba (otro ítem de esta misma auditoría).
-- [ ] **Micro-interacciones limitadas a un solo lugar.** El hover "push" con GSAP en `FollowedPeopleHero` (home) es lo único con vida real; el resto de la app (botones, filas, cards) solo tiene `hover:bg-accent` sin transform/shadow. No hace falta GSAP en todos lados — transiciones CSS simples (`scale-[1.02]`, sombra) en cards de póster ya sumarían.
+- [x] **Micro-interacciones limitadas a un solo lugar** (2026-09-10) — cubierto por `.card-elevated` de arriba: transición CSS simple (lift + sombra) en cards de póster/filas en toda la app, sin GSAP nuevo.
 
 ## Arquitectura / DX
 
@@ -67,4 +67,4 @@ Repasé la app entera (home, `/search`, `/person/[id]`, `/watchlist`, `/connecti
 
 ## Prioridad sugerida si hay que elegir por dónde seguir
 
-No hay ítem bloqueante pendiente. Si el foco ahora es visual: empezar por la paleta de color (un acento) y la elevación de cards — son los dos cambios de menor esfuerzo con mayor impacto percibido de toda la lista de arriba.
+No hay ítem bloqueante pendiente. Auditoría visual 2026-09-09 completa (todos los ítems implementados 2026-09-09/10). Único pendiente real de todo el documento: **Firebase App Check**, bloqueado en el usuario (requiere consola/cuenta de Google propia).

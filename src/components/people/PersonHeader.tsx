@@ -46,7 +46,9 @@ export function PersonHeader({
 
       <div className="space-y-2">
         <div>
-          <h1 className="text-2xl font-semibold">{profile.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {profile.name}
+          </h1>
           <p className="text-sm text-muted-foreground">{department}</p>
           <p className="text-sm text-muted-foreground">{movieCount} movies</p>
         </div>
