@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PersonCard } from "./PersonCard";
+import { TrendingMovies } from "@/components/filmography/TrendingMovies";
 import { announce } from "@/lib/a11y";
 import {
   addRecentSearch,
@@ -11,17 +12,20 @@ import {
   removeRecentSearch,
 } from "@/lib/recentSearches";
 import type { PersonSearchResult } from "@/types/person";
+import type { TrendingMovie } from "@/types/movie";
 
 const DEBOUNCE_MS = 350;
 
 interface PersonSearchProps {
   readonly className?: string;
   readonly showRecent?: boolean;
+  readonly trendingMovies?: readonly TrendingMovie[];
 }
 
 export function PersonSearch({
   className = "mx-auto w-full max-w-xl space-y-4",
   showRecent: showRecentProp = true,
+  trendingMovies = [],
 }: PersonSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly PersonSearchResult[]>([]);
@@ -144,6 +148,10 @@ export function PersonSearch({
             ))}
           </div>
         </div>
+      )}
+
+      {!query.trim() && trendingMovies.length > 0 && (
+        <TrendingMovies movies={trendingMovies} />
       )}
     </div>
   );

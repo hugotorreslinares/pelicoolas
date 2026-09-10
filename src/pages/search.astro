@@ -1,6 +1,17 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { SearchTabs } from "@/components/search/SearchTabs";
+import { getTrendingMovies } from "@/lib/tmdb/movies";
+import { TmdbError } from "@/lib/tmdb/client";
+
+// Best-effort, same pattern as the home dashboard: if TMDB is down, the
+// search page still renders fine without the trending fallback content.
+let trendingMovies: Awaited<ReturnType<typeof getTrendingMovies>> = [];
+try {
+  trendingMovies = await getTrendingMovies();
+} catch (e) {
+  if (!(e instanceof TmdbError)) throw e;
+}
 ---
 
 <Layout
@@ -9,6 +20,6 @@ import { SearchTabs } from "@/components/search/SearchTabs";
 >
   <div class="space-y-6 py-8 text-center">
     <h1 class="text-2xl font-semibold">Search actors, directors & movies</h1>
-    <SearchTabs client:load />
+    <SearchTabs client:load trendingMovies={trendingMovies} />
   </div>
 </Layout>

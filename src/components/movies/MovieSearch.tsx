@@ -3,11 +3,16 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieResultRow } from "./MovieResultRow";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
+import { TrendingMovies } from "@/components/filmography/TrendingMovies";
 import type { TrendingMovie } from "@/types/movie";
 
 const DEBOUNCE_MS = 350;
 
-export function MovieSearch() {
+interface MovieSearchProps {
+  readonly trendingMovies?: readonly TrendingMovie[];
+}
+
+export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly TrendingMovie[]>([]);
   const [loading, setLoading] = useState(false);
@@ -77,6 +82,10 @@ export function MovieSearch() {
             />
           ))}
         </div>
+      )}
+
+      {!query.trim() && trendingMovies.length > 0 && (
+        <TrendingMovies movies={trendingMovies} />
       )}
 
       {openMovieId !== null && (

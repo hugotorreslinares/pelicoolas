@@ -2,10 +2,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PersonSearch } from "@/components/people/PersonSearch";
 import { MovieSearch } from "@/components/movies/MovieSearch";
+import type { TrendingMovie } from "@/types/movie";
 
 type SearchMode = "people" | "movies";
 
-export function SearchTabs() {
+interface SearchTabsProps {
+  readonly trendingMovies?: readonly TrendingMovie[];
+}
+
+export function SearchTabs({ trendingMovies = [] }: SearchTabsProps) {
   const [mode, setMode] = useState<SearchMode>("people");
 
   return (
@@ -29,7 +34,11 @@ export function SearchTabs() {
         </Button>
       </div>
 
-      {mode === "people" ? <PersonSearch /> : <MovieSearch />}
+      {mode === "people" ? (
+        <PersonSearch trendingMovies={trendingMovies} />
+      ) : (
+        <MovieSearch trendingMovies={trendingMovies} />
+      )}
     </div>
   );
 }
