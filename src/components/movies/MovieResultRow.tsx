@@ -11,7 +11,7 @@ interface MovieResultRowProps {
 // row, just a different container around it.
 export function MovieResultRow({ movie, onClick }: MovieResultRowProps) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border p-2">
+    <div className="card-elevated flex items-center gap-3 rounded-lg border p-2">
       <button
         type="button"
         onClick={onClick}

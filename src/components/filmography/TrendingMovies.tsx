@@ -28,7 +28,7 @@ export function TrendingMovies({ movies }: TrendingMoviesProps) {
             onClick={() => setOpenMovieId(movie.tmdbMovieId)}
             className="focus-ring group text-left"
           >
-            <div className="overflow-hidden rounded-lg border">
+            <div className="card-elevated overflow-hidden rounded-lg border">
               {movie.posterPath ? (
                 <img
                   src={tmdbImageUrl(movie.posterPath, 185)}

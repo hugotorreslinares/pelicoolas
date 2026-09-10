@@ -145,6 +145,13 @@
     @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none;
   }
 
+  /* Shared hover elevation for poster/result cards — flat border-only cards
+     had no depth cue. Lift + shadow on hover, no layout shift (transform
+     doesn't affect flow). */
+  .card-elevated {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
   /*
    * Old-film sprocket holes running down the page edges — purely decorative
    * page-frame identity, not tied to any element's layout. Fixed to the

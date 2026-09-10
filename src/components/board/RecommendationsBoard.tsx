@@ -91,7 +91,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
         <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
           {movies.map((movie) => (
             <div key={movie.tmdbId} className="mb-3 break-inside-avoid">
-              <div className="group relative overflow-hidden rounded-lg border">
+              <div className="card-elevated group relative overflow-hidden rounded-lg border">
                 <button
                   type="button"
                   onClick={() => setOpenMovieId(movie.tmdbId)}

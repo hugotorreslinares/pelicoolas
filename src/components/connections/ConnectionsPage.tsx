@@ -264,7 +264,7 @@ export function ConnectionsPage() {
                     key={movie.tmdbMovieId}
                     type="button"
                     onClick={() => setOpenMovieId(movie.tmdbMovieId)}
-                    className="focus-ring space-y-1 text-left"
+                    className="focus-ring card-elevated space-y-1 rounded-lg text-left"
                   >
                     {movie.posterPath ? (
                       <img

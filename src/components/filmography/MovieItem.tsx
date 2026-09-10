@@ -35,7 +35,7 @@ export function MovieItem({
 
   return (
     <div className="mb-3 break-inside-avoid">
-      <div className="group relative overflow-hidden rounded-lg border">
+      <div className="card-elevated group relative overflow-hidden rounded-lg border">
         <button
           type="button"
           onClick={() => setDetailsOpen(true)}
