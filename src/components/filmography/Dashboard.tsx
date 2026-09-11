@@ -64,9 +64,11 @@ interface PersonStats {
 
 interface DashboardProps {
   readonly trendingMovies?: readonly TrendingMovie[];
+  /** Caps the followed-people grid (home uses this to stay short; /filmographies shows everyone). */
+  readonly limit?: number;
 }
 
-export function Dashboard({ trendingMovies = [] }: DashboardProps) {
+export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [statsById, setStatsById] = useState<Record<number, PersonStats>>({});
@@ -400,17 +402,27 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sortedPeople!.map((person) => (
-          <FollowedPersonCard
-            key={person.tmdbId}
-            person={person}
-            watchedCount={statsById[person.tmdbId]?.watchedCount ?? 0}
-            totalCount={statsById[person.tmdbId]?.totalCount ?? null}
-            age={statsById[person.tmdbId]?.age ?? null}
-          />
-        ))}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        {(limit ? sortedPeople!.slice(0, limit) : sortedPeople!).map(
+          (person) => (
+            <FollowedPersonCard
+              key={person.tmdbId}
+              person={person}
+              watchedCount={statsById[person.tmdbId]?.watchedCount ?? 0}
+              totalCount={statsById[person.tmdbId]?.totalCount ?? null}
+              age={statsById[person.tmdbId]?.age ?? null}
+            />
+          ),
+        )}
       </div>
+
+      {limit && people.length > limit && (
+        <div className="text-center">
+          <Button variant="outline" render={<a href="/filmographies" />}>
+            View all {people.length}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -36,10 +36,10 @@ export function FollowedPersonCard({
 
   return (
     <a href={`/person/${person.tmdbId}`} className="focus-ring block">
-      <Card className="transition-colors hover:bg-accent">
-        <CardHeader className="flex-row items-center gap-2">
+      <Card size="sm" className="transition-colors hover:bg-accent">
+        <CardHeader className="flex-row flex-wrap items-center gap-2">
           <div className="relative shrink-0">
-            <Avatar>
+            <Avatar size="sm">
               <AvatarImage
                 src={
                   person.profilePath
@@ -57,7 +57,7 @@ export function FollowedPersonCard({
             </Avatar>
             {age !== null && (
               <span
-                className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full border-2 border-card bg-secondary text-[10px] font-semibold text-secondary-foreground"
+                className="absolute -right-1.5 -bottom-1.5 flex size-5 items-center justify-center rounded-full border-2 border-card bg-secondary text-[9px] font-semibold text-secondary-foreground"
                 title={`${age} years old`}
               >
                 {age}
@@ -65,7 +65,7 @@ export function FollowedPersonCard({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <CardTitle>{person.name}</CardTitle>
+            <CardTitle className="truncate">{person.name}</CardTitle>
           </div>
           {isComplete && (
             <Badge variant="secondary" title="Filmography complete">

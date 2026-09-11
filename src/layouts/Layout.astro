@@ -4,6 +4,7 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { FollowedDock } from "@/components/filmography/FollowedDock";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { MobileNav } from "@/components/nav/MobileNav";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { FilmIcon, BookmarkIcon, NetworkIcon } from "lucide-react";
@@ -143,10 +144,10 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
           <img src="/logo.png" alt="" width="32" height="32" class="size-8" />
           PELICOOLAS
         </a>
-        <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div class="flex items-center gap-2 sm:gap-4">
           <nav
             aria-label="Main"
-            class="flex items-center gap-1 rounded-full border p-1"
+            class="hidden items-center gap-1 rounded-full border p-1 sm:flex"
           >
             <HeaderSearch
               className={navLinkClass(isSearchActive)}
@@ -180,10 +181,13 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
               <span class="sr-only">Connections</span>
             </a>
           </nav>
-          <FollowedDock client:idle />
+          <div class="hidden sm:block">
+            <FollowedDock client:idle />
+          </div>
           <NotificationBell client:idle />
           <ThemeToggle client:idle />
           <UserMenu client:idle />
+          <MobileNav client:idle />
         </div>
       </div>
     </header>
