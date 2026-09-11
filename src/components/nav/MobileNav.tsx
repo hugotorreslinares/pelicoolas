@@ -9,10 +9,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FollowedDock } from "@/components/filmography/FollowedDock";
 
 const LINKS = [
   { href: "/search", label: "Search", icon: SearchIcon },
@@ -21,10 +19,14 @@ const LINKS = [
   { href: "/connections", label: "Connections", icon: NetworkIcon },
 ] as const;
 
-// Collapses the nav links + followed-people dock behind a hamburger on
-// narrow screens — with all of those inline, the header wrapped onto 3+
-// ragged lines on phone widths. NotificationBell/ThemeToggle/UserMenu stay
-// inline everywhere since they're single icon buttons, not a list.
+// Collapses the nav links behind a hamburger on narrow screens — with all
+// of them inline, the header wrapped onto 3+ ragged lines on phone widths.
+// NotificationBell/ThemeToggle/UserMenu stay inline everywhere since
+// they're single icon buttons, not a list. Deliberately NOT embedding
+// FollowedDock here: it's its own small widget of plain <a> links, and
+// nesting that raw inside the menu's popup broke base-ui's focus
+// management on open (the whole trigger would vanish on click) — the
+// dock stays desktop-only, "My Filmographies" above covers mobile.
 export function MobileNav() {
   return (
     <DropdownMenu>
@@ -41,10 +43,6 @@ export function MobileNav() {
             {label}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <div className="p-2">
-          <FollowedDock />
-        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
