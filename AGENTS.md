@@ -1,6 +1,6 @@
 ## Proyecto
 
-Filmo — tracker de filmografías (Astro + React + Firebase + TMDB). Ver [README.md](README.md) (overview) y [design.md](design.md) (arquitectura, modelo de datos, gotchas de deploy) antes de trabajar en features nuevas.
+Pelicoolas — tracker de filmografías (Astro + React + Firebase + TMDB). Ver [README.md](README.md) (overview) y [design.md](design.md) (arquitectura, modelo de datos, gotchas de deploy) antes de trabajar en features nuevas.
 
 ## Development
 

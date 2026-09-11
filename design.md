@@ -1,10 +1,10 @@
 # Design
 
-Referencia técnica del estado actual de Filmo. Para la visión de producto y alcance del MVP ver el PRD original (no versionado en el repo).
+Referencia técnica del estado actual de Pelicoolas. Para la visión de producto y alcance del MVP ver el PRD original (no versionado en el repo).
 
 ## Filosofía de producto
 
-Filmo responde una sola pregunta: _¿he visto todas las películas de esta persona?_ No compite con Letterboxd (ratings/reviews/social) — el núcleo es el checklist de una filmografía.
+Pelicoolas responde una sola pregunta: _¿he visto todas las películas de esta persona?_ No compite con Letterboxd (ratings/reviews/social) — el núcleo es el checklist de una filmografía.
 
 ## Astro vs React
 

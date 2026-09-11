@@ -1,4 +1,4 @@
-# Filmo — Filmography Tracker
+# Pelicoolas — Filmography Tracker
 
 Sigue actores, actrices o directores y lleva registro de qué películas de su filmografía ya viste. MVP enfocado en una sola tarea: completar la filmografía de la gente que te interesa.
 

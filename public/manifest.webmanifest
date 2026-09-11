@@ -1,9 +1,9 @@
 {
-  "name": "Filmo — Filmography Tracker",
-  "short_name": "Filmo",
+  "name": "Pelicoolas — Filmography Tracker",
+  "short_name": "Pelicoolas",
   "description": "Sigue actores, actrices y directores. Marca lo que ya viste.",
-  "theme_color": "#000000",
-  "background_color": "#ffffff",
+  "theme_color": "#161311",
+  "background_color": "#161311",
   "display": "standalone",
   "start_url": "/",
   "icons": [

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TrophyIcon } from "lucide-react";
+import { TrophyIcon, FilmIcon, BookmarkIcon, NetworkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,29 @@ import type { Badge as BadgeRecord } from "@/types/badges";
 
 const FILMOGRAPHY_MILESTONES = [3, 10, 25];
 const ALMOST_THERE_MAX_REMAINING = 3;
+
+const HOME_FEATURES = [
+  {
+    icon: FilmIcon,
+    title: "Filmographies",
+    description: "Track movie-by-movie progress for every person you follow.",
+  },
+  {
+    icon: BookmarkIcon,
+    title: "Watchlist",
+    description: "Save what you want to see, filterable by genre.",
+  },
+  {
+    icon: NetworkIcon,
+    title: "Connections",
+    description: "Explore how movies and people relate to each other.",
+  },
+  {
+    icon: TrophyIcon,
+    title: "Badges",
+    description: "Earn and share badges as you complete filmographies.",
+  },
+] as const;
 
 type SortMode = "recent" | "age" | "watched" | "watchlist";
 
@@ -261,16 +284,37 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
 
   if (!user) {
     return (
-      <div className="space-y-8">
-        <div className="space-y-3 text-center">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {heading}
+      <div className="space-y-12">
+        <div className="space-y-4 text-center">
+          <img
+            src="/logo.png"
+            alt=""
+            width={96}
+            height={96}
+            className="mx-auto size-20 sm:size-24"
+          />
+          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+            Pelicoolas
           </h1>
-          <p>Follow the people whose movies you want to watch.</p>
+          <p className="mx-auto max-w-md text-muted-foreground">
+            Follow your favorite actors and directors, track what you've already
+            watched, and never miss what they release next.
+          </p>
           <Button render={<a href="/search" />}>
             Search actors & directors
           </Button>
         </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {HOME_FEATURES.map(({ icon: Icon, title, description }) => (
+            <div key={title} className="card-elevated rounded-lg border p-4">
+              <Icon className="mb-2 size-5 text-primary" />
+              <p className="font-medium">{title}</p>
+              <p className="text-sm text-muted-foreground">{description}</p>
+            </div>
+          ))}
+        </div>
+
         <TrendingMovies movies={trendingMovies} />
       </div>
     );

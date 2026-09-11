@@ -58,7 +58,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
           <p className="text-sm text-muted-foreground">
             {isOwner
               ? "Anyone with this link can see this board, no account needed."
-              : "Movies worth watching, picked by a Filmo user."}
+              : "Movies worth watching, picked by a Pelicoolas user."}
           </p>
         </div>
         {isOwner && (
@@ -152,7 +152,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
             Track your own filmographies and build a board like this one.
           </p>
           <Button className="mt-2" size="sm" render={<a href="/search" />}>
-            Try Filmo
+            Try Pelicoolas
           </Button>
         </div>
       )}

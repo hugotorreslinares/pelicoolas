@@ -10,7 +10,7 @@ const PERFORATION_COLUMN_X = 40;
 const BACKGROUND = "#161311";
 const FOREGROUND = "#fdfcf8";
 const MUTED = "#a89e93";
-const ACCENT = "#f5a53f";
+const ACCENT = "#fda000";
 
 function wrapText(
   ctx: CanvasRenderingContext2D,
@@ -63,7 +63,7 @@ export async function renderBadgeImage(badge: Badge): Promise<Blob> {
   ctx.fillStyle = ACCENT;
   ctx.font = "700 32px system-ui, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("FILMO", MARGIN, MARGIN + 20);
+  ctx.fillText("PELICOOLAS", MARGIN, MARGIN + 20);
 
   ctx.textAlign = "center";
   ctx.font = "88px system-ui, sans-serif";
@@ -114,7 +114,7 @@ export async function shareOrDownloadBadgeImage(badge: Badge): Promise<void> {
     await navigator.share({
       files: [file],
       title: badge.label,
-      text: `I earned "${badge.label}" on Filmo`,
+      text: `I earned "${badge.label}" on Pelicoolas`,
     });
     return;
   }

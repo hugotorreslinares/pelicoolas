@@ -22,7 +22,7 @@ interface Props {
 }
 
 const {
-  title = "Filmo",
+  title = "Pelicoolas",
   description = "Track which movies from your favorite actors' and directors' filmographies you've already watched.",
   showDeployInfo = false,
   noindex = false,
@@ -87,7 +87,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
     <link rel="canonical" href={canonicalURL} />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Filmo" />
+    <meta property="og:site_name" content="Pelicoolas" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
@@ -135,8 +135,13 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
       <div
         class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-2 p-4 sm:px-6 lg:px-8"
       >
-        <a href="/" class="focus-ring text-lg font-bold tracking-tight">FILMO</a
+        <a
+          href="/"
+          class="focus-ring flex items-center gap-2 text-lg font-bold tracking-tight"
         >
+          <img src="/logo.png" alt="" width="32" height="32" class="size-8" />
+          PELICOOLAS
+        </a>
         <div class="flex flex-wrap items-center gap-3 sm:gap-4">
           <nav
             aria-label="Main"

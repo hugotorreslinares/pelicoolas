@@ -18,7 +18,7 @@ interface Slide {
 
 const SLIDES: readonly Slide[] = [
   {
-    kicker: "Filmo",
+    kicker: "Pelicoolas",
     title: "¿Cuántas películas de tu actor favorito realmente viste?",
     description:
       "Seguí a los actores y directores que te gustan, marcá lo que ya viste, y descubrí qué te falta.",
