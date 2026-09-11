@@ -3,6 +3,7 @@ import { BellIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -62,45 +63,47 @@ export function NotificationBell() {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>New releases</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {notifications.length === 0 && (
-          <p className="p-2 text-sm text-muted-foreground">
-            No notifications yet — you'll hear about it when someone you follow
-            has a new movie out.
-          </p>
-        )}
-        {notifications.map((n) => (
-          <DropdownMenuItem
-            key={n.id}
-            render={<a href={`/person/${n.personId}`} />}
-            className="items-start gap-2"
-            onClick={() => {
-              if (!n.read) void markNotificationRead(user.uid, n.id);
-            }}
-          >
-            {n.posterPath ? (
-              <img
-                src={tmdbImageUrl(n.posterPath, 92)}
-                alt=""
-                className="h-14 w-10 shrink-0 rounded object-cover"
-              />
-            ) : (
-              <div className="h-14 w-10 shrink-0 rounded bg-muted" />
-            )}
-            <span className="flex flex-col gap-0.5 text-left">
-              <span className="text-sm font-medium">
-                {n.personName} has a new movie
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>New releases</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {notifications.length === 0 && (
+            <p className="p-2 text-sm text-muted-foreground">
+              No notifications yet — you'll hear about it when someone you
+              follow has a new movie out.
+            </p>
+          )}
+          {notifications.map((n) => (
+            <DropdownMenuItem
+              key={n.id}
+              render={<a href={`/person/${n.personId}`} />}
+              className="items-start gap-2"
+              onClick={() => {
+                if (!n.read) void markNotificationRead(user.uid, n.id);
+              }}
+            >
+              {n.posterPath ? (
+                <img
+                  src={tmdbImageUrl(n.posterPath, 92)}
+                  alt=""
+                  className="h-14 w-10 shrink-0 rounded object-cover"
+                />
+              ) : (
+                <div className="h-14 w-10 shrink-0 rounded bg-muted" />
+              )}
+              <span className="flex flex-col gap-0.5 text-left">
+                <span className="text-sm font-medium">
+                  {n.personName} has a new movie
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {n.movieTitle}
+                </span>
               </span>
-              <span className="text-sm text-muted-foreground">
-                {n.movieTitle}
-              </span>
-            </span>
-            {!n.read && (
-              <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
-            )}
-          </DropdownMenuItem>
-        ))}
+              {!n.read && (
+                <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

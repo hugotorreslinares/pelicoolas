@@ -83,7 +83,21 @@ export function subscribeToFollowedPeople(
   return onSnapshot(
     collection(requireDb(), "users", userId, "followedPeople"),
     (snapshot) => {
-      callback(snapshot.docs.map((d) => d.data() as FollowedPerson));
+      callback(
+        snapshot.docs.map((d) => {
+          const data = d.data();
+          return {
+            ...data,
+            // `createdAt` is a Firestore server Timestamp on the wire, not
+            // the ISO string the FollowedPerson type promises — sorting by
+            // it (FollowedDock) crashed for anyone with 2+ followed people.
+            // `toIso` returns null for the brief window where a just-added
+            // doc's serverTimestamp() hasn't resolved yet in the local
+            // cache; "now" is the correct value for that case anyway.
+            createdAt: toIso(data.createdAt) ?? new Date().toISOString(),
+          } as FollowedPerson;
+        }),
+      );
     },
   );
 }
