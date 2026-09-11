@@ -23,6 +23,7 @@ import type { Badge as BadgeRecord } from "@/types/badges";
 
 const FILMOGRAPHY_MILESTONES = [3, 10, 25];
 const ALMOST_THERE_MAX_REMAINING = 3;
+const HERO_MAX_PEOPLE = 15;
 
 const HOME_FEATURES = [
   {
@@ -267,6 +268,25 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
     });
   }, [people, sortMode, statsById, watchlistCountById]);
 
+  // The photo-wall hero: most-completed filmographies first, capped short —
+  // it's a showcase, not the full list (that's the grid below it).
+  const heroPeople = useMemo(() => {
+    if (!people) return [];
+    return [...people]
+      .sort((a, b) => {
+        const statsA = statsById[a.tmdbId];
+        const statsB = statsById[b.tmdbId];
+        const ratioA = statsA?.totalCount
+          ? statsA.watchedCount / statsA.totalCount
+          : 0;
+        const ratioB = statsB?.totalCount
+          ? statsB.watchedCount / statsB.totalCount
+          : 0;
+        return ratioB - ratioA;
+      })
+      .slice(0, HERO_MAX_PEOPLE);
+  }, [people, statsById]);
+
   // A page-level h1 that renders in every state (including the loading
   // skeleton, which is what search engines and pre-hydration crawlers see)
   // rather than only in a client-resolved branch — axe-core's
@@ -338,7 +358,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
 
   return (
     <div className="space-y-4">
-      <FollowedPeopleHero people={people} />
+      <FollowedPeopleHero people={heroPeople} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">{heading}</h1>
         {engagement.wrapped && (
