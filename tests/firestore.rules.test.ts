@@ -6,7 +6,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 // Runs against the Firestore emulator (see package.json's `test:rules`
 // script) — never against the real project. Not part of `pnpm test` /
@@ -232,6 +232,40 @@ describe("firestore.rules — seen (personal watched log)", () => {
         title: "Forrest Gump",
         tmdbId: 13,
       }),
+    );
+  });
+});
+
+describe("firestore.rules — notifications", () => {
+  it("lets a user read and mark their own notification read", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/notifications/n1"), {
+        type: "new-release",
+        movieId: 1,
+        movieTitle: "Dune: Part Three",
+        read: false,
+      });
+    });
+    const alice = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(getDoc(doc(alice, "users/alice/notifications/n1")));
+    await assertSucceeds(
+      updateDoc(doc(alice, "users/alice/notifications/n1"), { read: true }),
+    );
+  });
+
+  it("denies another authenticated user from reading or writing it", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/notifications/n1"), {
+        type: "new-release",
+        movieId: 1,
+        movieTitle: "Dune: Part Three",
+        read: false,
+      });
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDoc(doc(bob, "users/alice/notifications/n1")));
+    await assertFails(
+      updateDoc(doc(bob, "users/alice/notifications/n1"), { read: true }),
     );
   });
 });

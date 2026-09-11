@@ -3,6 +3,7 @@ import "../styles/global.css";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { FollowedDock } from "@/components/filmography/FollowedDock";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { FilmIcon, BookmarkIcon, NetworkIcon } from "lucide-react";
@@ -180,6 +181,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
             </a>
           </nav>
           <FollowedDock client:idle />
+          <NotificationBell client:idle />
           <ThemeToggle client:idle />
           <UserMenu client:idle />
         </div>
