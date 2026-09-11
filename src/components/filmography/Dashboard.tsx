@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { FollowedPersonCard } from "./FollowedPersonCard";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { TrendingMovies } from "./TrendingMovies";
+import { ShareBadgeButton } from "./ShareBadgeButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   subscribeToFollowedPeople,
@@ -304,10 +305,13 @@ export function Dashboard({ trendingMovies = [] }: DashboardProps) {
       {badges.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {badges.map((badge) => (
-            <Badge key={badge.id} variant="secondary" title={badge.description}>
-              <TrophyIcon data-icon="inline-start" />
-              {badge.label}
-            </Badge>
+            <div key={badge.id} className="flex items-center gap-0.5">
+              <Badge variant="secondary" title={badge.description}>
+                <TrophyIcon data-icon="inline-start" />
+                {badge.label}
+              </Badge>
+              <ShareBadgeButton badge={badge} />
+            </div>
           ))}
         </div>
       )}
