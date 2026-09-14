@@ -8,6 +8,9 @@ export interface PublicProfile {
   readonly displayName: string | null;
   readonly photoURL: string | null;
   readonly updatedAt: string;
+  /** Set once, on first sync — never overwritten by later sign-ins. Drives
+   *  the "recently joined" slider on the home page. */
+  readonly createdAt: string;
 }
 
 /** `users/{userId}/followRequests/{requesterId}` — pending, created by the requester. */

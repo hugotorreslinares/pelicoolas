@@ -3,6 +3,7 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { Dashboard } from "@/components/filmography/Dashboard";
+import { RecentUsersSlider } from "@/components/social/RecentUsersSlider";
 import { getTrendingMovies } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
 
@@ -22,5 +23,8 @@ try {
   showDeployInfo
   noindex
 >
-  <Dashboard client:load trendingMovies={trendingMovies} limit={15} />
+  <div class="space-y-8">
+    <Dashboard client:load trendingMovies={trendingMovies} limit={15} />
+    <RecentUsersSlider client:idle />
+  </div>
 </Layout>

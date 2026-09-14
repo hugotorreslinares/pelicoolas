@@ -4,7 +4,10 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit as fsLimit,
   onSnapshot,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -413,19 +416,29 @@ export async function setSeenGenres(
 // owner-write-only; see design.md for the full approve/mirror flow this
 // implements without a Cloud Function.
 
-/** Upserts the public name/photo doc — call once per session after sign-in. */
+/** Upserts the public name/photo doc — call once per session after sign-in.
+ *  `createdAt` is only ever set on the first sync, so it stays a true
+ *  "joined" date rather than resetting on every sign-in. */
 export async function syncPublicProfile(user: {
   readonly uid: string;
   readonly displayName: string | null;
   readonly photoURL: string | null;
 }): Promise<void> {
+  const ref = publicProfileRef(user.uid);
+  const existing = await getDoc(ref);
+  // Backfills createdAt for profiles synced before this field existed too —
+  // checking the field itself (not just doc existence) is what makes that
+  // backfill happen instead of leaving those profiles permanently excluded
+  // from the createdAt-ordered "recently joined" query.
+  const hasCreatedAt = Boolean(existing.data()?.createdAt);
   await setDoc(
-    publicProfileRef(user.uid),
+    ref,
     {
       uid: user.uid,
       displayName: user.displayName,
       photoURL: user.photoURL,
       updatedAt: serverTimestamp(),
+      ...(hasCreatedAt ? {} : { createdAt: serverTimestamp() }),
     },
     { merge: true },
   );
@@ -438,6 +451,21 @@ export function subscribeToPublicProfile(
   return onSnapshot(publicProfileRef(userId), (snapshot) => {
     callback(snapshot.exists() ? (snapshot.data() as PublicProfile) : null);
   });
+}
+
+// Public by design (the `users` doc itself is public-read, see
+// firestore.rules) — backs the "recently joined" slider on the home page.
+export async function fetchRecentUsers(
+  count: number,
+): Promise<readonly PublicProfile[]> {
+  const snapshot = await getDocs(
+    query(
+      collection(requireDb(), "users"),
+      orderBy("createdAt", "desc"),
+      fsLimit(count),
+    ),
+  );
+  return snapshot.docs.map((d) => d.data() as PublicProfile);
 }
 
 export async function sendFollowRequest(
