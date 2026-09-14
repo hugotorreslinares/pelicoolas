@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MovieItem } from "./MovieItem";
 import { FilmographyFilters } from "./FilmographyFilters";
@@ -7,11 +7,13 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
   addToWatchlist,
-  markMovieWatched,
+  getLegacyWatchedIds,
+  markMovieSeen,
+  migrateWatchedToSeen,
   removeFromWatchlist,
-  subscribeToWatchedMovies,
+  subscribeToSeenMovies,
   subscribeToWatchlist,
-  unmarkMovieWatched,
+  unmarkMovieSeen,
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
 import engagement from "@/config/engagement.json";
@@ -59,19 +61,46 @@ export function Filmography({
   movies,
 }: FilmographyProps) {
   const { user } = useAuth();
-  const [watched, setWatched] = useState<ReadonlySet<number>>(new Set());
+  const [seenIds, setSeenIds] = useState<ReadonlySet<number>>(new Set());
   const [watchlist, setWatchlist] = useState<ReadonlySet<number>>(new Set());
   const [filter, setFilter] = useState<FilmographyFilter>("all");
   const [order, setOrder] = useState<SortOrder>("newest");
   const [showSignInHint, setShowSignInHint] = useState(false);
+  // Guards the one-time legacy-watchedMovies backfill below from re-running
+  // on every seenIds/movies re-render — see migrateWatchedToSeen's own doc.
+  const migratedPersonIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!user) {
-      setWatched(new Set());
+      setSeenIds(new Set());
       return;
     }
-    return subscribeToWatchedMovies(user.uid, personId, setWatched);
-  }, [user, personId]);
+    return subscribeToSeenMovies(user.uid, setSeenIds);
+  }, [user]);
+
+  // `seen` unified what used to be two separate "watched" facts (see
+  // SeenMovie's doc comment) — this backfills anyone's pre-existing
+  // per-person watched data into it, once per person, using the movie
+  // metadata already on hand instead of a fresh TMDB lookup.
+  useEffect(() => {
+    if (!user || movies.length === 0) return;
+    if (migratedPersonIdRef.current === personId) return;
+    migratedPersonIdRef.current = personId;
+    void getLegacyWatchedIds(user.uid, personId).then((legacyIds) => {
+      if (legacyIds.length === 0) return;
+      void migrateWatchedToSeen(user.uid, legacyIds, movies, seenIds);
+    });
+  }, [user, personId, movies, seenIds]);
+
+  const watched = useMemo(
+    () =>
+      new Set(
+        movies
+          .filter((m) => seenIds.has(m.tmdbMovieId))
+          .map((m) => m.tmdbMovieId),
+      ),
+    [movies, seenIds],
+  );
 
   useEffect(() => {
     if (!user) {
@@ -140,10 +169,16 @@ export function Filmography({
       return;
     }
     if (next) {
-      await markMovieWatched(user.uid, personId, movie.tmdbMovieId);
+      await markMovieSeen(user.uid, {
+        tmdbId: movie.tmdbMovieId,
+        title: movie.title,
+        posterPath: movie.posterPath,
+        releaseYear: movie.releaseYear,
+        voteAverage: movie.voteAverage,
+      });
       announce(`Marked ${movie.title} as watched`);
     } else {
-      await unmarkMovieWatched(user.uid, personId, movie.tmdbMovieId);
+      await unmarkMovieSeen(user.uid, movie.tmdbMovieId);
       announce(`Marked ${movie.title} as unwatched`);
     }
   }

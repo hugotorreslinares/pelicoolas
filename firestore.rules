@@ -8,6 +8,8 @@ service cloud.firestore {
       match /followedPeople/{personId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
 
+        // Legacy — the app no longer writes here (see /seen below), rule
+        // kept so a signed-in owner can still read/clean up old docs.
         match /watchedMovies/{movieId} {
           allow read, write: if request.auth != null && request.auth.uid == userId;
         }
@@ -21,8 +23,9 @@ service cloud.firestore {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Personal "I've seen this" log, independent of followedPeople/{id}/watchedMovies
-      // (which tracks completion per filmography). Not public — unlike recommendations.
+      // The single "have I watched this movie" fact, used everywhere in the
+      // app including a followed person's filmography checkbox — see
+      // design.md, "Unificación de 'vista'". Not public — unlike recommendations.
       match /seen/{movieId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }

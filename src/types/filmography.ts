@@ -16,6 +16,12 @@ export interface FollowedPerson {
   readonly createdAt: string;
 }
 
+/**
+ * Legacy per-person "watched" doc (followedPeople/{personId}/watchedMovies)
+ * — no longer written to. `SeenMovie` (below) is now the single source of
+ * truth for "have I watched this movie"; this type only exists to read old
+ * data once for `migrateWatchedToSeen`.
+ */
 export interface WatchedMovie {
   readonly tmdbId: number;
   readonly watchedAt: string;
@@ -50,12 +56,11 @@ export interface RecommendedMovie {
 }
 
 /**
- * A movie marked watched from a generic context (search, watchlist,
- * recommendations board, Connections) with no specific followed person's
- * filmography to check it off in. Deliberately separate from `WatchedMovie`
- * (nested under `followedPeople/{personId}/watchedMovies`, which drives
- * filmography-completion progress/badges) — marking a movie here does not
- * check it off in any filmography, and vice versa.
+ * `users/{userId}/seen/{movieId}` — the single source of truth for "have I
+ * watched this movie", used everywhere: search, watchlist, recommendations
+ * board, Connections, and a followed person's filmography checkbox alike.
+ * Filmography-completion progress/badges intersect this with a person's
+ * movie list rather than tracking their own separate watched state.
  */
 export interface SeenMovie {
   readonly tmdbId: number;

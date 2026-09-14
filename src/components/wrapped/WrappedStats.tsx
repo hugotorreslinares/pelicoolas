@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   subscribeToFollowedPeople,
-  subscribeToWatchedMovies,
+  subscribeToSeenMovies,
 } from "@/lib/firebase/firestore";
 import { fetchPersonData } from "@/lib/movieData";
 import type { FollowedPerson } from "@/types/filmography";
@@ -12,7 +12,6 @@ import type { FilmographyMovie } from "@/types/movie";
 
 interface PersonData {
   readonly person: FollowedPerson;
-  readonly watched: ReadonlySet<number>;
   readonly movies: readonly FilmographyMovie[] | null;
 }
 
@@ -24,6 +23,7 @@ export function WrappedStats() {
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [dataById, setDataById] = useState<Record<number, PersonData>>({});
+  const [seenIds, setSeenIds] = useState<ReadonlySet<number>>(new Set());
   const fetchedMoviesRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
@@ -35,21 +35,12 @@ export function WrappedStats() {
   }, [user]);
 
   useEffect(() => {
-    if (!user || !people) return;
-    const unsubscribers = people.map((person) =>
-      subscribeToWatchedMovies(user.uid, person.tmdbId, (watched) => {
-        setDataById((prev) => ({
-          ...prev,
-          [person.tmdbId]: {
-            person,
-            watched,
-            movies: prev[person.tmdbId]?.movies ?? null,
-          },
-        }));
-      }),
-    );
-    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
-  }, [user, people]);
+    if (!user) {
+      setSeenIds(new Set());
+      return;
+    }
+    return subscribeToSeenMovies(user.uid, setSeenIds);
+  }, [user]);
 
   // Movie list (with release years) is the same TMDB proxy response
   // FollowedPersonCard/Dashboard already fetch — fetchPersonData caches it
@@ -64,21 +55,13 @@ export function WrappedStats() {
           if (!data) throw new Error("request failed");
           setDataById((prev) => ({
             ...prev,
-            [person.tmdbId]: {
-              person,
-              watched: prev[person.tmdbId]?.watched ?? new Set(),
-              movies: data.movies,
-            },
+            [person.tmdbId]: { person, movies: data.movies },
           }));
         })
         .catch(() => {
           setDataById((prev) => ({
             ...prev,
-            [person.tmdbId]: {
-              person,
-              watched: prev[person.tmdbId]?.watched ?? new Set(),
-              movies: [],
-            },
+            [person.tmdbId]: { person, movies: [] },
           }));
         });
     });
@@ -122,17 +105,22 @@ export function WrappedStats() {
     );
   }
 
-  const totalWatched = entries.reduce((sum, e) => sum + e.watched.size, 0);
+  function watchedCountFor(entry: PersonData): number {
+    return (entry.movies ?? []).filter((m) => seenIds.has(m.tmdbMovieId))
+      .length;
+  }
+
+  const totalWatched = entries.reduce((sum, e) => sum + watchedCountFor(e), 0);
 
   const personWithMost = entries.reduce<PersonData | null>((best, e) => {
-    if (!best || e.watched.size > best.watched.size) return e;
+    if (!best || watchedCountFor(e) > watchedCountFor(best)) return e;
     return best;
   }, null);
 
   const decadeCounts: Record<string, number> = {};
   for (const entry of entries) {
     for (const movie of entry.movies ?? []) {
-      if (!entry.watched.has(movie.tmdbMovieId) || movie.releaseYear === null) {
+      if (!seenIds.has(movie.tmdbMovieId) || movie.releaseYear === null) {
         continue;
       }
       const decade = decadeOf(movie.releaseYear);
@@ -163,7 +151,7 @@ export function WrappedStats() {
         </CardContent>
       </Card>
 
-      {personWithMost && personWithMost.watched.size > 0 && (
+      {personWithMost && watchedCountFor(personWithMost) > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-sm text-muted-foreground">
@@ -178,7 +166,7 @@ export function WrappedStats() {
               {personWithMost.person.name}
             </a>
             <p className="text-sm text-muted-foreground">
-              {personWithMost.watched.size} movies
+              {watchedCountFor(personWithMost)} movies
             </p>
           </CardContent>
         </Card>

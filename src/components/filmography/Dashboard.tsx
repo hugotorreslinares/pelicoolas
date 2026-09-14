@@ -10,8 +10,10 @@ import { TrendingMovies } from "./TrendingMovies";
 import { ShareBadgeButton } from "./ShareBadgeButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
+  getLegacyWatchedIds,
+  migrateWatchedToSeen,
   subscribeToFollowedPeople,
-  subscribeToWatchedMovies,
+  subscribeToSeenMovies,
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce, subscribeToBadges } from "@/lib/firebase/badges";
@@ -59,9 +61,11 @@ const SORT_OPTIONS: readonly { value: SortMode; label: string }[] = [
 ];
 
 interface PersonStats {
-  readonly watchedCount: number;
   readonly totalCount: number | null;
   readonly age: number | null;
+  /** This person's full movie id list — needed to intersect against the
+   *  global `seen` set for watchedCount. Null until fetchPersonData resolves. */
+  readonly movieIds: readonly number[] | null;
 }
 
 interface DashboardProps {
@@ -74,6 +78,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [statsById, setStatsById] = useState<Record<number, PersonStats>>({});
+  const [seenIds, setSeenIds] = useState<ReadonlySet<number>>(new Set());
   const [watchlistCountById, setWatchlistCountById] = useState<
     Record<number, number>
   >({});
@@ -86,6 +91,11 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
   // person each time — easily enough requests to hit the endpoint's rate
   // limit for anyone following more than a handful of people.
   const fetchedPersonIdsRef = useRef<Set<number>>(new Set());
+  // Same idea, for the legacy watchedMovies → seen backfill (see
+  // migrateWatchedToSeen) — once attempted per person, never again.
+  const migratedPersonIdsRef = useRef<Set<number>>(new Set());
+  const seenIdsRef = useRef(seenIds);
+  seenIdsRef.current = seenIds;
 
   useEffect(() => {
     if (!user) {
@@ -95,33 +105,24 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
     return subscribeToFollowedPeople(user.uid, setPeople);
   }, [user]);
 
-  // One watched-movies listener per followed person — same data
-  // FollowedPersonCard used to fetch on its own, lifted up here so the
-  // parent can sort by it instead of every card resolving independently.
+  // The single "have I watched this" listener — each person's watchedCount
+  // is this intersected with their own movieIds (see the useMemo below),
+  // rather than a separate per-person subscription.
+  useEffect(() => {
+    if (!user) {
+      setSeenIds(new Set());
+      return;
+    }
+    return subscribeToSeenMovies(user.uid, setSeenIds);
+  }, [user]);
+
+  // Total filmography size + movie ids + age all come from the same TMDB
+  // proxy call already used to render each person's progress bar.
+  // fetchPersonData caches per person in localStorage (6h, matching the
+  // server's own cache) — following 30-50 people otherwise means 30-50 real
+  // requests on every single page load.
   useEffect(() => {
     if (!user || !people) return;
-    const unsubscribers = people.map((person) =>
-      subscribeToWatchedMovies(user.uid, person.tmdbId, (watched) => {
-        setStatsById((prev) => ({
-          ...prev,
-          [person.tmdbId]: {
-            totalCount: prev[person.tmdbId]?.totalCount ?? null,
-            age: prev[person.tmdbId]?.age ?? null,
-            watchedCount: watched.size,
-          },
-        }));
-      }),
-    );
-    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
-  }, [user, people]);
-
-  // Total filmography size + age both come from the same TMDB proxy call
-  // already used to render each person's progress bar. fetchPersonData
-  // caches per person in localStorage (6h, matching the server's own
-  // cache) — following 30-50 people otherwise means 30-50 real requests
-  // on every single page load.
-  useEffect(() => {
-    if (!people) return;
     people.forEach((person) => {
       if (fetchedPersonIdsRef.current.has(person.tmdbId)) return;
       fetchedPersonIdsRef.current.add(person.tmdbId);
@@ -131,27 +132,49 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
           const age = data.profile.birthday
             ? calculateAge(data.profile.birthday)
             : null;
+          const movieIds = data.movies.map((m) => m.tmdbMovieId);
           setStatsById((prev) => ({
             ...prev,
-            [person.tmdbId]: {
-              watchedCount: prev[person.tmdbId]?.watchedCount ?? 0,
-              totalCount: data.movies.length,
-              age,
-            },
+            [person.tmdbId]: { totalCount: data.movies.length, age, movieIds },
           }));
+
+          if (!migratedPersonIdsRef.current.has(person.tmdbId)) {
+            migratedPersonIdsRef.current.add(person.tmdbId);
+            void getLegacyWatchedIds(user.uid, person.tmdbId).then(
+              (legacyIds) => {
+                if (legacyIds.length === 0) return;
+                void migrateWatchedToSeen(
+                  user.uid,
+                  legacyIds,
+                  data.movies,
+                  seenIdsRef.current,
+                );
+              },
+            );
+          }
         })
         .catch(() => {
           setStatsById((prev) => ({
             ...prev,
             [person.tmdbId]: {
-              watchedCount: prev[person.tmdbId]?.watchedCount ?? 0,
-              totalCount: 0,
+              totalCount: prev[person.tmdbId]?.totalCount ?? 0,
               age: null,
+              movieIds: prev[person.tmdbId]?.movieIds ?? [],
             },
           }));
         });
     });
-  }, [people]);
+  }, [user, people]);
+
+  const watchedCountById = useMemo(() => {
+    const counts: Record<number, number> = {};
+    for (const person of people ?? []) {
+      const movieIds = statsById[person.tmdbId]?.movieIds;
+      if (!movieIds) continue;
+      counts[person.tmdbId] = movieIds.filter((id) => seenIds.has(id)).length;
+    }
+    return counts;
+  }, [people, statsById, seenIds]);
 
   useEffect(() => {
     if (!user) return;
@@ -180,10 +203,10 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
         return (
           stats?.totalCount != null &&
           stats.totalCount > 0 &&
-          stats.watchedCount === stats.totalCount
+          watchedCountById[person.tmdbId] === stats.totalCount
         );
       }),
-    [people, statsById],
+    [people, statsById, watchedCountById],
   );
 
   // Re-checks on every stats change, but awardBadgeOnce is a no-op past the
@@ -235,14 +258,15 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
       .map((person) => {
         const stats = statsById[person.tmdbId];
         if (stats?.totalCount == null || stats.totalCount === 0) return null;
-        const remaining = stats.totalCount - stats.watchedCount;
+        const remaining =
+          stats.totalCount - (watchedCountById[person.tmdbId] ?? 0);
         if (remaining <= 0 || remaining > ALMOST_THERE_MAX_REMAINING)
           return null;
         return { person, remaining };
       })
       .filter((entry) => entry !== null)
       .sort((a, b) => a.remaining - b.remaining);
-  }, [people, statsById]);
+  }, [people, statsById, watchedCountById]);
 
   const sortedPeople = useMemo(() => {
     if (!people || sortMode === "recent") return people;
@@ -255,8 +279,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
       }
       if (sortMode === "watched") {
         return (
-          (statsById[b.tmdbId]?.watchedCount ?? 0) -
-          (statsById[a.tmdbId]?.watchedCount ?? 0)
+          (watchedCountById[b.tmdbId] ?? 0) - (watchedCountById[a.tmdbId] ?? 0)
         );
       }
       // age: people without a known birthday sort to the end, regardless of direction.
@@ -267,7 +290,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
       if (ageB == null) return -1;
       return ageB - ageA;
     });
-  }, [people, sortMode, statsById, watchlistCountById]);
+  }, [people, sortMode, statsById, watchlistCountById, watchedCountById]);
 
   // The photo-wall hero: most-completed filmographies first, capped short —
   // it's a showcase, not the full list (that's the grid below it).
@@ -275,18 +298,14 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
     if (!people) return [];
     return [...people]
       .sort((a, b) => {
-        const statsA = statsById[a.tmdbId];
-        const statsB = statsById[b.tmdbId];
-        const ratioA = statsA?.totalCount
-          ? statsA.watchedCount / statsA.totalCount
-          : 0;
-        const ratioB = statsB?.totalCount
-          ? statsB.watchedCount / statsB.totalCount
-          : 0;
+        const totalA = statsById[a.tmdbId]?.totalCount;
+        const totalB = statsById[b.tmdbId]?.totalCount;
+        const ratioA = totalA ? (watchedCountById[a.tmdbId] ?? 0) / totalA : 0;
+        const ratioB = totalB ? (watchedCountById[b.tmdbId] ?? 0) / totalB : 0;
         return ratioB - ratioA;
       })
       .slice(0, HERO_MAX_PEOPLE);
-  }, [people, statsById]);
+  }, [people, statsById, watchedCountById]);
 
   // A page-level h1 that renders in every state (including the loading
   // skeleton, which is what search engines and pre-hydration crawlers see)
@@ -414,7 +433,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
             <FollowedPersonCard
               key={person.tmdbId}
               person={person}
-              watchedCount={statsById[person.tmdbId]?.watchedCount ?? 0}
+              watchedCount={watchedCountById[person.tmdbId] ?? 0}
               totalCount={statsById[person.tmdbId]?.totalCount ?? null}
               age={statsById[person.tmdbId]?.age ?? null}
             />

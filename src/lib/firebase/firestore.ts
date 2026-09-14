@@ -8,6 +8,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "./client";
 import type {
@@ -17,6 +18,7 @@ import type {
   WatchedMovie,
   WatchlistMovie,
 } from "@/types/filmography";
+import type { FilmographyMovie } from "@/types/movie";
 
 export function requireDb() {
   if (!db) throw new Error("Firebase is not configured");
@@ -25,18 +27,6 @@ export function requireDb() {
 
 function followedPersonRef(userId: string, personId: number) {
   return doc(requireDb(), "users", userId, "followedPeople", String(personId));
-}
-
-function watchedMovieRef(userId: string, personId: number, movieId: number) {
-  return doc(
-    requireDb(),
-    "users",
-    userId,
-    "followedPeople",
-    String(personId),
-    "watchedMovies",
-    String(movieId),
-  );
 }
 
 function watchlistMovieRef(userId: string, movieId: number) {
@@ -102,31 +92,19 @@ export function subscribeToFollowedPeople(
   );
 }
 
-export async function markMovieWatched(
+// Legacy per-person "watched" docs (followedPeople/{id}/watchedMovies) —
+// no longer written to. `seen` (below) is the single source of truth for
+// "have I watched this movie", used everywhere (a person's filmography
+// checkbox included). These two used to be entirely separate facts, which
+// meant marking a movie watched from a person's page didn't show as
+// watched anywhere else (search, watchlist, Connections) and vice versa.
+// Kept only to read once per person and migrate into `seen` — see
+// `migrateWatchedToSeen`.
+export async function getLegacyWatchedIds(
   userId: string,
   personId: number,
-  movieId: number,
-): Promise<void> {
-  await setDoc(watchedMovieRef(userId, personId, movieId), {
-    tmdbId: movieId,
-    watchedAt: serverTimestamp(),
-  });
-}
-
-export async function unmarkMovieWatched(
-  userId: string,
-  personId: number,
-  movieId: number,
-): Promise<void> {
-  await deleteDoc(watchedMovieRef(userId, personId, movieId));
-}
-
-export function subscribeToWatchedMovies(
-  userId: string,
-  personId: number,
-  callback: (watched: ReadonlySet<number>) => void,
-): () => void {
-  return onSnapshot(
+): Promise<readonly number[]> {
+  const snapshot = await getDocs(
     collection(
       requireDb(),
       "users",
@@ -135,13 +113,39 @@ export function subscribeToWatchedMovies(
       String(personId),
       "watchedMovies",
     ),
-    (snapshot) => {
-      const watched = new Set<number>(
-        snapshot.docs.map((d) => (d.data() as WatchedMovie).tmdbId),
-      );
-      callback(watched);
-    },
   );
+  return snapshot.docs.map((d) => (d.data() as WatchedMovie).tmdbId);
+}
+
+// One-time backfill: for each legacy-watched id not already in `seen` (and
+// still present in this person's current filmography), write a real `seen`
+// doc using metadata already at hand from `movies` — avoids a TMDB lookup
+// per movie. Cheap no-op once everything's migrated (empty `toWrite`).
+export async function migrateWatchedToSeen(
+  userId: string,
+  legacyIds: readonly number[],
+  movies: readonly FilmographyMovie[],
+  alreadySeenIds: ReadonlySet<number>,
+): Promise<void> {
+  const byId = new Map(movies.map((m) => [m.tmdbMovieId, m]));
+  const toWrite = legacyIds.filter(
+    (id) => !alreadySeenIds.has(id) && byId.has(id),
+  );
+  if (toWrite.length === 0) return;
+
+  const batch = writeBatch(requireDb());
+  for (const id of toWrite) {
+    const movie = byId.get(id)!;
+    batch.set(seenMovieRef(userId, id), {
+      tmdbId: movie.tmdbMovieId,
+      title: movie.title,
+      posterPath: movie.posterPath,
+      releaseYear: movie.releaseYear,
+      voteAverage: movie.voteAverage,
+      watchedAt: serverTimestamp(),
+    });
+  }
+  await batch.commit();
 }
 
 export async function addToWatchlist(
@@ -332,4 +336,21 @@ export async function isMovieSeen(
 ): Promise<boolean> {
   const snapshot = await getDoc(seenMovieRef(userId, movieId));
   return snapshot.exists();
+}
+
+// The single "have I watched this" listener — a person's filmography
+// checkbox intersects this with that person's movie ids, rather than
+// keeping its own separate per-person subscription.
+export function subscribeToSeenMovies(
+  userId: string,
+  callback: (seenIds: ReadonlySet<number>) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "seen"),
+    (snapshot) => {
+      callback(
+        new Set(snapshot.docs.map((d) => (d.data() as SeenMovie).tmdbId)),
+      );
+    },
+  );
 }
