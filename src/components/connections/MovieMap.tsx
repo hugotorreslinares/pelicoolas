@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Loader2Icon } from "lucide-react";
 import { fetchSimilarMovies } from "@/lib/movieData";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
 import type { TrendingMovie } from "@/types/movie";
@@ -338,6 +338,13 @@ export function MovieMap() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          {loading && (
+            <Loader2Icon
+              className="absolute top-1/2 right-2.5 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
+              role="status"
+              aria-label="Loading"
+            />
+          )}
           {searchResults.length > 0 && (
             <div className="absolute top-full left-0 z-10 mt-1 w-full space-y-1 rounded-lg border bg-popover p-1 shadow-lg">
               {searchResults.map((movie) => (

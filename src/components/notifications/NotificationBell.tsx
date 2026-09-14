@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   markAllNotificationsRead,
@@ -23,13 +24,23 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<
     readonly ReleaseNotification[]
   >([]);
+  // Distinguishes "still waiting on the first snapshot" from "confirmed
+  // empty" — notifications itself starts at [] either way, so without this
+  // opening the menu before the subscription resolves showed the same
+  // "no notifications yet" message a genuinely empty inbox would.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!user) {
       setNotifications([]);
+      setLoaded(false);
       return;
     }
-    return subscribeToNotifications(user.uid, setNotifications);
+    setLoaded(false);
+    return subscribeToNotifications(user.uid, (n) => {
+      setNotifications(n);
+      setLoaded(true);
+    });
   }, [user]);
 
   const unreadCount = useMemo(
@@ -66,7 +77,21 @@ export function NotificationBell() {
         <DropdownMenuGroup>
           <DropdownMenuLabel>New releases</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {notifications.length === 0 && (
+          {!loaded && (
+            <div className="space-y-2 p-2" role="status">
+              <span className="sr-only">Loading notifications…</span>
+              {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <Skeleton className="h-14 w-10 shrink-0 rounded" />
+                  <div className="flex-1 space-y-1.5 pt-1">
+                    <Skeleton className="h-3.5 w-3/4" />
+                    <Skeleton className="h-3.5 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {loaded && notifications.length === 0 && (
             <p className="p-2 text-sm text-muted-foreground">
               No notifications yet — you'll hear about it when someone you
               follow has a new movie out.

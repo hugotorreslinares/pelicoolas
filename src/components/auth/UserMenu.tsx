@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { signOutUser } from "@/lib/firebase/auth";
 import { exportUserData } from "@/lib/firebase/firestore";
@@ -17,7 +18,13 @@ export function UserMenu() {
   const { user, loading } = useAuth();
   const [exporting, setExporting] = useState(false);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <Skeleton className="size-11 rounded-full" role="status">
+        <span className="sr-only">Loading account…</span>
+      </Skeleton>
+    );
+  }
   if (!user) return <LoginButton />;
 
   const initials = user.displayName?.slice(0, 1).toUpperCase() ?? "?";

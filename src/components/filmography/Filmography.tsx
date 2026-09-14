@@ -66,6 +66,13 @@ export function Filmography({
   const [filter, setFilter] = useState<FilmographyFilter>("all");
   const [order, setOrder] = useState<SortOrder>("newest");
   const [showSignInHint, setShowSignInHint] = useState(false);
+  // Neither seenIds nor watchlist distinguish "still loading" from
+  // "confirmed empty" on their own (both start at empty Sets) — without
+  // these, the page briefly claims 0 movies watched and no bookmarks,
+  // which is wrong whenever it isn't actually true.
+  const [seenLoaded, setSeenLoaded] = useState(false);
+  const [watchlistLoaded, setWatchlistLoaded] = useState(false);
+  const statusLoading = !!user && (!seenLoaded || !watchlistLoaded);
   // Guards the one-time legacy-watchedMovies backfill below from re-running
   // on every seenIds/movies re-render — see migrateWatchedToSeen's own doc.
   const migratedPersonIdRef = useRef<number | null>(null);
@@ -73,9 +80,14 @@ export function Filmography({
   useEffect(() => {
     if (!user) {
       setSeenIds(new Set());
+      setSeenLoaded(false);
       return;
     }
-    return subscribeToSeenMovies(user.uid, setSeenIds);
+    setSeenLoaded(false);
+    return subscribeToSeenMovies(user.uid, (ids) => {
+      setSeenIds(ids);
+      setSeenLoaded(true);
+    });
   }, [user]);
 
   // `seen` unified what used to be two separate "watched" facts (see
@@ -105,11 +117,14 @@ export function Filmography({
   useEffect(() => {
     if (!user) {
       setWatchlist(new Set());
+      setWatchlistLoaded(false);
       return;
     }
-    return subscribeToWatchlist(user.uid, (movies) =>
-      setWatchlist(new Set(movies.map((m) => m.tmdbId))),
-    );
+    setWatchlistLoaded(false);
+    return subscribeToWatchlist(user.uid, (movies) => {
+      setWatchlist(new Set(movies.map((m) => m.tmdbId)));
+      setWatchlistLoaded(true);
+    });
   }, [user]);
 
   const sorted = useMemo(() => sortMovies(movies, order), [movies, order]);
@@ -211,6 +226,7 @@ export function Filmography({
       <FilmographyProgress
         watchedCount={watched.size}
         totalCount={movies.length}
+        loading={statusLoading}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -245,6 +261,7 @@ export function Filmography({
                   onToggle={(next) => void toggleWatched(movie, next)}
                   inWatchlist={watchlist.has(movie.tmdbMovieId)}
                   onToggleWatchlist={() => void toggleWatchlist(movie)}
+                  statusLoading={statusLoading}
                 />
               ))}
             </div>

@@ -6,6 +6,7 @@ import {
   AvatarGroupCount,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
 import { tmdbDensitySrcSet, tmdbImageUrl } from "@/lib/tmdb/image";
@@ -24,6 +25,20 @@ export function FollowedDock() {
     }
     return subscribeToFollowedPeople(user.uid, setPeople);
   }, [user]);
+
+  // `people === null` while signed in means the subscription hasn't
+  // delivered its first snapshot yet — distinct from "confirmed nobody
+  // followed", which is the only case that renders nothing.
+  if (user && people === null) {
+    return (
+      <AvatarGroup role="status">
+        <span className="sr-only">Loading followed people…</span>
+        {Array.from({ length: 3 }, (_, i) => (
+          <Skeleton key={i} className="size-6 rounded-full" />
+        ))}
+      </AvatarGroup>
+    );
+  }
 
   if (!people || people.length === 0) return null;
 

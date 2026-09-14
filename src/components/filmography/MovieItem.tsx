@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { BookmarkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,9 @@ interface MovieItemProps {
   readonly onToggle: (watched: boolean) => void;
   readonly inWatchlist: boolean;
   readonly onToggleWatchlist: () => void;
+  /** True while watched/watchlist status is still loading — the checkbox
+   *  and bookmark would otherwise confidently show "no" before it's known. */
+  readonly statusLoading?: boolean;
 }
 
 // A poster card, not a checklist row — same visual language as the
@@ -30,6 +34,7 @@ export function MovieItem({
   onToggle,
   inWatchlist,
   onToggleWatchlist,
+  statusLoading = false,
 }: MovieItemProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -67,31 +72,39 @@ export function MovieItem({
           </span>
         )}
 
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          aria-label={
-            inWatchlist ? "Remove from watchlist" : "Add to watchlist"
-          }
-          className="absolute top-2 right-2 size-11 rounded-full shadow"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleWatchlist();
-          }}
-        >
-          <BookmarkIcon className={inWatchlist ? "fill-current" : ""} />
-        </Button>
+        {statusLoading ? (
+          <Skeleton className="absolute top-2 right-2 size-11 rounded-full" />
+        ) : (
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            aria-label={
+              inWatchlist ? "Remove from watchlist" : "Add to watchlist"
+            }
+            className="absolute top-2 right-2 size-11 rounded-full shadow"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWatchlist();
+            }}
+          >
+            <BookmarkIcon className={inWatchlist ? "fill-current" : ""} />
+          </Button>
+        )}
 
-        <div className="absolute bottom-2 left-2 flex size-11 items-center justify-center rounded-full bg-background/90 shadow">
-          <Checkbox
-            checked={watched}
-            onCheckedChange={(v) => onToggle(v === true)}
-            onClick={(e) => e.stopPropagation()}
-            className="size-5"
-            aria-label={`Mark ${movie.title} as ${watched ? "unwatched" : "watched"}`}
-          />
-        </div>
+        {statusLoading ? (
+          <Skeleton className="absolute bottom-2 left-2 size-11 rounded-full" />
+        ) : (
+          <div className="absolute bottom-2 left-2 flex size-11 items-center justify-center rounded-full bg-background/90 shadow">
+            <Checkbox
+              checked={watched}
+              onCheckedChange={(v) => onToggle(v === true)}
+              onClick={(e) => e.stopPropagation()}
+              className="size-5"
+              aria-label={`Mark ${movie.title} as ${watched ? "unwatched" : "watched"}`}
+            />
+          </div>
+        )}
       </div>
 
       <p className="mt-1 truncate font-medium">{movie.title}</p>
