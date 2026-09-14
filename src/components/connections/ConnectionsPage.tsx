@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import { fetchMovieDetails, fetchPersonData } from "@/lib/movieData";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import { readCache, writeCache } from "@/lib/clientCache";
 import type { FollowedPerson } from "@/types/filmography";
 import type { CastMember, FilmographyMovie } from "@/types/movie";
@@ -93,19 +94,22 @@ export function ConnectionsPage() {
 
     setLoadingFilmographies(true);
     let cancelled = false;
+    for (const person of toFetch) fetchedPersonRef.current.add(person.tmdbId);
 
     (async () => {
       const results: PersonMovies[] = [];
-      for (const person of toFetch) {
-        fetchedPersonRef.current.add(person.tmdbId);
+      // Capped concurrency, not sequential — awaiting 50 people one at a
+      // time made this page's load time scale with follow-list size
+      // instead of staying roughly constant. See mapWithConcurrency's doc.
+      await mapWithConcurrency(toFetch, 6, async (person) => {
         try {
           const data = await fetchPersonData(person.tmdbId);
-          if (!data) continue;
+          if (!data) return;
           results.push({ person, movies: data.movies });
         } catch {
           // Skip this person rather than failing the whole page.
         }
-      }
+      });
       if (!cancelled) {
         setByPerson((prev) => [...prev, ...results]);
         setLoadingFilmographies(false);

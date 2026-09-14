@@ -7,6 +7,7 @@ import {
   subscribeToSeenMovies,
 } from "@/lib/firebase/firestore";
 import { fetchPersonData } from "@/lib/movieData";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import type { FollowedPerson } from "@/types/filmography";
 import type { FilmographyMovie } from "@/types/movie";
 
@@ -47,23 +48,25 @@ export function WrappedStats() {
   // in localStorage, so this doesn't cost a fresh request per visit.
   useEffect(() => {
     if (!people) return;
-    people.forEach((person) => {
-      if (fetchedMoviesRef.current.has(person.tmdbId)) return;
-      fetchedMoviesRef.current.add(person.tmdbId);
-      fetchPersonData(person.tmdbId)
-        .then((data) => {
-          if (!data) throw new Error("request failed");
-          setDataById((prev) => ({
-            ...prev,
-            [person.tmdbId]: { person, movies: data.movies },
-          }));
-        })
-        .catch(() => {
-          setDataById((prev) => ({
-            ...prev,
-            [person.tmdbId]: { person, movies: [] },
-          }));
-        });
+    const toFetch = people.filter(
+      (person) => !fetchedMoviesRef.current.has(person.tmdbId),
+    );
+    for (const person of toFetch) fetchedMoviesRef.current.add(person.tmdbId);
+
+    void mapWithConcurrency(toFetch, 6, async (person) => {
+      try {
+        const data = await fetchPersonData(person.tmdbId);
+        if (!data) throw new Error("request failed");
+        setDataById((prev) => ({
+          ...prev,
+          [person.tmdbId]: { person, movies: data.movies },
+        }));
+      } catch {
+        setDataById((prev) => ({
+          ...prev,
+          [person.tmdbId]: { person, movies: [] },
+        }));
+      }
     });
   }, [people]);
 

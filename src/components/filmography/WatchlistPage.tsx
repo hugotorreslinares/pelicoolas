@@ -11,6 +11,7 @@ import {
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import { fetchMovieDetails } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
@@ -69,19 +70,17 @@ export function WatchlistPage() {
     );
     if (toBackfill.length === 0) return;
 
-    (async () => {
-      for (const movie of toBackfill) {
-        backfilledRef.current.add(movie.tmdbId);
-        try {
-          const details = await fetchMovieDetails(movie.tmdbId);
-          if (details) {
-            await setWatchlistGenres(user.uid, movie.tmdbId, details.genreIds);
-          }
-        } catch {
-          // Best-effort backfill — leave this one for next visit.
+    for (const movie of toBackfill) backfilledRef.current.add(movie.tmdbId);
+    void mapWithConcurrency(toBackfill, 6, async (movie) => {
+      try {
+        const details = await fetchMovieDetails(movie.tmdbId);
+        if (details) {
+          await setWatchlistGenres(user.uid, movie.tmdbId, details.genreIds);
         }
+      } catch {
+        // Best-effort backfill — leave this one for next visit.
       }
-    })();
+    });
   }, [user, movies]);
 
   useEffect(() => {

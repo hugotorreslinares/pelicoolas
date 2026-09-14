@@ -15,7 +15,11 @@ export const prerender = false;
 const CACHE_SECONDS = 60 * 60 * 6; // 6h — a filmography grows over time, but not within hours
 
 export const GET: APIRoute = async ({ params, request }) => {
-  const limited = rateLimitResponse(request, "person", 30, 60_000);
+  // Higher than the other /api/* limits on purpose: a single dashboard
+  // load for someone following 50+ people fires this many times in one
+  // burst legitimately — 30/60s was tripping on the user's own normal
+  // usage, not abuse. See design.md, Performance.
+  const limited = rateLimitResponse(request, "person", 120, 60_000);
   if (limited) return limited;
 
   const personId = Number(params.id);

@@ -13,7 +13,10 @@ export const prerender = false;
 const CACHE_SECONDS = 60 * 60 * 24; // 1d — a released movie's details rarely change
 
 export const GET: APIRoute = async ({ params, request }) => {
-  const limited = rateLimitResponse(request, "movie", 30, 60_000);
+  // Higher than the default on purpose — see the "person" route's own
+  // comment; a watchlist of 100+ movies backfilling genres, or Connections
+  // scanning a big filmography, legitimately bursts past 30/60s.
+  const limited = rateLimitResponse(request, "movie", 120, 60_000);
   if (limited) return limited;
 
   const movieId = Number(params.id);

@@ -18,6 +18,7 @@ import {
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce, subscribeToBadges } from "@/lib/firebase/badges";
 import { calculateAge } from "@/lib/age";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import { fetchPersonData } from "@/lib/movieData";
 import engagement from "@/config/engagement.json";
 import type { FollowedPerson } from "@/types/filmography";
@@ -120,49 +121,58 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
   // proxy call already used to render each person's progress bar.
   // fetchPersonData caches per person in localStorage (6h, matching the
   // server's own cache) — following 30-50 people otherwise means 30-50 real
-  // requests on every single page load.
+  // requests on every single page load. Capped concurrency (not all at
+  // once, not one at a time): a burst of 50+ simultaneous requests could
+  // trip the server's per-IP rate limit, but awaiting them one by one would
+  // make a big follow list load proportionally to its size instead of a
+  // roughly constant handful of round-trips. Each card still fills in via
+  // its own setStatsById call as soon as its request lands, so the page
+  // renders progressively either way.
   useEffect(() => {
     if (!user || !people) return;
-    people.forEach((person) => {
-      if (fetchedPersonIdsRef.current.has(person.tmdbId)) return;
+    const toFetch = people.filter(
+      (person) => !fetchedPersonIdsRef.current.has(person.tmdbId),
+    );
+    for (const person of toFetch)
       fetchedPersonIdsRef.current.add(person.tmdbId);
-      fetchPersonData(person.tmdbId)
-        .then((data) => {
-          if (!data) throw new Error("request failed");
-          const age = data.profile.birthday
-            ? calculateAge(data.profile.birthday)
-            : null;
-          const movieIds = data.movies.map((m) => m.tmdbMovieId);
-          setStatsById((prev) => ({
-            ...prev,
-            [person.tmdbId]: { totalCount: data.movies.length, age, movieIds },
-          }));
 
-          if (!migratedPersonIdsRef.current.has(person.tmdbId)) {
-            migratedPersonIdsRef.current.add(person.tmdbId);
-            void getLegacyWatchedIds(user.uid, person.tmdbId).then(
-              (legacyIds) => {
-                if (legacyIds.length === 0) return;
-                void migrateWatchedToSeen(
-                  user.uid,
-                  legacyIds,
-                  data.movies,
-                  seenIdsRef.current,
-                );
-              },
-            );
-          }
-        })
-        .catch(() => {
-          setStatsById((prev) => ({
-            ...prev,
-            [person.tmdbId]: {
-              totalCount: prev[person.tmdbId]?.totalCount ?? 0,
-              age: null,
-              movieIds: prev[person.tmdbId]?.movieIds ?? [],
+    void mapWithConcurrency(toFetch, 6, async (person) => {
+      try {
+        const data = await fetchPersonData(person.tmdbId);
+        if (!data) throw new Error("request failed");
+        const age = data.profile.birthday
+          ? calculateAge(data.profile.birthday)
+          : null;
+        const movieIds = data.movies.map((m) => m.tmdbMovieId);
+        setStatsById((prev) => ({
+          ...prev,
+          [person.tmdbId]: { totalCount: data.movies.length, age, movieIds },
+        }));
+
+        if (!migratedPersonIdsRef.current.has(person.tmdbId)) {
+          migratedPersonIdsRef.current.add(person.tmdbId);
+          void getLegacyWatchedIds(user.uid, person.tmdbId).then(
+            (legacyIds) => {
+              if (legacyIds.length === 0) return;
+              void migrateWatchedToSeen(
+                user.uid,
+                legacyIds,
+                data.movies,
+                seenIdsRef.current,
+              );
             },
-          }));
-        });
+          );
+        }
+      } catch {
+        setStatsById((prev) => ({
+          ...prev,
+          [person.tmdbId]: {
+            totalCount: prev[person.tmdbId]?.totalCount ?? 0,
+            age: null,
+            movieIds: prev[person.tmdbId]?.movieIds ?? [],
+          },
+        }));
+      }
     });
   }, [user, people]);
 
