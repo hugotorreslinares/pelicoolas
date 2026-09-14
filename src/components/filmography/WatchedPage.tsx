@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LayoutGridIcon, ListIcon } from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
@@ -17,8 +18,21 @@ import type { FollowedPerson, SeenMovie } from "@/types/filmography";
 const POSTER_WIDTHS = [185, 342, 500];
 const POSTER_SIZES = "(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
 const ALL_GENRES = "all";
+const VIEW_MODE_KEY = "watched-view-mode";
 
 type GroupMode = "year" | "person";
+type ViewMode = "grid" | "list";
+
+function readStoredViewMode(): ViewMode {
+  if (typeof window === "undefined") return "grid";
+  try {
+    return window.localStorage.getItem(VIEW_MODE_KEY) === "list"
+      ? "list"
+      : "grid";
+  } catch {
+    return "grid";
+  }
+}
 
 function groupByYear(
   movies: readonly SeenMovie[],
@@ -46,7 +60,7 @@ function MovieCard({
   readonly onOpen: () => void;
 }) {
   return (
-    <div className="mb-3 break-inside-avoid">
+    <div>
       <button
         type="button"
         onClick={onOpen}
@@ -76,6 +90,77 @@ function MovieCard({
   );
 }
 
+function MovieListRow({
+  movie,
+  onOpen,
+}: {
+  readonly movie: SeenMovie;
+  readonly onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="focus-ring card-elevated flex w-full items-center gap-3 overflow-hidden rounded-lg border p-2 text-left"
+      aria-label={`View details for ${movie.title}`}
+    >
+      {movie.posterPath ? (
+        <img
+          src={tmdbImageUrl(movie.posterPath, 92)}
+          alt=""
+          loading="lazy"
+          className="h-20 w-14 shrink-0 rounded object-cover"
+        />
+      ) : (
+        <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
+          No poster
+        </div>
+      )}
+      <div className="min-w-0">
+        <p className="truncate font-medium">{movie.title}</p>
+        <p className="text-sm text-muted-foreground">
+          {movie.releaseYear ?? "Unknown"}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+function MovieGroup({
+  movies,
+  viewMode,
+  onOpen,
+}: {
+  readonly movies: readonly SeenMovie[];
+  readonly viewMode: ViewMode;
+  readonly onOpen: (movieId: number) => void;
+}) {
+  if (viewMode === "list") {
+    return (
+      <div className="space-y-2">
+        {movies.map((movie) => (
+          <MovieListRow
+            key={movie.tmdbId}
+            movie={movie}
+            onOpen={() => onOpen(movie.tmdbId)}
+          />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+      {movies.map((movie) => (
+        <MovieCard
+          key={movie.tmdbId}
+          movie={movie}
+          onOpen={() => onOpen(movie.tmdbId)}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function WatchedPage() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly SeenMovie[] | null>(null);
@@ -91,7 +176,16 @@ export function WatchedPage() {
   const [genreFilter, setGenreFilter] = useState<number | typeof ALL_GENRES>(
     ALL_GENRES,
   );
+  const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
+    } catch {
+      // Best-effort persistence only.
+    }
+  }, [viewMode]);
 
   useEffect(() => {
     if (!user) {
@@ -223,7 +317,7 @@ export function WatchedPage() {
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Watched</h1>
 
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <div className="flex gap-1 rounded-full border p-1">
           <Button
             size="sm"
@@ -238,6 +332,26 @@ export function WatchedPage() {
             onClick={() => setGroupMode("person")}
           >
             By person
+          </Button>
+        </div>
+        <div className="flex gap-1 rounded-full border p-1">
+          <Button
+            size="icon-sm"
+            variant={viewMode === "grid" ? "default" : "ghost"}
+            aria-label="Grid view"
+            aria-pressed={viewMode === "grid"}
+            onClick={() => setViewMode("grid")}
+          >
+            <LayoutGridIcon />
+          </Button>
+          <Button
+            size="icon-sm"
+            variant={viewMode === "list" ? "default" : "ghost"}
+            aria-label="List view"
+            aria-pressed={viewMode === "list"}
+            onClick={() => setViewMode("list")}
+          >
+            <ListIcon />
           </Button>
         </div>
       </div>
@@ -275,15 +389,11 @@ export function WatchedPage() {
               <h2 className="text-sm font-semibold text-muted-foreground">
                 {year}
               </h2>
-              <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-                {yearMovies.map((movie) => (
-                  <MovieCard
-                    key={movie.tmdbId}
-                    movie={movie}
-                    onOpen={() => setOpenMovieId(movie.tmdbId)}
-                  />
-                ))}
-              </div>
+              <MovieGroup
+                movies={yearMovies}
+                viewMode={viewMode}
+                onOpen={setOpenMovieId}
+              />
             </div>
           ))}
         </div>
@@ -294,6 +404,7 @@ export function WatchedPage() {
           movies={filtered}
           people={people ?? []}
           personMovieIds={personMovieIds}
+          viewMode={viewMode}
           onOpen={setOpenMovieId}
         />
       )}
@@ -313,6 +424,7 @@ interface PersonGroupsProps {
   readonly movies: readonly SeenMovie[];
   readonly people: readonly FollowedPerson[];
   readonly personMovieIds: Record<number, readonly number[]>;
+  readonly viewMode: ViewMode;
   readonly onOpen: (movieId: number) => void;
 }
 
@@ -326,6 +438,7 @@ function PersonGroups({
   movies,
   people,
   personMovieIds,
+  viewMode,
   onOpen,
 }: PersonGroupsProps) {
   const stillLoadingGroups = people.some(
@@ -372,15 +485,11 @@ function PersonGroups({
               ({personMovies.length})
             </span>
           </h2>
-          <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-            {personMovies.map((movie) => (
-              <MovieCard
-                key={movie.tmdbId}
-                movie={movie}
-                onOpen={() => onOpen(movie.tmdbId)}
-              />
-            ))}
-          </div>
+          <MovieGroup
+            movies={personMovies}
+            viewMode={viewMode}
+            onOpen={onOpen}
+          />
         </div>
       ))}
 
@@ -389,15 +498,7 @@ function PersonGroups({
           <h2 className="text-sm font-semibold text-muted-foreground">
             Not part of a followed filmography
           </h2>
-          <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-            {other.map((movie) => (
-              <MovieCard
-                key={movie.tmdbId}
-                movie={movie}
-                onOpen={() => onOpen(movie.tmdbId)}
-              />
-            ))}
-          </div>
+          <MovieGroup movies={other} viewMode={viewMode} onOpen={onOpen} />
         </div>
       )}
     </div>

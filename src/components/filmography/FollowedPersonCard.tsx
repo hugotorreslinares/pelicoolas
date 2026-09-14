@@ -15,6 +15,7 @@ interface FollowedPersonCardProps {
   readonly watchedCount: number;
   readonly totalCount: number | null;
   readonly age: number | null;
+  readonly layout?: "grid" | "list";
 }
 
 export function FollowedPersonCard({
@@ -22,6 +23,7 @@ export function FollowedPersonCard({
   watchedCount,
   totalCount,
   age,
+  layout = "grid",
 }: FollowedPersonCardProps) {
   const percent = totalCount
     ? Math.round((watchedCount / totalCount) * 100)
@@ -33,6 +35,73 @@ export function FollowedPersonCard({
     remaining !== null &&
     remaining > 0 &&
     remaining <= ALMOST_THERE_MAX_REMAINING;
+
+  if (layout === "list") {
+    return (
+      <a
+        href={`/person/${person.tmdbId}`}
+        className="focus-ring card-elevated flex items-center gap-3 rounded-lg border p-2"
+      >
+        <div className="relative shrink-0">
+          <Avatar className="size-11">
+            <AvatarImage
+              src={
+                person.profilePath
+                  ? tmdbImageUrl(person.profilePath, 92)
+                  : undefined
+              }
+              srcSet={
+                person.profilePath
+                  ? tmdbDensitySrcSet(person.profilePath, 92, 185)
+                  : undefined
+              }
+              alt={person.name}
+            />
+            <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+          </Avatar>
+          {age !== null && (
+            <span
+              className="absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full border-2 border-card bg-secondary text-[9px] font-semibold text-secondary-foreground"
+              title={`${age} years old`}
+            >
+              {age}
+            </span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">{person.name}</p>
+          {totalCount === null ? (
+            <Skeleton className="mt-1 h-2 w-full" />
+          ) : (
+            <div className="flex items-center gap-2">
+              <Progress value={percent} className="h-2" />
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {watchedCount}/{totalCount}
+              </span>
+            </div>
+          )}
+        </div>
+        {isComplete && (
+          <Badge
+            variant="secondary"
+            title="Filmography complete"
+            className="shrink-0"
+          >
+            <TrophyIcon data-icon="inline-start" />
+          </Badge>
+        )}
+        {!isComplete && isAlmostThere && (
+          <Badge
+            title={`${remaining} movies to complete this filmography`}
+            className="shrink-0"
+          >
+            <FlameIcon data-icon="inline-start" />
+            {remaining}
+          </Badge>
+        )}
+      </a>
+    );
+  }
 
   return (
     <a href={`/person/${person.tmdbId}`} className="focus-ring block">

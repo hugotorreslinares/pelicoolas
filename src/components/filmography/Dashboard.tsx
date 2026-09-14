@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TrophyIcon, FilmIcon, BookmarkIcon, NetworkIcon } from "lucide-react";
+import {
+  TrophyIcon,
+  FilmIcon,
+  BookmarkIcon,
+  NetworkIcon,
+  LayoutGridIcon,
+  ListIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +35,20 @@ import type { Badge as BadgeRecord } from "@/types/badges";
 const FILMOGRAPHY_MILESTONES = [3, 10, 25];
 const ALMOST_THERE_MAX_REMAINING = 3;
 const HERO_MAX_PEOPLE = 15;
+
+const VIEW_MODE_KEY = "filmographies-view-mode";
+type ViewMode = "grid" | "list";
+
+function readStoredViewMode(): ViewMode {
+  if (typeof window === "undefined") return "grid";
+  try {
+    return window.localStorage.getItem(VIEW_MODE_KEY) === "list"
+      ? "list"
+      : "grid";
+  } catch {
+    return "grid";
+  }
+}
 
 const HOME_FEATURES = [
   {
@@ -84,6 +105,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
     Record<number, number>
   >({});
   const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [badges, setBadges] = useState<readonly BadgeRecord[]>([]);
   // Firestore's onSnapshot can re-emit the followed-people list with a new
   // array reference on metadata-only changes (not just real add/remove),
@@ -105,6 +127,14 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
     }
     return subscribeToFollowedPeople(user.uid, setPeople);
   }, [user]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
+    } catch {
+      // Best-effort persistence only.
+    }
+  }, [viewMode]);
 
   // The single "have I watched this" listener — each person's watchedCount
   // is this intersected with their own movieIds (see the useMemo below),
@@ -423,7 +453,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
         <p className="text-sm text-muted-foreground">
           {people.length} people you're following
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {SORT_OPTIONS.map((option) => (
             <Button
               key={option.value}
@@ -434,10 +464,38 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
               {option.label}
             </Button>
           ))}
+          {!limit && (
+            <div className="flex gap-1 rounded-full border p-1">
+              <Button
+                size="icon-sm"
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                aria-label="Grid view"
+                aria-pressed={viewMode === "grid"}
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGridIcon />
+              </Button>
+              <Button
+                size="icon-sm"
+                variant={viewMode === "list" ? "default" : "ghost"}
+                aria-label="List view"
+                aria-pressed={viewMode === "list"}
+                onClick={() => setViewMode("list")}
+              >
+                <ListIcon />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+      <div
+        className={
+          !limit && viewMode === "list"
+            ? "space-y-2"
+            : "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"
+        }
+      >
         {(limit ? sortedPeople!.slice(0, limit) : sortedPeople!).map(
           (person) => (
             <FollowedPersonCard
@@ -446,6 +504,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
               watchedCount={watchedCountById[person.tmdbId] ?? 0}
               totalCount={statsById[person.tmdbId]?.totalCount ?? null}
               age={statsById[person.tmdbId]?.age ?? null}
+              layout={!limit ? viewMode : "grid"}
             />
           ),
         )}
