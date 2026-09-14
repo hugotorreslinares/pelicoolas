@@ -1,4 +1,8 @@
-export function downloadJson(filename: string, data: unknown): void {
+export function downloadJson(
+  filename: string,
+  data: unknown,
+  preOpenedWindow?: Window | null,
+): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: "application/json",
   });
@@ -10,7 +14,18 @@ export function downloadJson(filename: string, data: unknown): void {
   // the user save it via the share sheet instead.
   const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
   if (isIOS) {
-    window.open(url, "_blank");
+    // Calling window.open() here (after the caller's `await` on the actual
+    // data fetch) loses the original click's user-activation context, so
+    // Safari's popup blocker silently swallows it — "Export data" looked
+    // like it did nothing all over again, just for a different reason.
+    // Callers on iOS open a blank tab synchronously *before* their fetch
+    // and hand it in here to redirect once the data's ready, instead of
+    // opening a new one now.
+    if (preOpenedWindow) {
+      preOpenedWindow.location.href = url;
+    } else {
+      window.open(url, "_blank");
+    }
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
     return;
   }

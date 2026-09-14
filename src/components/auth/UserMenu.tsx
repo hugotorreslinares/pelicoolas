@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as Sentry from "@sentry/astro";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,14 +32,33 @@ export function UserMenu() {
 
   async function handleExport() {
     if (!user) return;
+    // Must happen synchronously, before the Firestore read below — a
+    // window.open() called after an `await` loses the click's
+    // user-activation context and iOS Safari's popup blocker silently
+    // swallows it (see downloadJson's own comment). Harmless no-op on
+    // every other platform, which redirects the real anchor download
+    // instead.
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    const preOpenedWindow = isIOS ? window.open("", "_blank") : null;
+
     setExporting(true);
     try {
       const data = await exportUserData(user.uid);
       downloadJson(
         `filmo-export-${new Date().toISOString().slice(0, 10)}.json`,
         data,
+        preOpenedWindow,
       );
       announce("Export downloaded");
+    } catch (error) {
+      preOpenedWindow?.close();
+      // No app-wide toast system to hang this off of, and `announce` alone
+      // (screen readers only) is exactly the kind of silent failure that
+      // made this bug hard to notice in the first place — an alert is
+      // heavy-handed but guarantees a sighted user actually sees it too.
+      announce("Couldn't export your data. Please try again.");
+      window.alert("Couldn't export your data. Please try again.");
+      Sentry.captureException(error, { tags: { action: "export-data" } });
     } finally {
       setExporting(false);
     }
