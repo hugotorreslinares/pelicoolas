@@ -5,7 +5,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { FollowRequestsInbox } from "./FollowRequestsInbox";
-import { LockIcon, UserCheckIcon, UserPlusIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  LockIcon,
+  UserCheckIcon,
+  UserPlusIcon,
+} from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
@@ -188,6 +193,7 @@ export function UserProfile({ userId }: UserProfileProps) {
         userId={userId}
         subscribeFn={subscribeToRecommendations}
         onOpen={setOpenMovieId}
+        defaultOpen
       />
 
       {canSeePrivateLists ? (
@@ -240,6 +246,11 @@ interface ProfileSectionProps<M extends ProfileMovie> {
     callback: (movies: readonly M[]) => void,
   ) => () => void;
   readonly onOpen: (movieId: number) => void;
+  /** Closed sections don't subscribe at all until opened — keeps the
+   *  page's initial load cheap when a list is big and not the main draw
+   *  (e.g. Watched). Favorites stays open — it's usually short and is the
+   *  whole point of a shared profile. */
+  readonly defaultOpen?: boolean;
 }
 
 function ProfileSection<M extends ProfileMovie>({
@@ -247,32 +258,44 @@ function ProfileSection<M extends ProfileMovie>({
   userId,
   subscribeFn,
   onOpen,
+  defaultOpen = false,
 }: ProfileSectionProps<M>) {
+  const [open, setOpen] = useState(defaultOpen);
   const [movies, setMovies] = useState<readonly M[] | null>(null);
 
-  useEffect(() => subscribeFn(userId, setMovies), [subscribeFn, userId]);
+  useEffect(() => {
+    if (!open) return;
+    return subscribeFn(userId, setMovies);
+  }, [subscribeFn, userId, open]);
 
-  if (movies === null) {
-    return (
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">{title}</h2>
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="focus-ring flex w-full items-center gap-1.5 text-left text-sm font-semibold text-muted-foreground"
+        aria-expanded={open}
+      >
+        <ChevronDownIcon
+          className={`size-4 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
+        />
+        {title}
+        {movies !== null && ` (${movies.length})`}
+      </button>
+
+      {open && movies === null && (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[2/3] w-full rounded-lg" />
           ))}
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="space-y-2">
-      <h2 className="text-sm font-semibold text-muted-foreground">
-        {title} ({movies.length})
-      </h2>
-      {movies.length === 0 ? (
+      {open && movies !== null && movies.length === 0 && (
         <p className="text-sm text-muted-foreground">Nothing here yet.</p>
-      ) : (
+      )}
+
+      {open && movies !== null && movies.length > 0 && (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
           {movies.map((movie) => (
             <button

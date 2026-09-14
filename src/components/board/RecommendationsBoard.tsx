@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { MovieActions } from "@/components/movies/MovieActions";
-import { XIcon } from "lucide-react";
+import { ChevronDownIcon, XIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { announce } from "@/lib/a11y";
@@ -38,6 +43,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
   const [removingIds, setRemovingIds] = useState<ReadonlySet<number>>(
     new Set(),
   );
+  const [open, setOpen] = useState(true);
   const isOwner = user?.uid === userId;
 
   useEffect(() => {
@@ -91,42 +97,58 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
         )}
       </div>
 
-      {movies === null && (
-        <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton
-              key={i}
-              className="mb-3 aspect-[2/3] w-full break-inside-avoid rounded-lg"
-            />
-          ))}
-        </div>
-      )}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className="focus-ring flex items-center gap-1.5 text-left text-sm font-semibold text-muted-foreground"
+          aria-expanded={open}
+        >
+          <ChevronDownIcon
+            className={`size-4 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
+          />
+          Recommendations{movies !== null && ` (${movies.length})`}
+        </button>
 
-      {movies !== null &&
-        movies.filter((m) => !removingIds.has(m.tmdbId)).length === 0 && (
-          <p className="text-center text-muted-foreground">
-            {isOwner
-              ? "Nothing here yet — open any movie and tap the star to recommend it."
-              : "This board is empty for now."}
-          </p>
-        )}
-
-      {movies !== null &&
-        movies.filter((m) => !removingIds.has(m.tmdbId)).length > 0 && (
+        {open && movies === null && (
           <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-            {movies
-              .filter((m) => !removingIds.has(m.tmdbId))
-              .map((movie) => (
-                <BoardMovieCard
-                  key={movie.tmdbId}
-                  movie={movie}
-                  isOwner={isOwner}
-                  onOpen={() => setOpenMovieId(movie.tmdbId)}
-                  onRemove={() => void handleRemove(movie)}
-                />
-              ))}
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                className="mb-3 aspect-[2/3] w-full break-inside-avoid rounded-lg"
+              />
+            ))}
           </div>
         )}
+
+        {open &&
+          movies !== null &&
+          movies.filter((m) => !removingIds.has(m.tmdbId)).length === 0 && (
+            <p className="text-center text-muted-foreground">
+              {isOwner
+                ? "Nothing here yet — open any movie and tap the star to recommend it."
+                : "This board is empty for now."}
+            </p>
+          )}
+
+        {open &&
+          movies !== null &&
+          movies.filter((m) => !removingIds.has(m.tmdbId)).length > 0 && (
+            <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+              {movies
+                .filter((m) => !removingIds.has(m.tmdbId))
+                .map((movie) => (
+                  <BoardMovieCard
+                    key={movie.tmdbId}
+                    movie={movie}
+                    isOwner={isOwner}
+                    onOpen={() => setOpenMovieId(movie.tmdbId)}
+                    onRemove={() => void handleRemove(movie)}
+                  />
+                ))}
+            </div>
+          )}
+      </div>
 
       {!isOwner && (
         <div className="rounded-lg border bg-muted/40 p-4 text-center">
@@ -219,16 +241,23 @@ function BoardMovieCard({
         />
 
         {isOwner && (
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            aria-label={`Remove ${movie.title} from your recommendations`}
-            className="absolute bottom-2 right-2 size-11 rounded-full shadow"
-            onClick={onRemove}
-          >
-            <XIcon />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  aria-label={`Remove ${movie.title} from your recommendations`}
+                  className="absolute right-2 bottom-2 size-11 rounded-full shadow"
+                  onClick={onRemove}
+                />
+              }
+            >
+              <XIcon />
+            </TooltipTrigger>
+            <TooltipContent>Remove from recommendations</TooltipContent>
+          </Tooltip>
         )}
       </div>
 

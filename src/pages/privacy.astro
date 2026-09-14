@@ -1,0 +1,124 @@
+---
+export const prerender = false;
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+  title="Privacy & Data Policy — Pelicoolas"
+  description="What Pelicoolas collects, why, and your rights over your data."
+>
+  <div class="mx-auto max-w-2xl space-y-6">
+    <h1 class="text-2xl font-bold">Privacy &amp; Data Policy</h1>
+    <p class="text-sm text-muted-foreground">Last updated: September 2026</p>
+
+    <section class="space-y-2">
+      <h2 class="text-lg font-semibold">We don't sell or share your data</h2>
+      <p>
+        Pelicoolas does not sell, rent, or share your personal data with
+        advertisers, data brokers, or any third party for marketing purposes. We
+        don't run ads. The only places your data goes are the service providers
+        below, strictly to make the app work.
+      </p>
+    </section>
+
+    <section class="space-y-2">
+      <h2 class="text-lg font-semibold">What we collect</h2>
+      <ul class="list-inside list-disc space-y-1">
+        <li>
+          <strong>Account info</strong>: your name, email, and profile photo,
+          from Google Sign-In. We never see or store your Google password.
+        </li>
+        <li>
+          <strong>Your activity in the app</strong>: people you follow, movies
+          you mark watched or add to your watchlist, badges you earn. This is
+          what makes the app work — tracking filmographies.
+        </li>
+        <li>
+          <strong>Public profile</strong>: if you use the follow-other-users
+          feature, your display name and photo become visible to anyone with
+          your profile link (<code>/u/&#123;you&#125;</code>). Your watched
+          movies and watchlist are visible only to people you've approved as
+          followers. Nothing else is public unless you explicitly share it (e.g.
+          your recommendations board).
+        </li>
+        <li>
+          <strong>Basic usage analytics</strong>: page views and performance
+          metrics via Vercel Analytics — aggregated, not tied to your identity
+          beyond what's needed to render a chart.
+        </li>
+      </ul>
+    </section>
+
+    <section class="space-y-2">
+      <h2 class="text-lg font-semibold">Who else touches your data</h2>
+      <ul class="list-inside list-disc space-y-1">
+        <li>
+          <strong>Firebase (Google)</strong> — hosts our database and handles sign-in.
+          Your account and app data live there.
+        </li>
+        <li>
+          <strong>Vercel</strong> — hosts the app itself and its analytics.
+        </li>
+        <li>
+          <strong>TMDB</strong> — we query TMDB's API server-side for movie and person
+          data (posters, cast, ratings). We don't send TMDB any information that identifies
+          you — just the movie/person IDs needed to fetch public data.
+        </li>
+      </ul>
+      <p>
+        None of these providers are permitted to use your data for their own
+        advertising.
+      </p>
+    </section>
+
+    <section class="space-y-2">
+      <h2 class="text-lg font-semibold">Cookies &amp; local storage</h2>
+      <p>
+        We use your browser's local storage for things like your theme
+        preference, view settings, and offline caching (this app works as an
+        installable PWA). We don't use tracking cookies or third-party ad
+        cookies.
+      </p>
+    </section>
+
+    <section class="space-y-2">
+      <h2 class="text-lg font-semibold">Your rights</h2>
+      <ul class="list-inside list-disc space-y-1">
+        <li>
+          <strong>Access &amp; export</strong> — download everything you've stored
+          at any time from your account menu ("Export data").
+        </li>
+        <li>
+          <strong>Deletion</strong> — email us (below) to request full account deletion,
+          and we'll remove your data from our database.
+        </li>
+        <li>
+          <strong>Correction</strong> — your name/photo come from Google; update them
+          there and they'll sync here next time you sign in.
+        </li>
+      </ul>
+      <p>
+        If you're in the EU/UK, these map to your GDPR rights of access,
+        erasure, and data portability. If you're in California, this covers your
+        CCPA rights — and to be explicit: we do not sell your personal
+        information.
+      </p>
+    </section>
+
+    <section class="space-y-2">
+      <h2 class="text-lg font-semibold">Children</h2>
+      <p>
+        Pelicoolas isn't directed at children under 13, and we don't knowingly
+        collect data from them.
+      </p>
+    </section>
+
+    <section class="space-y-2">
+      <h2 class="text-lg font-semibold">Contact</h2>
+      <p>
+        Questions about this policy or a data request? Reach out via the contact
+        info on the app's GitHub repository.
+      </p>
+    </section>
+  </div>
+</Layout>

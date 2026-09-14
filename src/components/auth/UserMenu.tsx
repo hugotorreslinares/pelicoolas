@@ -8,6 +8,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { signOutUser } from "@/lib/firebase/auth";
 import {
@@ -88,23 +93,30 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="focus-ring flex size-11 items-center justify-center rounded-full">
-        <div className="relative">
-          <Avatar>
-            <AvatarImage
-              src={user.photoURL ?? undefined}
-              alt={user.displayName ?? ""}
-            />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <span
-            className="absolute -right-1.5 -bottom-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-card bg-secondary px-0.5 text-[9px] font-semibold text-secondary-foreground"
-            title={`${followerCount} ${followerCount === 1 ? "follower" : "followers"}`}
-          >
-            {followerCount}
-          </span>
-        </div>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <DropdownMenuTrigger className="focus-ring flex size-11 items-center justify-center rounded-full" />
+          }
+        >
+          <div className="relative">
+            <Avatar>
+              <AvatarImage
+                src={user.photoURL ?? undefined}
+                alt={user.displayName ?? ""}
+              />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <span className="absolute -right-1.5 -bottom-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-card bg-secondary px-0.5 text-[9px] font-semibold text-secondary-foreground">
+              {followerCount}
+            </span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          Account menu — {followerCount}{" "}
+          {followerCount === 1 ? "follower" : "followers"}
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end">
         <DropdownMenuItem render={<a href={`/u/${user.uid}`} />}>
           My profile{pendingRequests > 0 && ` (${pendingRequests})`}
@@ -114,11 +126,11 @@ export function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={exporting}
-          onSelect={() => void handleExport()}
+          onClick={() => void handleExport()}
         >
           {exporting ? "Exporting…" : "Export data"}
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => void signOutUser()}>
+        <DropdownMenuItem onClick={() => void signOutUser()}>
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
