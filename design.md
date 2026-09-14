@@ -36,7 +36,7 @@ users/{userId}/followedPeople/{personId}/watchedMovies/{movieId}
   tmdbId, watchedAt
 
 users/{userId}/watchlist/{movieId}
-  tmdbId, title, posterPath, releaseYear, sourcePersonId, sourcePersonName, addedAt
+  tmdbId, title, posterPath, releaseYear, sourcePersonId, sourcePersonName, addedAt, genreIds?, durationMinutes?
 
 users/{userId}/badges/{badgeId}
   type, label, description, earnedAt, personId?, personName?
@@ -79,7 +79,7 @@ Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firesto
 
 ## UI
 
-- shadcn/ui: solo los componentes usados (button, input, card, checkbox, avatar, badge, dropdown-menu, skeleton, separator, dialog, progress) — no el catálogo completo.
+- shadcn/ui: solo los componentes usados (button, input, card, checkbox, avatar, badge, dropdown-menu, select, skeleton, separator, dialog, progress) — no el catálogo completo. **Nota**: el `select.tsx` que genera `shadcn add select` trae un import roto (`import { cn } from "cn"` en vez de `"@/lib/utils"`) — corregir a mano tras cada `add`/`diff`.
 - Mobile-first, minimalista — evitar que se sienta como IMDb/catálogo de componentes.
 - Modales (`Dialog` de base-ui): cierre con click fuera, Escape, o botón X de 44px (mobile-friendly).
 - Estado: `useState`/`useEffect` + listeners de Firestore (`onSnapshot`). Sin Redux/Zustand — el estado es pequeño.
