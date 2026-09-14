@@ -223,10 +223,7 @@ export function WatchedPage() {
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Watched</h1>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          {filtered.length} of {movies.length} movies watched
-        </p>
+      <div className="flex justify-end">
         <div className="flex gap-1 rounded-full border p-1">
           <Button
             size="sm"
@@ -253,6 +250,7 @@ export function WatchedPage() {
             onClick={() => setGenreFilter(ALL_GENRES)}
           >
             All genres
+            <span className="text-xs opacity-70">({movies.length})</span>
           </Button>
           {availableGenres.map((id) => (
             <Button
@@ -262,6 +260,9 @@ export function WatchedPage() {
               onClick={() => setGenreFilter(id)}
             >
               {genreName(id) ?? "Other"}
+              <span className="text-xs opacity-70">
+                ({genreCounts.get(id)})
+              </span>
             </Button>
           ))}
         </div>

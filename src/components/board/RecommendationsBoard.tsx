@@ -3,8 +3,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
+import { MovieActions } from "@/components/movies/MovieActions";
 import { XIcon } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { announce } from "@/lib/a11y";
 import {
   removeFromRecommendations,
@@ -115,58 +117,13 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
             {movies
               .filter((m) => !removingIds.has(m.tmdbId))
               .map((movie) => (
-                <div key={movie.tmdbId} className="mb-3 break-inside-avoid">
-                  <div className="card-elevated group relative overflow-hidden rounded-lg border">
-                    <button
-                      type="button"
-                      onClick={() => setOpenMovieId(movie.tmdbId)}
-                      className="focus-ring block w-full"
-                      aria-label={`View details for ${movie.title}`}
-                    >
-                      {movie.posterPath ? (
-                        <img
-                          src={tmdbImageUrl(movie.posterPath, 342)}
-                          srcSet={tmdbWidthSrcSet(
-                            movie.posterPath,
-                            POSTER_WIDTHS,
-                          )}
-                          sizes={POSTER_SIZES}
-                          alt=""
-                          loading="lazy"
-                          className="w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
-                          No poster
-                        </div>
-                      )}
-                    </button>
-
-                    {typeof movie.voteAverage === "number" && (
-                      <span className="absolute top-2 left-2 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-semibold shadow">
-                        {Math.round(movie.voteAverage * 10)}%
-                      </span>
-                    )}
-
-                    {isOwner && (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        aria-label={`Remove ${movie.title} from your recommendations`}
-                        className="absolute top-2 right-2 size-11 rounded-full shadow"
-                        onClick={() => void handleRemove(movie)}
-                      >
-                        <XIcon />
-                      </Button>
-                    )}
-                  </div>
-
-                  <p className="mt-1 truncate font-medium">{movie.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {movie.releaseYear ?? "Unknown"}
-                  </p>
-                </div>
+                <BoardMovieCard
+                  key={movie.tmdbId}
+                  movie={movie}
+                  isOwner={isOwner}
+                  onOpen={() => setOpenMovieId(movie.tmdbId)}
+                  onRemove={() => void handleRemove(movie)}
+                />
               ))}
           </div>
         )}
@@ -189,6 +146,96 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
           onOpenChange={(open) => !open && setOpenMovieId(null)}
         />
       )}
+    </div>
+  );
+}
+
+interface BoardMovieCardProps {
+  readonly movie: RecommendedMovie;
+  readonly isOwner: boolean;
+  readonly onOpen: () => void;
+  readonly onRemove: () => void;
+}
+
+function BoardMovieCard({
+  movie,
+  isOwner,
+  onOpen,
+  onRemove,
+}: BoardMovieCardProps) {
+  // Public page, works signed-out — a signed-out click just opens the
+  // dialog, which has its own sign-in prompt.
+  const { watched, inWatchlist, ready, toggleWatched, toggleWatchlist } =
+    useMovieActionState(
+      {
+        tmdbMovieId: movie.tmdbId,
+        title: movie.title,
+        posterPath: movie.posterPath,
+        releaseYear: movie.releaseYear,
+        voteAverage: movie.voteAverage,
+        genreIds: [],
+      },
+      onOpen,
+    );
+
+  return (
+    <div className="mb-3 break-inside-avoid">
+      <div className="card-elevated group relative overflow-hidden rounded-lg border">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="focus-ring block w-full"
+          aria-label={`View details for ${movie.title}`}
+        >
+          {movie.posterPath ? (
+            <img
+              src={tmdbImageUrl(movie.posterPath, 342)}
+              srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
+              sizes={POSTER_SIZES}
+              alt=""
+              loading="lazy"
+              className="w-full object-cover"
+            />
+          ) : (
+            <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+              No poster
+            </div>
+          )}
+        </button>
+
+        {typeof movie.voteAverage === "number" && (
+          <span className="absolute top-2 left-2 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-semibold shadow">
+            {Math.round(movie.voteAverage * 10)}%
+          </span>
+        )}
+
+        <MovieActions
+          movie={{ tmdbMovieId: movie.tmdbId, title: movie.title }}
+          watched={watched}
+          inWatchlist={inWatchlist}
+          onToggleWatched={toggleWatched}
+          onToggleWatchlist={toggleWatchlist}
+          disabled={!ready}
+        />
+
+        {isOwner && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            aria-label={`Remove ${movie.title} from your recommendations`}
+            className="absolute bottom-2 right-2 size-11 rounded-full shadow"
+            onClick={onRemove}
+          >
+            <XIcon />
+          </Button>
+        )}
+      </div>
+
+      <p className="mt-1 truncate font-medium">{movie.title}</p>
+      <p className="text-sm text-muted-foreground">
+        {movie.releaseYear ?? "Unknown"}
+      </p>
     </div>
   );
 }

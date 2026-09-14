@@ -1,4 +1,7 @@
-import { MovieWatchlistButton } from "./MovieWatchlistButton";
+import { useState } from "react";
+import { MovieActions } from "./MovieActions";
+import { LoginButton } from "@/components/auth/LoginButton";
+import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import type { TrendingMovie } from "@/types/movie";
 
@@ -7,9 +10,13 @@ interface MovieResultRowProps {
   readonly onClick: () => void;
 }
 
-// Shared by MovieSearch and HeaderSearch — same poster+title+year+watchlist
-// row, just a different container around it.
+// Shared by MovieSearch and HeaderSearch — same poster+title+year+watched/
+// watchlist actions row, just a different container around it.
 export function MovieResultRow({ movie, onClick }: MovieResultRowProps) {
+  const [showSignInHint, setShowSignInHint] = useState(false);
+  const { watched, inWatchlist, ready, toggleWatched, toggleWatchlist } =
+    useMovieActionState(movie, () => setShowSignInHint(true));
+
   return (
     <div className="card-elevated flex items-center gap-3 rounded-lg border p-2">
       <button
@@ -38,7 +45,20 @@ export function MovieResultRow({ movie, onClick }: MovieResultRowProps) {
         </div>
       </button>
 
-      <MovieWatchlistButton movie={movie} />
+      {showSignInHint ? (
+        <LoginButton size="sm" />
+      ) : (
+        <MovieActions
+          movie={movie}
+          watched={watched}
+          inWatchlist={inWatchlist}
+          onToggleWatched={toggleWatched}
+          onToggleWatchlist={toggleWatchlist}
+          disabled={!ready}
+          size="sm"
+          placement="inline"
+        />
+      )}
     </div>
   );
 }

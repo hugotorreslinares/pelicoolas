@@ -17,9 +17,9 @@ import {
   tmdbDensitySrcSet,
 } from "@/lib/tmdb/image";
 import { fetchMovieDetails } from "@/lib/movieData";
-import { MovieWatchlistButton } from "@/components/movies/MovieWatchlistButton";
+import { MovieActions } from "@/components/movies/MovieActions";
 import { MovieRecommendButton } from "@/components/movies/MovieRecommendButton";
-import { MovieSeenButton } from "@/components/movies/MovieSeenButton";
+import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { LoginButton } from "@/components/auth/LoginButton";
 import type { MovieDetails, TrendingMovie } from "@/types/movie";
 
@@ -52,6 +52,19 @@ export function MovieDetailsDialog({
   const [details, setDetails] = useState<MovieDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
+  const actionState = useMovieActionState(
+    details
+      ? movieSummary(details)
+      : {
+          tmdbMovieId: movieId,
+          title: "",
+          posterPath: null,
+          releaseYear: null,
+          voteAverage: null,
+          genreIds: [],
+        },
+    () => setShowSignIn(true),
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -117,16 +130,17 @@ export function MovieDetailsDialog({
             <DialogHeader>
               <div className="flex items-start justify-between gap-2">
                 <DialogTitle>{details.title}</DialogTitle>
-                <div className="flex shrink-0">
-                  <MovieSeenButton
-                    movie={movieSummary(details)}
-                    onRequireSignIn={() => setShowSignIn(true)}
+                <div className="flex shrink-0 items-center gap-1">
+                  <MovieActions
+                    movie={{ tmdbMovieId: details.id, title: details.title }}
+                    watched={actionState.watched}
+                    inWatchlist={actionState.inWatchlist}
+                    onToggleWatched={actionState.toggleWatched}
+                    onToggleWatchlist={actionState.toggleWatchlist}
+                    disabled={!actionState.ready}
+                    placement="inline"
                   />
                   <MovieRecommendButton
-                    movie={movieSummary(details)}
-                    onRequireSignIn={() => setShowSignIn(true)}
-                  />
-                  <MovieWatchlistButton
                     movie={movieSummary(details)}
                     onRequireSignIn={() => setShowSignIn(true)}
                   />

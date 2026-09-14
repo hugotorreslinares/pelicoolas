@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
-import { BookmarkIcon } from "lucide-react";
+import { MovieActions } from "@/components/movies/MovieActions";
 import { cn } from "@/lib/utils";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import type { FilmographyMovie } from "@/types/movie";
@@ -23,11 +21,10 @@ interface MovieItemProps {
 }
 
 // A poster card, not a checklist row — same visual language as the
-// watchlist grid (rating badge top-left, watchlist toggle top-right,
-// masonry columns), so a filmography reads as a browsable gallery. The
-// watched checkbox sits bottom-left over the poster, and a watched movie
-// dims to make progress legible at a glance across the whole grid, not just
-// per-item.
+// watchlist grid (rating badge top-left, watched/watchlist actions
+// top-right, masonry columns), so a filmography reads as a browsable
+// gallery. A watched movie dims to make progress legible at a glance
+// across the whole grid, not just per-item.
 export function MovieItem({
   movie,
   watched,
@@ -73,37 +70,15 @@ export function MovieItem({
         )}
 
         {statusLoading ? (
-          <Skeleton className="absolute top-2 right-2 size-11 rounded-full" />
+          <Skeleton className="absolute top-2 right-2 h-11 w-22 rounded-full" />
         ) : (
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            aria-label={
-              inWatchlist ? "Remove from watchlist" : "Add to watchlist"
-            }
-            className="absolute top-2 right-2 size-11 rounded-full shadow"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleWatchlist();
-            }}
-          >
-            <BookmarkIcon className={inWatchlist ? "fill-current" : ""} />
-          </Button>
-        )}
-
-        {statusLoading ? (
-          <Skeleton className="absolute bottom-2 left-2 size-11 rounded-full" />
-        ) : (
-          <div className="absolute bottom-2 left-2 flex size-11 items-center justify-center rounded-full bg-background/90 shadow">
-            <Checkbox
-              checked={watched}
-              onCheckedChange={(v) => onToggle(v === true)}
-              onClick={(e) => e.stopPropagation()}
-              className="size-5"
-              aria-label={`Mark ${movie.title} as ${watched ? "unwatched" : "watched"}`}
-            />
-          </div>
+          <MovieActions
+            movie={movie}
+            watched={watched}
+            inWatchlist={inWatchlist}
+            onToggleWatched={() => onToggle(!watched)}
+            onToggleWatchlist={onToggleWatchlist}
+          />
         )}
       </div>
 

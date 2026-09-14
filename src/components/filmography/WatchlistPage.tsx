@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -9,23 +9,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  BookmarkIcon,
-  CheckIcon,
-  ClockIcon,
-  LayoutGridIcon,
-  ListIcon,
-  ShuffleIcon,
-} from "lucide-react";
+import { ClockIcon, LayoutGridIcon, ListIcon, ShuffleIcon } from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { FilmographyProgress } from "./FilmographyProgress";
+import { MovieActions } from "@/components/movies/MovieActions";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
+  markMovieSeen,
   removeFromWatchlist,
   setWatchlistDetails,
   subscribeToSeenMovies,
   subscribeToWatchlist,
+  unmarkMovieSeen,
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
 import { mapWithConcurrency } from "@/lib/concurrency";
@@ -250,6 +246,24 @@ export function WatchlistPage() {
 
   const unwatchedMovies = movies.filter((m) => !seenIds.has(m.tmdbId));
 
+  const toggleWatched = (movie: WatchlistMovie) => {
+    const next = !seenIds.has(movie.tmdbId);
+    announce(`${next ? "Marked" : "Unmarked"} ${movie.title} as watched`);
+    const write = next
+      ? markMovieSeen(user.uid, {
+          tmdbId: movie.tmdbId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          releaseYear: movie.releaseYear,
+          voteAverage: movie.voteAverage,
+          genreIds: movie.genreIds,
+        })
+      : unmarkMovieSeen(user.uid, movie.tmdbId);
+    write.catch(() =>
+      toast.error(`Couldn't update "${movie.title}". Please try again.`),
+    );
+  };
+
   function pickRandom() {
     const pool = unwatchedMovies.length > 0 ? unwatchedMovies : movies!;
     const pick = pool[Math.floor(Math.random() * pool.length)];
@@ -382,6 +396,7 @@ export function WatchlistPage() {
               movie={movie}
               watched={seenIds.has(movie.tmdbId)}
               onOpen={() => setOpenMovieId(movie.tmdbId)}
+              onToggleWatched={() => toggleWatched(movie)}
               onRemove={() => {
                 void removeFromWatchlist(user.uid, movie.tmdbId);
                 announce(`Removed ${movie.title} from watchlist`);
@@ -397,6 +412,7 @@ export function WatchlistPage() {
               movie={movie}
               watched={seenIds.has(movie.tmdbId)}
               onOpen={() => setOpenMovieId(movie.tmdbId)}
+              onToggleWatched={() => toggleWatched(movie)}
               onRemove={() => {
                 void removeFromWatchlist(user.uid, movie.tmdbId);
                 announce(`Removed ${movie.title} from watchlist`);
@@ -417,25 +433,21 @@ export function WatchlistPage() {
   );
 }
 
-function WatchedStatusBadge({ watched }: { readonly watched: boolean }) {
-  return watched ? (
-    <Badge variant="secondary">
-      <CheckIcon data-icon="inline-start" />
-      Watched
-    </Badge>
-  ) : (
-    <Badge variant="outline">To watch</Badge>
-  );
-}
-
 interface CardProps {
   readonly movie: WatchlistMovie;
   readonly watched: boolean;
   readonly onOpen: () => void;
+  readonly onToggleWatched: () => void;
   readonly onRemove: () => void;
 }
 
-function WatchlistGridCard({ movie, watched, onOpen, onRemove }: CardProps) {
+function WatchlistGridCard({
+  movie,
+  watched,
+  onOpen,
+  onToggleWatched,
+  onRemove,
+}: CardProps) {
   const duration = formatDuration(movie.durationMinutes);
   const genre =
     movie.genreIds?.[0] != null ? genreName(movie.genreIds[0]) : null;
@@ -465,20 +477,13 @@ function WatchlistGridCard({ movie, watched, onOpen, onRemove }: CardProps) {
           )}
         </button>
 
-        <div className="absolute top-2 left-2">
-          <WatchedStatusBadge watched={watched} />
-        </div>
-
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          aria-label={`Remove ${movie.title} from watchlist`}
-          className="absolute top-2 right-2 size-11 rounded-full shadow"
-          onClick={onRemove}
-        >
-          <BookmarkIcon className="fill-current" />
-        </Button>
+        <MovieActions
+          movie={{ tmdbMovieId: movie.tmdbId, title: movie.title }}
+          watched={watched}
+          inWatchlist={true}
+          onToggleWatched={onToggleWatched}
+          onToggleWatchlist={onRemove}
+        />
       </div>
 
       <p className="mt-1 truncate font-medium">{movie.title}</p>
@@ -505,7 +510,13 @@ function WatchlistGridCard({ movie, watched, onOpen, onRemove }: CardProps) {
   );
 }
 
-function WatchlistListRow({ movie, watched, onOpen, onRemove }: CardProps) {
+function WatchlistListRow({
+  movie,
+  watched,
+  onOpen,
+  onToggleWatched,
+  onRemove,
+}: CardProps) {
   const duration = formatDuration(movie.durationMinutes);
   const genre =
     movie.genreIds?.[0] != null ? genreName(movie.genreIds[0]) : null;
@@ -552,17 +563,15 @@ function WatchlistListRow({ movie, watched, onOpen, onRemove }: CardProps) {
         </p>
       </button>
 
-      <WatchedStatusBadge watched={watched} />
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={`Remove ${movie.title} from watchlist`}
-        onClick={onRemove}
-      >
-        <BookmarkIcon className="fill-current" />
-      </Button>
+      <MovieActions
+        movie={{ tmdbMovieId: movie.tmdbId, title: movie.title }}
+        watched={watched}
+        inWatchlist={true}
+        onToggleWatched={onToggleWatched}
+        onToggleWatchlist={onRemove}
+        size="sm"
+        placement="inline"
+      />
     </div>
   );
 }

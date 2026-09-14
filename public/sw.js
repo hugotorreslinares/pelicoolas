@@ -27,6 +27,9 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// respondWith must always resolve to a Response — rejecting it (the old
+// behavior here) surfaces as "FetchEvent.respondWith received an error" and
+// Safari refuses to render anything at all, worse than a plain offline page.
 async function networkFirst(request, cacheName, timeoutMs = 3000) {
   const cache = await caches.open(cacheName);
   try {
@@ -41,7 +44,19 @@ async function networkFirst(request, cacheName, timeoutMs = 3000) {
   } catch {
     const cached = await cache.match(request);
     if (cached) return cached;
-    throw new Error("Offline and not cached");
+    if (request.mode === "navigate") {
+      return new Response(
+        '<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Pelicoolas</title><body style="font-family:system-ui;text-align:center;padding:3rem 1.5rem"><h1>You\'re offline</h1><p>This page hasn\'t been visited before, so it isn\'t saved for offline use yet. Reconnect and try again.</p>',
+        {
+          status: 503,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        },
+      );
+    }
+    return new Response(JSON.stringify({ error: "Offline and not cached" }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
 

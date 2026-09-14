@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
+import { MovieActions } from "@/components/movies/MovieActions";
 import { MovieMap } from "./MovieMap";
 import { PosterCarousel } from "./PosterCarousel";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { subscribeToFollowedPeople } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import { fetchMovieDetails, fetchPersonData } from "@/lib/movieData";
@@ -264,35 +266,12 @@ export function ConnectionsPage() {
             {coStarGroups.length > 0 && (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {coStarGroups.map(({ movie, people }) => (
-                  <button
+                  <CoStarCard
                     key={movie.tmdbMovieId}
-                    type="button"
-                    onClick={() => setOpenMovieId(movie.tmdbMovieId)}
-                    className="focus-ring card-elevated space-y-1 rounded-lg text-left"
-                  >
-                    {movie.posterPath ? (
-                      <img
-                        src={tmdbImageUrl(movie.posterPath, 185)}
-                        srcSet={tmdbDensitySrcSet(movie.posterPath, 185, 342)}
-                        alt=""
-                        loading="lazy"
-                        className="aspect-[2/3] w-full rounded-lg border object-cover"
-                      />
-                    ) : (
-                      <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-                        No poster
-                      </div>
-                    )}
-                    <p className="truncate text-sm font-medium">
-                      {movie.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {movie.releaseYear ?? "Unknown"}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {people.map((p) => p.name).join(", ")}
-                    </p>
-                  </button>
+                    movie={movie}
+                    people={people}
+                    onOpen={() => setOpenMovieId(movie.tmdbMovieId)}
+                  />
                 ))}
               </div>
             )}
@@ -393,6 +372,61 @@ export function ConnectionsPage() {
           onOpenChange={(open) => !open && setOpenMovieId(null)}
         />
       )}
+    </div>
+  );
+}
+
+interface CoStarCardProps {
+  readonly movie: FilmographyMovie;
+  readonly people: readonly FollowedPerson[];
+  readonly onOpen: () => void;
+}
+
+function CoStarCard({ movie, people, onOpen }: CoStarCardProps) {
+  // A signed-out click just opens the dialog, which has its own sign-in
+  // prompt — no room for an inline hint in this grid.
+  const { watched, inWatchlist, ready, toggleWatched, toggleWatchlist } =
+    useMovieActionState(movie, onOpen);
+
+  return (
+    <div className="card-elevated space-y-1 rounded-lg">
+      <div className="relative">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="focus-ring block w-full"
+          aria-label={`View details for ${movie.title}`}
+        >
+          {movie.posterPath ? (
+            <img
+              src={tmdbImageUrl(movie.posterPath, 185)}
+              srcSet={tmdbDensitySrcSet(movie.posterPath, 185, 342)}
+              alt=""
+              loading="lazy"
+              className="aspect-[2/3] w-full rounded-lg border object-cover"
+            />
+          ) : (
+            <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
+              No poster
+            </div>
+          )}
+        </button>
+        <MovieActions
+          movie={movie}
+          watched={watched}
+          inWatchlist={inWatchlist}
+          onToggleWatched={toggleWatched}
+          onToggleWatchlist={toggleWatchlist}
+          disabled={!ready}
+        />
+      </div>
+      <p className="truncate text-sm font-medium">{movie.title}</p>
+      <p className="text-xs text-muted-foreground">
+        {movie.releaseYear ?? "Unknown"}
+      </p>
+      <p className="truncate text-xs text-muted-foreground">
+        {people.map((p) => p.name).join(", ")}
+      </p>
     </div>
   );
 }

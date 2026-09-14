@@ -14,8 +14,8 @@ import type { TrendingMovie } from "@/types/movie";
 
 interface MovieRecommendButtonProps {
   readonly movie: TrendingMovie;
-  /** See MovieWatchlistButton's prop of the same name — lets a parent that
-   * renders both buttons show a single shared sign-in prompt. */
+  /** Lets a parent that renders both this and <MovieActions> show a single
+   * shared sign-in prompt instead of one per button. */
   readonly onRequireSignIn?: () => void;
 }
 
