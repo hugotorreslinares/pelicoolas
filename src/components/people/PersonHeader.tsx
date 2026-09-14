@@ -19,7 +19,7 @@ export function PersonHeader({
   const [galleryOpen, setGalleryOpen] = useState(false);
 
   return (
-    <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:text-left">
+    <div className="flex flex-col items-center gap-3 text-center">
       <button
         type="button"
         onClick={() => setGalleryOpen(true)}
