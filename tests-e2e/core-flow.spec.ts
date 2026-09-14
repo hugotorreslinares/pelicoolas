@@ -117,18 +117,18 @@ test("search → follow → mark watched → see progress", async ({ page }) => 
   await followButton.click();
   await expect(page.getByRole("button", { name: "✓ Following" })).toBeVisible();
 
-  // .click() + waiting on the post-check aria-label, not .check() — the
-  // checkbox's own aria-label flips from "...as watched" to "...as
-  // unwatched" once the write round-trips through the Firestore emulator
-  // and the onSnapshot listener re-renders, so a locator pinned to the
-  // pre-click label stops matching anything right after the click; that's
-  // also a longer round trip than check()'s own stricter retry window.
+  // Wait on aria-pressed rather than the button's accessible name — the
+  // MovieActions toggle's label flips from "Mark as watched: ..." to
+  // "Already watched: ..." once the write round-trips through the
+  // Firestore emulator and the onSnapshot listener re-renders, so a
+  // locator pinned to the pre-click name stops matching anything right
+  // after the click.
   await page
-    .getByRole("checkbox", { name: "Mark Test Movie as watched" })
+    .getByRole("button", { name: "Mark as watched: Test Movie" })
     .click();
   await expect(
-    page.getByRole("checkbox", { name: "Mark Test Movie as unwatched" }),
-  ).toBeChecked({
+    page.getByRole("button", { name: "Already watched: Test Movie" }),
+  ).toHaveAttribute("aria-pressed", "true", {
     timeout: 10_000,
   });
 
