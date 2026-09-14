@@ -1,4 +1,9 @@
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MoonIcon, SunIcon } from "lucide-react";
 
 export function ThemeToggle() {
@@ -8,16 +13,23 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      className="size-11 rounded-full"
-      aria-label="Toggle theme"
-      onClick={toggle}
-    >
-      <SunIcon className="dark:hidden" />
-      <MoonIcon className="hidden dark:block" />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-11 rounded-full"
+            aria-label="Toggle theme"
+            onClick={toggle}
+          />
+        }
+      >
+        <SunIcon className="dark:hidden" />
+        <MoonIcon className="hidden dark:block" />
+      </TooltipTrigger>
+      <TooltipContent>Toggle theme</TooltipContent>
+    </Tooltip>
   );
 }

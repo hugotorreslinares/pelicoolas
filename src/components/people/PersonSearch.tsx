@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { XIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PersonCard } from "./PersonCard";
 import { TrendingMovies } from "@/components/filmography/TrendingMovies";
@@ -128,22 +133,30 @@ export function PersonSearch({
                   variant="grid"
                   onClick={() => selectPerson(person)}
                 />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="icon"
-                  aria-label={`Remove ${person.name} from recent searches`}
-                  // Full 44px here would swallow a big chunk of a 2-column
-                  // mobile card — 36px is the compromise for a tightly
-                  // packed grid (still well above the old 24px).
-                  className="absolute top-1 right-1 size-9 rounded-full shadow"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeRecent(person);
-                  }}
-                >
-                  <XIcon className="size-4" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        aria-label={`Remove ${person.name} from recent searches`}
+                        // Full 44px here would swallow a big chunk of a
+                        // 2-column mobile card — 36px is the compromise for
+                        // a tightly packed grid (still well above the old
+                        // 24px).
+                        className="absolute top-1 right-1 size-9 rounded-full shadow"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeRecent(person);
+                        }}
+                      />
+                    }
+                  >
+                    <XIcon className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>Remove from recent searches</TooltipContent>
+                </Tooltip>
               </div>
             ))}
           </div>

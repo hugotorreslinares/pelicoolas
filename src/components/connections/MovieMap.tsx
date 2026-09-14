@@ -509,6 +509,7 @@ export function MovieMap() {
                   <button
                     type="button"
                     aria-label={`View details for ${node.title}`}
+                    title="View details"
                     onClick={(e) => {
                       e.stopPropagation();
                       setDetailsMovieId(node.id);

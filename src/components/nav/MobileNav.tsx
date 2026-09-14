@@ -12,6 +12,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const LINKS = [
   { href: "/search", label: "Search", icon: SearchIcon },
@@ -28,12 +33,19 @@ const LINKS = [
 export function MobileNav() {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className="focus-ring flex size-11 items-center justify-center rounded-full border sm:hidden"
-        aria-label="Menu"
-      >
-        <MenuIcon className="size-4" />
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <DropdownMenuTrigger
+              className="focus-ring flex size-11 items-center justify-center rounded-full border sm:hidden"
+              aria-label="Menu"
+            />
+          }
+        >
+          <MenuIcon className="size-4" />
+        </TooltipTrigger>
+        <TooltipContent>Menu</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end" className="w-56">
         {LINKS.map(({ href, label, icon: Icon }) => (
           <DropdownMenuItem key={href} render={<a href={href} />}>

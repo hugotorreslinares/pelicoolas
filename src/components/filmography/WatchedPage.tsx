@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LayoutGridIcon, ListIcon } from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
@@ -335,24 +340,38 @@ export function WatchedPage() {
           </Button>
         </div>
         <div className="flex gap-1 rounded-full border p-1">
-          <Button
-            size="icon-sm"
-            variant={viewMode === "grid" ? "default" : "ghost"}
-            aria-label="Grid view"
-            aria-pressed={viewMode === "grid"}
-            onClick={() => setViewMode("grid")}
-          >
-            <LayoutGridIcon />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant={viewMode === "list" ? "default" : "ghost"}
-            aria-label="List view"
-            aria-pressed={viewMode === "list"}
-            onClick={() => setViewMode("list")}
-          >
-            <ListIcon />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  size="icon-sm"
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === "grid"}
+                  onClick={() => setViewMode("grid")}
+                />
+              }
+            >
+              <LayoutGridIcon />
+            </TooltipTrigger>
+            <TooltipContent>Grid view</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  size="icon-sm"
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  aria-label="List view"
+                  aria-pressed={viewMode === "list"}
+                  onClick={() => setViewMode("list")}
+                />
+              }
+            >
+              <ListIcon />
+            </TooltipTrigger>
+            <TooltipContent>List view</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 

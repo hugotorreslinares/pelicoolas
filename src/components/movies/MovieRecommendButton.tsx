@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { StarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
@@ -76,20 +81,29 @@ export function MovieRecommendButton({
 
   return (
     <div className="space-y-1">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="size-11"
-        aria-label={
-          recommended
-            ? `Remove ${movie.title} from your recommendations board`
-            : `Add ${movie.title} to your recommendations board`
-        }
-        onClick={(e) => void toggleRecommended(e)}
-      >
-        <StarIcon className={recommended ? "fill-current" : ""} />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-11"
+              aria-label={
+                recommended
+                  ? `Remove ${movie.title} from your recommendations board`
+                  : `Add ${movie.title} to your recommendations board`
+              }
+              onClick={(e) => void toggleRecommended(e)}
+            />
+          }
+        >
+          <StarIcon className={recommended ? "fill-current" : ""} />
+        </TooltipTrigger>
+        <TooltipContent>
+          {recommended ? "Remove from recommendations" : "Recommend this movie"}
+        </TooltipContent>
+      </Tooltip>
       {showSignInHint && <LoginButton size="sm" />}
     </div>
   );

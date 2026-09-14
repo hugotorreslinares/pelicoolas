@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Share2Icon, Loader2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { announce } from "@/lib/a11y";
 import { shareOrDownloadBadgeImage } from "@/lib/shareBadgeImage";
 import type { Badge } from "@/types/badges";
@@ -29,18 +34,25 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
   }
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-xs"
-      aria-label={`Share "${badge.label}" badge`}
-      disabled={loading}
-      onClick={(e) => {
-        e.stopPropagation();
-        void handleShare();
-      }}
-    >
-      {loading ? <Loader2Icon className="animate-spin" /> : <Share2Icon />}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            aria-label={`Share "${badge.label}" badge`}
+            disabled={loading}
+            onClick={(e) => {
+              e.stopPropagation();
+              void handleShare();
+            }}
+          />
+        }
+      >
+        {loading ? <Loader2Icon className="animate-spin" /> : <Share2Icon />}
+      </TooltipTrigger>
+      <TooltipContent>Share badge</TooltipContent>
+    </Tooltip>
   );
 }
