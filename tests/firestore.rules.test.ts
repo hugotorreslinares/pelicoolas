@@ -43,20 +43,124 @@ describe("firestore.rules — users/{userId}", () => {
     await assertSucceeds(getDoc(doc(db, "users/alice")));
   });
 
-  it("denies reading another user's doc", async () => {
+  // Public by design — a shared profile link (/u/{userId}) needs to show
+  // a name/photo before anyone follows anyone. Never holds movie data.
+  it("lets anyone read another user's doc, signed in or not", async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), "users/alice"), {
         displayName: "Alice",
       });
     });
-    const db = testEnv.authenticatedContext("bob").firestore();
-    await assertFails(getDoc(doc(db, "users/alice")));
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(bobDb, "users/alice")));
+    const anonDb = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(anonDb, "users/alice")));
   });
 
-  it("denies an unauthenticated client entirely", async () => {
-    const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(getDoc(doc(db, "users/alice")));
-    await assertFails(setDoc(doc(db, "users/alice"), { displayName: "Alice" }));
+  it("denies anyone but the owner from writing to it", async () => {
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      setDoc(doc(bobDb, "users/alice"), { displayName: "Alice" }),
+    );
+    const anonDb = testEnv.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(anonDb, "users/alice"), { displayName: "Alice" }),
+    );
+  });
+});
+
+describe("firestore.rules — follow requests/followers/following", () => {
+  it("lets anyone create a follow request under their own uid, and only the target read/delete it", async () => {
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(
+      setDoc(doc(bobDb, "users/alice/followRequests/bob"), {
+        requesterId: "bob",
+      }),
+    );
+    await assertFails(
+      setDoc(doc(bobDb, "users/alice/followRequests/carol"), {
+        requesterId: "carol",
+      }),
+    );
+    await assertSucceeds(getDoc(doc(bobDb, "users/alice/followRequests/bob")));
+
+    const aliceDb = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      getDoc(doc(aliceDb, "users/alice/followRequests/bob")),
+    );
+    await assertFails(
+      getDoc(
+        doc(
+          testEnv.authenticatedContext("carol").firestore(),
+          "users/alice/followRequests/bob",
+        ),
+      ),
+    );
+    await assertSucceeds(
+      deleteDoc(doc(aliceDb, "users/alice/followRequests/bob")),
+    );
+  });
+
+  it("lets only the target write followers, and a follower read/delete just their own entry", async () => {
+    const aliceDb = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(aliceDb, "users/alice/followers/bob"), {
+        followerId: "bob",
+      }),
+    );
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      setDoc(doc(bobDb, "users/alice/followers/carol"), {
+        followerId: "carol",
+      }),
+    );
+    await assertSucceeds(getDoc(doc(bobDb, "users/alice/followers/bob")));
+    await assertFails(
+      getDoc(
+        doc(
+          testEnv.authenticatedContext("carol").firestore(),
+          "users/alice/followers/bob",
+        ),
+      ),
+    );
+    await assertSucceeds(deleteDoc(doc(bobDb, "users/alice/followers/bob")));
+  });
+
+  it("only lets a follower mirror `following` once the matching `followers` entry exists", async () => {
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      setDoc(doc(bobDb, "users/bob/following/alice"), { targetId: "alice" }),
+    );
+
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/followers/bob"), {
+        followerId: "bob",
+      });
+    });
+    await assertSucceeds(
+      setDoc(doc(bobDb, "users/bob/following/alice"), { targetId: "alice" }),
+    );
+  });
+
+  it("lets an approved follower read watchlist/seen, but not anyone else", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/watchlist/1"), {
+        title: "Movie",
+      });
+      await setDoc(doc(ctx.firestore(), "users/alice/seen/1"), {
+        title: "Movie",
+      });
+      await setDoc(doc(ctx.firestore(), "users/alice/followers/bob"), {
+        followerId: "bob",
+      });
+    });
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(bobDb, "users/alice/watchlist/1")));
+    await assertSucceeds(getDoc(doc(bobDb, "users/alice/seen/1")));
+
+    const carolDb = testEnv.authenticatedContext("carol").firestore();
+    await assertFails(getDoc(doc(carolDb, "users/alice/watchlist/1")));
+    await assertFails(getDoc(doc(carolDb, "users/alice/seen/1")));
   });
 });
 
