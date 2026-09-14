@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+import Layout from "@/layouts/Layout.astro";
+import { UserProfile } from "@/components/social/UserProfile";
+
+const { userId } = Astro.params;
+if (!userId) return Astro.redirect("/");
+---
+
+<Layout
+  title="Profile — Pelicoolas"
+  description="Follow a Pelicoolas user to see what they've watched, their watchlist, and their favorites."
+  noindex
+>
+  <UserProfile userId={userId} client:load />
+</Layout>

@@ -4,7 +4,23 @@ Referencia técnica del estado actual de Pelicoolas. Para la visión de producto
 
 ## Filosofía de producto
 
-Pelicoolas responde una sola pregunta: _¿he visto todas las películas de esta persona?_ No compite con Letterboxd (ratings/reviews/social) — el núcleo es el checklist de una filmografía.
+Pelicoolas responde una sola pregunta: _¿he visto todas las películas de esta persona?_ No compite con Letterboxd (ratings/reviews) — el núcleo es el checklist de una filmografía.
+
+**Excepción deliberada (2026-09-14)**: se agregó "seguir a otros usuarios" — ver sección Social más abajo. Es un cambio de postura consciente, no un desliz: se acotó a lo mínimo (sin buscador, sin feed, sin comentarios/likes) para no convertir esto en una red social completa.
+
+## Social — seguir a otros usuarios
+
+Modelo: `users/{userId}` (doc raíz, antes nunca escrito) ahora existe con `displayName`/`photoURL` públicos (`syncPublicProfile`, llamado una vez por sesión desde `UserMenu.tsx`) — necesario para que un link de perfil (`/u/{userId}`) muestre algo antes de que alguien apruebe nada.
+
+Seguir requiere aprobación (no es público como el tablón de recomendaciones) — flujo sin Cloud Functions, todo client-side, cada quien escribe solo su propia subcolección:
+
+1. `users/{targetId}/followRequests/{requesterId}` — el requester crea la solicitud con su propio uid como id del doc.
+2. El dueño aprueba: escribe `users/{targetId}/followers/{requesterId}` (su propia subcolección) y borra la solicitud.
+3. El requester necesita reflejar el follow en su propio lado (`users/{requesterId}/following/{targetId}`) para poder leer/listar "a quién sigo" — pero solo él puede escribir ahí. Regla: puede crear ese doc únicamente si ya existe la entrada correspondiente en `followers` del target (`exists()` en la regla) — evita que alguien se autodeclare "siguiendo" sin aprobación real. El cliente del requester detecta la aprobación suscribiéndose a su propia entrada en `followers` del target (lectura permitida solo de esa entrada puntual, no de la lista completa) y completa el espejo (`completeFollowMirror`).
+
+`watchlist` y `seen` ahora son legibles por un seguidor aprobado además del dueño (`exists()` contra `followers` en la regla). `recommendations` (el tablón/favoritos) sigue público sin cambios — ya cubría "ver sus favoritos" antes de este feature.
+
+Fuera de alcance a propósito: buscador de usuarios (descubrimiento es solo por link compartido, como el tablón), togglear watched/watchlist de otro hacia el propio desde su perfil, feed de actividad, comentarios/likes, lista navegable completa de seguidores/seguidos (solo existe el inbox de solicitudes pendientes).
 
 ## Astro vs React
 
@@ -27,7 +43,16 @@ Pelicoolas responde una sola pregunta: _¿he visto todas las películas de esta 
 
 ```
 users/{userId}
-  displayName, email, photoURL
+  uid, displayName, photoURL, updatedAt   # público — ver sección Social
+
+users/{userId}/followRequests/{requesterId}
+  requesterId, requesterName, requesterPhotoURL, createdAt
+
+users/{userId}/followers/{followerId}
+  followerId, followerName, followerPhotoURL, since
+
+users/{userId}/following/{targetId}
+  targetId, targetName, targetPhotoURL, since
 
 users/{userId}/followedPeople/{personId}
   tmdbId, name, profilePath, knownForDepartment, createdAt

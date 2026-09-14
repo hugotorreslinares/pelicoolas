@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { InfoIcon, Loader2Icon } from "lucide-react";
-import { fetchSimilarMovies } from "@/lib/movieData";
+import { fetchMovieDetails, fetchSimilarMovies } from "@/lib/movieData";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
 import type { TrendingMovie } from "@/types/movie";
 
@@ -98,6 +98,28 @@ export function MovieMap() {
     }, 350);
     return () => clearTimeout(timer);
   }, [query]);
+
+  // Deep-link support (/map?movie={tmdbId}) — seeds the map with that movie
+  // on first mount, same as picking it from the search box. Runs once; the
+  // query param is only ever read at mount, never re-synced afterward.
+  useEffect(() => {
+    const movieId = Number(
+      new URLSearchParams(window.location.search).get("movie"),
+    );
+    if (!Number.isInteger(movieId) || movieId <= 0) return;
+    void fetchMovieDetails(movieId).then((details) => {
+      if (!details) return;
+      void startFrom({
+        tmdbMovieId: details.id,
+        title: details.title,
+        posterPath: details.posterPath,
+        releaseYear: details.releaseYear,
+        voteAverage: details.voteAverage,
+        genreIds: details.genreIds,
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only
+  }, []);
 
   function focusOn(id: number, x: number, y: number) {
     setFocusedId(id);

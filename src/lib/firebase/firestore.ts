@@ -19,6 +19,12 @@ import type {
   WatchlistMovie,
 } from "@/types/filmography";
 import type { FilmographyMovie } from "@/types/movie";
+import type {
+  Follower,
+  Following,
+  FollowRequest,
+  PublicProfile,
+} from "@/types/user";
 
 export function requireDb() {
   if (!db) throw new Error("Firebase is not configured");
@@ -39,6 +45,22 @@ function recommendedMovieRef(userId: string, movieId: number) {
 
 function seenMovieRef(userId: string, movieId: number) {
   return doc(requireDb(), "users", userId, "seen", String(movieId));
+}
+
+function publicProfileRef(userId: string) {
+  return doc(requireDb(), "users", userId);
+}
+
+function followRequestRef(targetId: string, requesterId: string) {
+  return doc(requireDb(), "users", targetId, "followRequests", requesterId);
+}
+
+function followerRef(targetId: string, followerId: string) {
+  return doc(requireDb(), "users", targetId, "followers", followerId);
+}
+
+function followingRef(followerId: string, targetId: string) {
+  return doc(requireDb(), "users", followerId, "following", targetId);
 }
 
 export async function followPerson(
@@ -381,4 +403,175 @@ export async function setSeenGenres(
   genreIds: readonly number[],
 ): Promise<void> {
   await updateDoc(seenMovieRef(userId, movieId), { genreIds });
+}
+
+// --- Follow other users --------------------------------------------------
+//
+// `users/{userId}` itself is public (name/photo only, `allow read: if
+// true` — same precedent as `recommendations`) so a shared profile link
+// works before anyone approves anything. Everything else here is
+// owner-write-only; see design.md for the full approve/mirror flow this
+// implements without a Cloud Function.
+
+/** Upserts the public name/photo doc — call once per session after sign-in. */
+export async function syncPublicProfile(user: {
+  readonly uid: string;
+  readonly displayName: string | null;
+  readonly photoURL: string | null;
+}): Promise<void> {
+  await setDoc(
+    publicProfileRef(user.uid),
+    {
+      uid: user.uid,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export function subscribeToPublicProfile(
+  userId: string,
+  callback: (profile: PublicProfile | null) => void,
+): () => void {
+  return onSnapshot(publicProfileRef(userId), (snapshot) => {
+    callback(snapshot.exists() ? (snapshot.data() as PublicProfile) : null);
+  });
+}
+
+export async function sendFollowRequest(
+  targetId: string,
+  requester: {
+    readonly uid: string;
+    readonly displayName: string | null;
+    readonly photoURL: string | null;
+  },
+): Promise<void> {
+  await setDoc(followRequestRef(targetId, requester.uid), {
+    requesterId: requester.uid,
+    requesterName: requester.displayName,
+    requesterPhotoURL: requester.photoURL,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function cancelFollowRequest(
+  targetId: string,
+  requesterId: string,
+): Promise<void> {
+  await deleteDoc(followRequestRef(targetId, requesterId));
+}
+
+export function subscribeToFollowRequests(
+  userId: string,
+  callback: (requests: readonly FollowRequest[]) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "followRequests"),
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as FollowRequest));
+    },
+  );
+}
+
+/** Checks whether I have a pending request to follow targetId. */
+export function subscribeToFollowRequestStatus(
+  targetId: string,
+  requesterId: string,
+  callback: (pending: boolean) => void,
+): () => void {
+  return onSnapshot(followRequestRef(targetId, requesterId), (snapshot) => {
+    callback(snapshot.exists());
+  });
+}
+
+export async function approveFollowRequest(
+  targetId: string,
+  request: FollowRequest,
+): Promise<void> {
+  await setDoc(followerRef(targetId, request.requesterId), {
+    followerId: request.requesterId,
+    followerName: request.requesterName,
+    followerPhotoURL: request.requesterPhotoURL,
+    since: serverTimestamp(),
+  });
+  await deleteDoc(followRequestRef(targetId, request.requesterId));
+}
+
+export async function denyFollowRequest(
+  targetId: string,
+  requesterId: string,
+): Promise<void> {
+  await deleteDoc(followRequestRef(targetId, requesterId));
+}
+
+/** My own entry in targetId's followers list — existing means I'm approved. */
+export function subscribeToIsFollower(
+  targetId: string,
+  myUid: string,
+  callback: (approved: boolean) => void,
+): () => void {
+  return onSnapshot(followerRef(targetId, myUid), (snapshot) => {
+    callback(snapshot.exists());
+  });
+}
+
+export function subscribeToIsFollowing(
+  myUid: string,
+  targetId: string,
+  callback: (following: boolean) => void,
+): () => void {
+  return onSnapshot(followingRef(myUid, targetId), (snapshot) => {
+    callback(snapshot.exists());
+  });
+}
+
+// Once a request is approved, only the follower can write their own
+// `following` mirror doc (firestore.rules requires it to already exist in
+// the target's `followers`) — call this after subscribeToIsFollower
+// reports true, to complete the mirror on the follower's side.
+export async function completeFollowMirror(
+  myUid: string,
+  target: {
+    readonly uid: string;
+    readonly displayName: string | null;
+    readonly photoURL: string | null;
+  },
+): Promise<void> {
+  await setDoc(followingRef(myUid, target.uid), {
+    targetId: target.uid,
+    targetName: target.displayName,
+    targetPhotoURL: target.photoURL,
+    since: serverTimestamp(),
+  });
+}
+
+export async function unfollow(myUid: string, targetId: string): Promise<void> {
+  await deleteDoc(followingRef(myUid, targetId));
+  await deleteDoc(followerRef(targetId, myUid));
+}
+
+export function subscribeToFollowingList(
+  userId: string,
+  callback: (following: readonly Following[]) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "following"),
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as Following));
+    },
+  );
+}
+
+export function subscribeToFollowersList(
+  userId: string,
+  callback: (followers: readonly Follower[]) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "followers"),
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as Follower));
+    },
+  );
 }

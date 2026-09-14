@@ -1,0 +1,14 @@
+---
+export const prerender = false;
+import Layout from "@/layouts/Layout.astro";
+import { MovieMap } from "@/components/connections/MovieMap";
+---
+
+<Layout
+  title="Movie Map — Pelicoolas"
+  description="Explore movies through what's similar to them — click your way from one to the next."
+  noindex
+>
+  <h1 class="mb-4 text-xl font-semibold">Movie Map</h1>
+  <MovieMap client:load />
+</Layout>

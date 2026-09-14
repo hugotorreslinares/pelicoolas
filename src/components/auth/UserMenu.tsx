@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as Sentry from "@sentry/astro";
 import {
   DropdownMenu,
@@ -10,7 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { signOutUser } from "@/lib/firebase/auth";
-import { exportUserData } from "@/lib/firebase/firestore";
+import {
+  exportUserData,
+  subscribeToFollowRequests,
+  syncPublicProfile,
+} from "@/lib/firebase/firestore";
 import { downloadJson } from "@/lib/download";
 import { announce } from "@/lib/a11y";
 import { LoginButton } from "./LoginButton";
@@ -18,6 +22,15 @@ import { LoginButton } from "./LoginButton";
 export function UserMenu() {
   const { user, loading } = useAuth();
   const [exporting, setExporting] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    void syncPublicProfile(user);
+    return subscribeToFollowRequests(user.uid, (requests) =>
+      setPendingRequests(requests.length),
+    );
+  }, [user]);
 
   if (loading) {
     return (
@@ -76,6 +89,9 @@ export function UserMenu() {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem render={<a href={`/u/${user.uid}`} />}>
+          My profile{pendingRequests > 0 && ` (${pendingRequests})`}
+        </DropdownMenuItem>
         <DropdownMenuItem render={<a href={`/board/${user.uid}`} />}>
           My recommendations board
         </DropdownMenuItem>

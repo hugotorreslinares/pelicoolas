@@ -35,7 +35,12 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [x] Auditoría de dependencias automática — `.github/dependabot.yml` (npm semanal + GitHub Actions).
 - [ ] **Firebase App Check** — hoy cualquiera con la `PUBLIC_FIREBASE_API_KEY` (pública por diseño, pero aun así) podría golpear Firestore directo si no hay reglas perfectas. App Check añade una capa de "esto viene de mi app real". **Bloqueado en ti**: requiere que registres una site key de reCAPTCHA v3 en tu cuenta de Google y actives "Enforce" en la consola de Firebase — son cuentas/consolas tuyas, no se puede completar desde el código ni con las credenciales que ya tengo.
 
-## Producto (sin agregar features sociales)
+## Producto
+
+- [x] **Seguir a otros usuarios** (2026-09-14) — revierte a propósito la postura "sin features sociales" de abajo (ver design.md, sección Social, para el razonamiento). `/u/{userId}`: perfil público (nombre/foto) con botón de solicitar seguir → aprobar/rechazar (inbox en el propio perfil) → una vez aprobado, ves su watched y watchlist (antes privados); favoritos (tablón de recomendaciones) ya era público y sigue igual. Sin buscador de usuarios — descubrimiento solo por link compartido, mismo criterio que el tablón. `UserMenu.tsx` ahora sincroniza un doc público `users/{userId}` (nombre/foto) al iniciar sesión y linkea a "My profile" con contador de solicitudes pendientes. **Recordatorio**: tocó `firestore.rules` (subcolecciones `followRequests`/`followers`/`following` nuevas, y `watchlist`/`seen` ahora legibles por seguidores aprobados) — publicar manualmente.
+- [x] **Ruta propia para Movie Map + acceso desde cualquier card** (2026-09-14) — `/map` (antes solo una pestaña dentro de `/connections`, que se mantiene). Acepta `?movie={tmdbId}` para abrir directo centrado en una película. `MovieDetailsDialog.tsx` (que ya abre cada card de película en toda la app) tiene un botón "View in Movie Map" que linkea ahí — cubre "desde cualquier card" sin tocar cada componente de card por separado.
+
+## Producto (histórico: "sin agregar features sociales" — ver excepción arriba)
 
 - [x] **Dark mode** — toggle (`ThemeToggle.tsx`) + persistencia en localStorage + script anti-flash. Ver `design.md`.
 - [x] **PWA** instalable con caché offline de lo ya visto — `public/sw.js` (manual, sin Workbox — `@vite-pwa/astro` no compila en este stack, ver `design.md`) + `public/manifest.webmanifest`. Ícono generado desde cero (bookmark blanco/negro, no había logo).

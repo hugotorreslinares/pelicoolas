@@ -3,7 +3,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Public by design — just name/photo, so a shared profile link
+      // (/u/{userId}) has something to show before anyone follows anyone.
+      // Never holds movie data.
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+
+      // A pending request to follow userId, created by the requester
+      // (their own uid as the doc id — can't file a request "as" someone
+      // else). The target reads/deletes to approve or deny; the requester
+      // can also read their own request to show its pending state.
+      match /followRequests/{requesterId} {
+        allow create: if request.auth != null && request.auth.uid == requesterId;
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && request.auth.uid == requesterId;
+      }
+
+      // Who follows userId — written only by userId (on approving a
+      // request). A follower may read *their own* entry only (to detect
+      // they've been approved) and delete it (unfollow) — never the full
+      // list, which stays owner-only.
+      match /followers/{followerId} {
+        allow read: if request.auth != null &&
+          (request.auth.uid == userId || request.auth.uid == followerId);
+        allow write: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == followerId;
+      }
+
+      // Who userId follows — a mirror of `followers` on the follower's own
+      // side, kept in sync client-side. Creating a mirror doc requires the
+      // matching `followers` entry to already exist — you can't declare
+      // yourself "following" someone without having actually been approved.
+      match /following/{targetId} {
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId &&
+          exists(/databases/$(database)/documents/users/$(targetId)/followers/$(userId));
+      }
 
       match /followedPeople/{personId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -15,8 +50,14 @@ service cloud.firestore {
         }
       }
 
+      // Readable by userId or by anyone userId has approved as a follower
+      // (see /followers above) — an approved follower can see the
+      // watchlist, not just the owner.
       match /watchlist/{movieId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null &&
+          (request.auth.uid == userId ||
+           exists(/databases/$(database)/documents/users/$(userId)/followers/$(request.auth.uid)));
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
 
       match /badges/{badgeId} {
@@ -25,9 +66,14 @@ service cloud.firestore {
 
       // The single "have I watched this movie" fact, used everywhere in the
       // app including a followed person's filmography checkbox — see
-      // design.md, "Unificación de 'vista'". Not public — unlike recommendations.
+      // design.md, "Unificación de 'vista'". Not public — unlike
+      // recommendations — but readable by an approved follower (see
+      // /followers above), same as /watchlist.
       match /seen/{movieId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null &&
+          (request.auth.uid == userId ||
+           exists(/databases/$(database)/documents/users/$(userId)/followers/$(request.auth.uid)));
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
 
       // Written by the release-check cron via the Admin SDK (bypasses these

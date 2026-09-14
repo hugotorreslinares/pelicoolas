@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { XIcon } from "lucide-react";
+import { NetworkIcon, XIcon } from "lucide-react";
 import {
   tmdbImageUrl,
   tmdbWidthSrcSet,
@@ -165,6 +165,15 @@ export function MovieDetailsDialog({
                   .filter(Boolean)
                   .join(" · ")}
               </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-fit"
+                render={<a href={`/map?movie=${details.id}`} />}
+              >
+                <NetworkIcon data-icon="inline-start" />
+                View in Movie Map
+              </Button>
             </DialogHeader>
             <DialogDescription className="mt-2">
               {details.overview || "No overview available."}
