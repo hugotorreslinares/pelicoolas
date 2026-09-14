@@ -41,6 +41,8 @@ export interface WatchlistMovie {
   readonly addedAt: string;
   /** Absent on watchlist entries added before this field existed. */
   readonly genreIds?: readonly number[];
+  /** Absent on watchlist entries added before this field existed. */
+  readonly durationMinutes?: number | null;
 }
 
 export type FilmographyFilter = "all" | "watched" | "unwatched";

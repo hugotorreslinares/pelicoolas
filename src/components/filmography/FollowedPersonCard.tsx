@@ -39,25 +39,27 @@ export function FollowedPersonCard({
       <Card size="sm" className="transition-colors hover:bg-accent">
         <CardHeader className="flex-row flex-wrap items-center gap-2">
           <div className="relative shrink-0">
-            <Avatar size="sm">
+            <Avatar className="size-14">
               <AvatarImage
                 src={
                   person.profilePath
-                    ? tmdbImageUrl(person.profilePath, 45)
+                    ? tmdbImageUrl(person.profilePath, 92)
                     : undefined
                 }
                 srcSet={
                   person.profilePath
-                    ? tmdbDensitySrcSet(person.profilePath, 45, 92)
+                    ? tmdbDensitySrcSet(person.profilePath, 92, 185)
                     : undefined
                 }
                 alt={person.name}
               />
-              <AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+              <AvatarFallback className="text-base!">
+                {person.name.slice(0, 1)}
+              </AvatarFallback>
             </Avatar>
             {age !== null && (
               <span
-                className="absolute -right-1.5 -bottom-1.5 flex size-5 items-center justify-center rounded-full border-2 border-card bg-secondary text-[9px] font-semibold text-secondary-foreground"
+                className="absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border-2 border-card bg-secondary text-[10px] font-semibold text-secondary-foreground"
                 title={`${age} years old`}
               >
                 {age}

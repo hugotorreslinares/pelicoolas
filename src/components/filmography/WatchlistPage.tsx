@@ -1,13 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookmarkIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  BookmarkIcon,
+  CheckIcon,
+  ClockIcon,
+  LayoutGridIcon,
+  ListIcon,
+  ShuffleIcon,
+} from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
+import { FilmographyProgress } from "./FilmographyProgress";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
   removeFromWatchlist,
-  setWatchlistGenres,
+  setWatchlistDetails,
+  subscribeToSeenMovies,
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
@@ -15,19 +32,33 @@ import { mapWithConcurrency } from "@/lib/concurrency";
 import { fetchMovieDetails } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
+import { formatDuration } from "@/lib/format";
 import engagement from "@/config/engagement.json";
 import type { WatchlistMovie } from "@/types/filmography";
 
 const POSTER_WIDTHS = [185, 342, 500];
 const POSTER_SIZES = "(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
 const WATCHLIST_MILESTONES = [10, 25, 50];
+const VIEW_MODE_KEY = "watchlist-view-mode";
 
-type SortOrder = "newest" | "oldest";
+type SortOrder = "newest" | "oldest" | "rating" | "alphabetical";
+type WatchedFilter = "all" | "unwatched" | "watched";
+type ViewMode = "grid" | "list";
+
+const ALL_GENRES = "all";
 
 function sortMovies(
   movies: readonly WatchlistMovie[],
   order: SortOrder,
 ): readonly WatchlistMovie[] {
+  if (order === "alphabetical") {
+    return [...movies].sort((a, b) => a.title.localeCompare(b.title));
+  }
+  if (order === "rating") {
+    return [...movies].sort(
+      (a, b) => (b.voteAverage ?? -1) - (a.voteAverage ?? -1),
+    );
+  }
   const withYear = movies.filter((m) => m.releaseYear !== null);
   const withoutYear = movies.filter((m) => m.releaseYear === null);
   const sorted = [...withYear].sort((a, b) =>
@@ -38,15 +69,27 @@ function sortMovies(
   return [...sorted, ...withoutYear];
 }
 
-const ALL_GENRES = "all";
+function readStoredViewMode(): ViewMode {
+  if (typeof window === "undefined") return "grid";
+  try {
+    return window.localStorage.getItem(VIEW_MODE_KEY) === "list"
+      ? "list"
+      : "grid";
+  } catch {
+    return "grid";
+  }
+}
 
 export function WatchlistPage() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly WatchlistMovie[] | null>(null);
+  const [seenIds, setSeenIds] = useState<ReadonlySet<number>>(new Set());
   const [order, setOrder] = useState<SortOrder>("newest");
   const [genreFilter, setGenreFilter] = useState<number | typeof ALL_GENRES>(
     ALL_GENRES,
   );
+  const [watchedFilter, setWatchedFilter] = useState<WatchedFilter>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovieId, setOpenMovieId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -57,11 +100,26 @@ export function WatchlistPage() {
     return subscribeToWatchlist(user.uid, setMovies);
   }, [user]);
 
-  // Entries added before genreIds existed have no such field at all
-  // (`undefined`, not an empty array — that's a real "TMDB has no genres
-  // for this movie"). Backfill them once in the background so the genre
-  // filter below actually has something to work with; the Firestore
-  // listener above picks the update straight back up.
+  useEffect(() => {
+    if (!user) {
+      setSeenIds(new Set());
+      return;
+    }
+    return subscribeToSeenMovies(user.uid, setSeenIds);
+  }, [user]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
+    } catch {
+      // Best-effort persistence only.
+    }
+  }, [viewMode]);
+
+  // Entries added before genreIds/durationMinutes existed have no such
+  // fields at all (`undefined`, not an empty array/null — those are real
+  // "TMDB has nothing here"). Backfill both together in one write, reusing
+  // the same fetchMovieDetails call for both — no extra TMDB requests.
   const backfilledRef = useRef<Set<number>>(new Set());
   useEffect(() => {
     if (!user || !movies) return;
@@ -75,7 +133,10 @@ export function WatchlistPage() {
       try {
         const details = await fetchMovieDetails(movie.tmdbId);
         if (details) {
-          await setWatchlistGenres(user.uid, movie.tmdbId, details.genreIds);
+          await setWatchlistDetails(user.uid, movie.tmdbId, {
+            genreIds: details.genreIds,
+            durationMinutes: details.runtimeMinutes,
+          });
         }
       } catch {
         // Best-effort backfill — leave this one for next visit.
@@ -96,19 +157,16 @@ export function WatchlistPage() {
     }
   }, [user, movies]);
 
-  // A tall 8-poster skeleton is right for "fetching a signed-in user's
-  // watchlist", but auth resolving to "not signed in" is the common case
-  // for a first-time or anonymous visit — collapsing straight from that
-  // tall grid down to the one-line sign-in message was the single biggest
+  // A tall skeleton is right for "fetching a signed-in user's watchlist",
+  // but auth resolving to "not signed in" is the common case for a
+  // first-time or anonymous visit — collapsing straight from that tall
+  // grid down to the one-line sign-in message was the single biggest
   // layout shift on the page (CLS ~0.96 in a Lighthouse run). Keep the
   // auth-pending skeleton the same shape as the sign-in message itself so
   // there's nothing to collapse from in that case.
   if (authLoading) {
     return (
       <div className="space-y-3 text-center">
-        {/* Visually-hidden but always present — the loading state is what
-            axe-core (or any crawler) sees before Firebase's async auth
-            check resolves, and a page needs a heading in every state. */}
         <h1 className="sr-only">Watchlist</h1>
         <Skeleton className="mx-auto h-7 w-32" />
         <Skeleton className="mx-auto h-5 w-56" />
@@ -118,14 +176,14 @@ export function WatchlistPage() {
 
   if (user && movies === null) {
     return (
-      <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+      <div className="space-y-4">
         <h1 className="sr-only">Watchlist</h1>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton
-            key={i}
-            className="mb-3 aspect-[2/3] w-full break-inside-avoid rounded-lg"
-          />
-        ))}
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[2/3] w-full rounded-lg" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -147,12 +205,28 @@ export function WatchlistPage() {
         <h1 className="text-xl font-semibold">Your watchlist is empty.</h1>
         <p className="text-muted-foreground">
           While exploring a filmography, tap the bookmark icon on a movie to add
-          it here.
+          it here — or start from a followed person's page or a search result.
         </p>
-        <Button render={<a href="/search" />}>Search actors & directors</Button>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button render={<a href="/search" />}>
+            Search actors & directors
+          </Button>
+          <Button variant="outline" render={<a href="/filmographies" />}>
+            My Filmographies
+          </Button>
+        </div>
       </div>
     );
   }
+
+  const watchedCount = movies.filter((m) => seenIds.has(m.tmdbId)).length;
+  const unwatchedCount = movies.length - watchedCount;
+
+  const byWatchedStatus = movies.filter((m) => {
+    if (watchedFilter === "watched") return seenIds.has(m.tmdbId);
+    if (watchedFilter === "unwatched") return !seenIds.has(m.tmdbId);
+    return true;
+  });
 
   // Genres present in the watchlist, sorted by how many movies carry each —
   // most useful ones first instead of alphabetical noise. Movies added
@@ -170,25 +244,108 @@ export function WatchlistPage() {
 
   const filtered =
     genreFilter === ALL_GENRES
-      ? movies
-      : movies.filter((m) => m.genreIds?.includes(genreFilter));
+      ? byWatchedStatus
+      : byWatchedStatus.filter((m) => m.genreIds?.includes(genreFilter));
   const sorted = sortMovies(filtered, order);
+
+  const unwatchedMovies = movies.filter((m) => !seenIds.has(m.tmdbId));
+
+  function pickRandom() {
+    const pool = unwatchedMovies.length > 0 ? unwatchedMovies : movies!;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    setOpenMovieId(pick.tmdbId);
+  }
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Watchlist</h1>
+      <div className="space-y-1">
+        <h1 className="text-xl font-semibold">My Watchlist</h1>
+        <p className="text-sm text-muted-foreground">
+          {movies.length} movies · {watchedCount} watched · {unwatchedCount} to
+          watch
+        </p>
+        <FilmographyProgress
+          watchedCount={watchedCount}
+          totalCount={movies.length}
+        />
+      </div>
+
+      <Button
+        size="lg"
+        className="h-auto w-full flex-col items-start gap-0.5 py-3 sm:w-auto sm:flex-row sm:items-center sm:gap-2"
+        onClick={pickRandom}
+      >
+        <span className="flex items-center gap-2">
+          <ShuffleIcon />
+          Pick something for me
+        </span>
+        <span className="text-xs font-normal opacity-80">
+          Picks a random movie from your watchlist
+        </span>
+      </Button>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          {sorted.length} of {movies.length} movies on your radar
-        </p>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setOrder(order === "newest" ? "oldest" : "newest")}
-        >
-          {order === "newest" ? "Most recent" : "Oldest"}
-        </Button>
+        <div className="flex gap-1 rounded-full border p-1">
+          <Button
+            size="sm"
+            variant={watchedFilter === "all" ? "default" : "ghost"}
+            onClick={() => setWatchedFilter("all")}
+          >
+            All ({movies.length})
+          </Button>
+          <Button
+            size="sm"
+            variant={watchedFilter === "unwatched" ? "default" : "ghost"}
+            onClick={() => setWatchedFilter("unwatched")}
+          >
+            To watch ({unwatchedCount})
+          </Button>
+          <Button
+            size="sm"
+            variant={watchedFilter === "watched" ? "default" : "ghost"}
+            onClick={() => setWatchedFilter("watched")}
+          >
+            Watched ({watchedCount})
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Select
+            value={order}
+            onValueChange={(value) => setOrder(value as SortOrder)}
+          >
+            <SelectTrigger size="sm" aria-label="Sort by">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+              <SelectItem value="rating">Highest rated</SelectItem>
+              <SelectItem value="alphabetical">A–Z</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex gap-1 rounded-full border p-1">
+            <Button
+              size="icon-sm"
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              aria-label="Grid view"
+              aria-pressed={viewMode === "grid"}
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGridIcon />
+            </Button>
+            <Button
+              size="icon-sm"
+              variant={viewMode === "list" ? "default" : "ghost"}
+              aria-label="List view"
+              aria-pressed={viewMode === "list"}
+              onClick={() => setViewMode("list")}
+            >
+              <ListIcon />
+            </Button>
+          </div>
+        </div>
       </div>
 
       {availableGenres.length > 0 && (
@@ -213,72 +370,41 @@ export function WatchlistPage() {
         </div>
       )}
 
-      <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-        {sorted.map((movie) => (
-          <div key={movie.tmdbId} className="mb-3 break-inside-avoid">
-            <div className="card-elevated group relative overflow-hidden rounded-lg border">
-              <button
-                type="button"
-                onClick={() => setOpenMovieId(movie.tmdbId)}
-                className="focus-ring block w-full"
-                aria-label={`View details for ${movie.title}`}
-              >
-                {movie.posterPath ? (
-                  <img
-                    src={tmdbImageUrl(movie.posterPath, 342)}
-                    srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
-                    sizes={POSTER_SIZES}
-                    alt=""
-                    loading="lazy"
-                    className="w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
-                    No poster
-                  </div>
-                )}
-              </button>
-
-              {typeof movie.voteAverage === "number" && (
-                <span className="absolute top-2 left-2 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-semibold shadow">
-                  {Math.round(movie.voteAverage * 10)}%
-                </span>
-              )}
-
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                aria-label={`Remove ${movie.title} from watchlist`}
-                className="absolute top-2 right-2 size-11 rounded-full shadow"
-                onClick={() => {
-                  void removeFromWatchlist(user.uid, movie.tmdbId);
-                  announce(`Removed ${movie.title} from watchlist`);
-                }}
-              >
-                <BookmarkIcon className="fill-current" />
-              </Button>
-            </div>
-
-            <p className="mt-1 truncate font-medium">{movie.title}</p>
-            <p className="text-sm text-muted-foreground">
-              {movie.releaseYear ?? "Unknown"}
-              {movie.sourcePersonId != null && movie.sourcePersonName && (
-                <>
-                  {" "}
-                  · via{" "}
-                  <a
-                    href={`/person/${movie.sourcePersonId}`}
-                    className="focus-ring hover:underline"
-                  >
-                    {movie.sourcePersonName}
-                  </a>
-                </>
-              )}
-            </p>
-          </div>
-        ))}
-      </div>
+      {sorted.length === 0 ? (
+        <p className="py-8 text-center text-muted-foreground">
+          No movies match these filters.
+        </p>
+      ) : viewMode === "grid" ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {sorted.map((movie) => (
+            <WatchlistGridCard
+              key={movie.tmdbId}
+              movie={movie}
+              watched={seenIds.has(movie.tmdbId)}
+              onOpen={() => setOpenMovieId(movie.tmdbId)}
+              onRemove={() => {
+                void removeFromWatchlist(user.uid, movie.tmdbId);
+                announce(`Removed ${movie.title} from watchlist`);
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {sorted.map((movie) => (
+            <WatchlistListRow
+              key={movie.tmdbId}
+              movie={movie}
+              watched={seenIds.has(movie.tmdbId)}
+              onOpen={() => setOpenMovieId(movie.tmdbId)}
+              onRemove={() => {
+                void removeFromWatchlist(user.uid, movie.tmdbId);
+                announce(`Removed ${movie.title} from watchlist`);
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {openMovieId !== null && (
         <MovieDetailsDialog
@@ -287,6 +413,156 @@ export function WatchlistPage() {
           onOpenChange={(open) => !open && setOpenMovieId(null)}
         />
       )}
+    </div>
+  );
+}
+
+function WatchedStatusBadge({ watched }: { readonly watched: boolean }) {
+  return watched ? (
+    <Badge variant="secondary">
+      <CheckIcon data-icon="inline-start" />
+      Watched
+    </Badge>
+  ) : (
+    <Badge variant="outline">To watch</Badge>
+  );
+}
+
+interface CardProps {
+  readonly movie: WatchlistMovie;
+  readonly watched: boolean;
+  readonly onOpen: () => void;
+  readonly onRemove: () => void;
+}
+
+function WatchlistGridCard({ movie, watched, onOpen, onRemove }: CardProps) {
+  const duration = formatDuration(movie.durationMinutes);
+  const genre =
+    movie.genreIds?.[0] != null ? genreName(movie.genreIds[0]) : null;
+
+  return (
+    <div>
+      <div className="card-elevated group relative overflow-hidden rounded-lg border">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="focus-ring block w-full"
+          aria-label={`View details for ${movie.title}`}
+        >
+          {movie.posterPath ? (
+            <img
+              src={tmdbImageUrl(movie.posterPath, 342)}
+              srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
+              sizes={POSTER_SIZES}
+              alt=""
+              loading="lazy"
+              className="w-full object-cover"
+            />
+          ) : (
+            <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+              No poster
+            </div>
+          )}
+        </button>
+
+        <div className="absolute top-2 left-2">
+          <WatchedStatusBadge watched={watched} />
+        </div>
+
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          aria-label={`Remove ${movie.title} from watchlist`}
+          className="absolute top-2 right-2 size-11 rounded-full shadow"
+          onClick={onRemove}
+        >
+          <BookmarkIcon className="fill-current" />
+        </Button>
+      </div>
+
+      <p className="mt-1 truncate font-medium">{movie.title}</p>
+      <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
+        <span>{movie.releaseYear ?? "Unknown"}</span>
+        {typeof movie.voteAverage === "number" && (
+          <span>· {Math.round(movie.voteAverage * 10)}%</span>
+        )}
+        {duration && <span>· {duration}</span>}
+        {genre && <span>· {genre}</span>}
+      </p>
+      {movie.sourcePersonId != null && movie.sourcePersonName && (
+        <p className="truncate text-sm text-muted-foreground">
+          via{" "}
+          <a
+            href={`/person/${movie.sourcePersonId}`}
+            className="focus-ring hover:underline"
+          >
+            {movie.sourcePersonName}
+          </a>
+        </p>
+      )}
+    </div>
+  );
+}
+
+function WatchlistListRow({ movie, watched, onOpen, onRemove }: CardProps) {
+  const duration = formatDuration(movie.durationMinutes);
+  const genre =
+    movie.genreIds?.[0] != null ? genreName(movie.genreIds[0]) : null;
+
+  return (
+    <div className="card-elevated flex items-center gap-3 overflow-hidden rounded-lg border p-2">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="focus-ring block shrink-0"
+        aria-label={`View details for ${movie.title}`}
+      >
+        {movie.posterPath ? (
+          <img
+            src={tmdbImageUrl(movie.posterPath, 92)}
+            alt=""
+            loading="lazy"
+            className="h-20 w-14 rounded object-cover"
+          />
+        ) : (
+          <div className="flex h-20 w-14 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
+            No poster
+          </div>
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpen}
+        className="focus-ring min-w-0 flex-1 text-left"
+      >
+        <p className="truncate font-medium">{movie.title}</p>
+        <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
+          <span>{movie.releaseYear ?? "Unknown"}</span>
+          {typeof movie.voteAverage === "number" && (
+            <span>· {Math.round(movie.voteAverage * 10)}%</span>
+          )}
+          {duration && (
+            <span className="inline-flex items-center gap-0.5">
+              · <ClockIcon className="size-3" /> {duration}
+            </span>
+          )}
+          {genre && <span>· {genre}</span>}
+        </p>
+      </button>
+
+      <WatchedStatusBadge watched={watched} />
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={`Remove ${movie.title} from watchlist`}
+        onClick={onRemove}
+      >
+        <BookmarkIcon className="fill-current" />
+      </Button>
     </div>
   );
 }

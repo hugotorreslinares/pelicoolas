@@ -166,13 +166,16 @@ export async function removeFromWatchlist(
   await deleteDoc(watchlistMovieRef(userId, movieId));
 }
 
-/** Backfills genreIds on a watchlist entry added before that field existed. */
-export async function setWatchlistGenres(
+/** Backfills genreIds/durationMinutes on a watchlist entry added before those fields existed. */
+export async function setWatchlistDetails(
   userId: string,
   movieId: number,
-  genreIds: readonly number[],
+  details: {
+    readonly genreIds: readonly number[];
+    readonly durationMinutes: number | null;
+  },
 ): Promise<void> {
-  await updateDoc(watchlistMovieRef(userId, movieId), { genreIds });
+  await updateDoc(watchlistMovieRef(userId, movieId), details);
 }
 
 export async function isInWatchlist(
