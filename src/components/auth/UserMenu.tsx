@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { signOutUser } from "@/lib/firebase/auth";
 import {
   exportUserData,
+  subscribeToFollowersList,
   subscribeToFollowRequests,
   syncPublicProfile,
 } from "@/lib/firebase/firestore";
@@ -23,12 +24,20 @@ export function UserMenu() {
   const { user, loading } = useAuth();
   const [exporting, setExporting] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [followerCount, setFollowerCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
     void syncPublicProfile(user);
     return subscribeToFollowRequests(user.uid, (requests) =>
       setPendingRequests(requests.length),
+    );
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToFollowersList(user.uid, (followers) =>
+      setFollowerCount(followers.length),
     );
   }, [user]);
 
@@ -80,13 +89,21 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="focus-ring flex size-11 items-center justify-center rounded-full">
-        <Avatar>
-          <AvatarImage
-            src={user.photoURL ?? undefined}
-            alt={user.displayName ?? ""}
-          />
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
+        <div className="relative">
+          <Avatar>
+            <AvatarImage
+              src={user.photoURL ?? undefined}
+              alt={user.displayName ?? ""}
+            />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <span
+            className="absolute -right-1.5 -bottom-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-card bg-secondary px-0.5 text-[9px] font-semibold text-secondary-foreground"
+            title={`${followerCount} ${followerCount === 1 ? "follower" : "followers"}`}
+          >
+            {followerCount}
+          </span>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem render={<a href={`/u/${user.uid}`} />}>
