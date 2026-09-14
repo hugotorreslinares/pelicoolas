@@ -142,6 +142,7 @@ export async function migrateWatchedToSeen(
       posterPath: movie.posterPath,
       releaseYear: movie.releaseYear,
       voteAverage: movie.voteAverage,
+      genreIds: movie.genreIds,
       watchedAt: serverTimestamp(),
     });
   }
@@ -353,4 +354,28 @@ export function subscribeToSeenMovies(
       );
     },
   );
+}
+
+// The full docs, not just ids — for the "All watched movies" page
+// (/watched), which needs title/poster/genre to render and filter, not
+// just membership.
+export function subscribeToSeenMoviesFull(
+  userId: string,
+  callback: (movies: readonly SeenMovie[]) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "seen"),
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as SeenMovie));
+    },
+  );
+}
+
+/** Backfills genreIds on a seen entry marked before that field existed. */
+export async function setSeenGenres(
+  userId: string,
+  movieId: number,
+  genreIds: readonly number[],
+): Promise<void> {
+  await updateDoc(seenMovieRef(userId, movieId), { genreIds });
 }

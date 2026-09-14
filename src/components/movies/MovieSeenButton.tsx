@@ -64,6 +64,7 @@ export function MovieSeenButton({
           posterPath: movie.posterPath,
           releaseYear: movie.releaseYear,
           voteAverage: movie.voteAverage,
+          genreIds: movie.genreIds,
         });
       } else {
         await unmarkMovieSeen(user.uid, movie.tmdbMovieId);

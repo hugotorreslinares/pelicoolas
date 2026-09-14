@@ -7,7 +7,7 @@ import { MobileNav } from "@/components/nav/MobileNav";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { Toaster } from "@/components/ui/sonner";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
-import { FilmIcon, BookmarkIcon, NetworkIcon } from "lucide-react";
+import { FilmIcon, BookmarkIcon, NetworkIcon, EyeIcon } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 
@@ -41,6 +41,7 @@ const ogImageURL = new URL(image, Astro.site);
 const pathname = Astro.url.pathname;
 const isSearchActive = pathname === "/search";
 const isFilmographiesActive = pathname === "/" || pathname === "/filmographies";
+const isWatchedActive = pathname === "/watched";
 const isWatchlistActive = pathname === "/watchlist";
 const isConnectionsActive = pathname === "/connections";
 
@@ -161,6 +162,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
             >
               <FilmIcon className="size-4" />
               <span class="sr-only">My Filmographies</span>
+            </a>
+            <a
+              href="/watched"
+              class={navLinkClass(isWatchedActive)}
+              aria-current={isWatchedActive ? "page" : undefined}
+              title="Watched"
+            >
+              <EyeIcon className="size-4" />
+              <span class="sr-only">Watched</span>
             </a>
             <a
               href="/watchlist"

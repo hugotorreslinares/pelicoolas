@@ -69,4 +69,7 @@ export interface SeenMovie {
   readonly releaseYear: number | null;
   readonly voteAverage: number | null;
   readonly watchedAt: string;
+  /** Absent on entries marked seen before this field existed — same
+   *  optional-then-backfilled pattern as WatchlistMovie.genreIds. */
+  readonly genreIds?: readonly number[];
 }

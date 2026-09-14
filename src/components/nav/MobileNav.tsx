@@ -2,6 +2,7 @@ import {
   MenuIcon,
   SearchIcon,
   FilmIcon,
+  EyeIcon,
   BookmarkIcon,
   NetworkIcon,
 } from "lucide-react";
@@ -15,6 +16,7 @@ import {
 const LINKS = [
   { href: "/search", label: "Search", icon: SearchIcon },
   { href: "/filmographies", label: "My Filmographies", icon: FilmIcon },
+  { href: "/watched", label: "Watched", icon: EyeIcon },
   { href: "/watchlist", label: "Watchlist", icon: BookmarkIcon },
   { href: "/connections", label: "Connections", icon: NetworkIcon },
 ] as const;
