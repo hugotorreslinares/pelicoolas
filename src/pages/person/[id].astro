@@ -3,7 +3,6 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { PersonHeader } from "@/components/people/PersonHeader";
-import { PersonSearch } from "@/components/people/PersonSearch";
 import { Filmography } from "@/components/filmography/Filmography";
 import { getPersonProfile } from "@/lib/tmdb/people";
 import { getFilmography } from "@/lib/tmdb/movies";
@@ -120,9 +119,7 @@ if (referer) {
     )
   }
 
-  <PersonSearch className="max-w-lg space-y-8" showRecent={true} client:load />
-
-  {error && <p class="mt-4 text-destructive">{error}</p>}
+  {error && <p class="text-destructive">{error}</p>}
 
   {
     onThisDayMovie && (
