@@ -22,11 +22,7 @@ const LINKS = [
 // Collapses the nav links behind a hamburger on narrow screens — with all
 // of them inline, the header wrapped onto 3+ ragged lines on phone widths.
 // NotificationBell/ThemeToggle/UserMenu stay inline everywhere since
-// they're single icon buttons, not a list. Deliberately NOT embedding
-// FollowedDock here: it's its own small widget of plain <a> links, and
-// nesting that raw inside the menu's popup broke base-ui's focus
-// management on open (the whole trigger would vanish on click) — the
-// dock stays desktop-only, "My Filmographies" above covers mobile.
+// they're single icon buttons, not a list.
 export function MobileNav() {
   return (
     <DropdownMenu>

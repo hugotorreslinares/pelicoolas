@@ -2,7 +2,6 @@
 import "../styles/global.css";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { FollowedDock } from "@/components/filmography/FollowedDock";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { MobileNav } from "@/components/nav/MobileNav";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
@@ -181,9 +180,6 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
               <span class="sr-only">Connections</span>
             </a>
           </nav>
-          <div class="hidden sm:block">
-            <FollowedDock client:idle />
-          </div>
           <NotificationBell client:idle />
           <ThemeToggle client:idle />
           <UserMenu client:idle />
