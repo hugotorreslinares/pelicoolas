@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
@@ -42,19 +43,23 @@ export function FollowButton({
       setShowSignInHint(true);
       return;
     }
-    if (following) {
-      await unfollowPerson(user.uid, personId);
-      setFollowing(false);
-      announce(`Unfollowed ${name}`);
-    } else {
-      await followPerson(user.uid, {
-        tmdbId: personId,
-        name,
-        profilePath,
-        knownForDepartment,
-      });
-      setFollowing(true);
-      announce(`Now following ${name}`);
+    const next = !following;
+    setFollowing(next);
+    announce(next ? `Now following ${name}` : `Unfollowed ${name}`);
+    try {
+      if (next) {
+        await followPerson(user.uid, {
+          tmdbId: personId,
+          name,
+          profilePath,
+          knownForDepartment,
+        });
+      } else {
+        await unfollowPerson(user.uid, personId);
+      }
+    } catch {
+      setFollowing(!next);
+      toast.error(`Couldn't update "${name}". Please try again.`);
     }
   }
 

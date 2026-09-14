@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MovieItem } from "./MovieItem";
 import { FilmographyFilters } from "./FilmographyFilters";
@@ -73,6 +74,16 @@ export function Filmography({
   const [seenLoaded, setSeenLoaded] = useState(false);
   const [watchlistLoaded, setWatchlistLoaded] = useState(false);
   const statusLoading = !!user && (!seenLoaded || !watchlistLoaded);
+  // Optimistic overrides: the checkbox/bookmark flips the instant you click
+  // it, before the write resolves — these hold that until the real
+  // subscription snapshot catches up (cleared below) or the write fails
+  // (rolled back in the toggle functions themselves).
+  const [seenOverrides, setSeenOverrides] = useState<Record<number, boolean>>(
+    {},
+  );
+  const [watchlistOverrides, setWatchlistOverrides] = useState<
+    Record<number, boolean>
+  >({});
   // Guards the one-time legacy-watchedMovies backfill below from re-running
   // on every seenIds/movies re-render — see migrateWatchedToSeen's own doc.
   const migratedPersonIdRef = useRef<number | null>(null);
@@ -104,14 +115,33 @@ export function Filmography({
     });
   }, [user, personId, movies, seenIds]);
 
+  // Once the real subscription confirms an optimistic override (matches
+  // it), the override is redundant — drop it so a later external change
+  // (another tab/device) isn't masked by stale local state forever.
+  useEffect(() => {
+    setSeenOverrides((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const [id, value] of Object.entries(prev)) {
+        if (seenIds.has(Number(id)) === value) {
+          delete next[Number(id)];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [seenIds]);
+
   const watched = useMemo(
     () =>
       new Set(
         movies
-          .filter((m) => seenIds.has(m.tmdbMovieId))
+          .filter(
+            (m) => seenOverrides[m.tmdbMovieId] ?? seenIds.has(m.tmdbMovieId),
+          )
           .map((m) => m.tmdbMovieId),
       ),
-    [movies, seenIds],
+    [movies, seenIds, seenOverrides],
   );
 
   useEffect(() => {
@@ -126,6 +156,30 @@ export function Filmography({
       setWatchlistLoaded(true);
     });
   }, [user]);
+
+  useEffect(() => {
+    setWatchlistOverrides((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const [id, value] of Object.entries(prev)) {
+        if (watchlist.has(Number(id)) === value) {
+          delete next[Number(id)];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [watchlist]);
+
+  const effectiveWatchlist = useMemo(
+    () =>
+      new Set(
+        [...watchlist, ...Object.keys(watchlistOverrides).map(Number)].filter(
+          (id) => watchlistOverrides[id] ?? watchlist.has(id),
+        ),
+      ),
+    [watchlist, watchlistOverrides],
+  );
 
   const sorted = useMemo(() => sortMovies(movies, order), [movies, order]);
 
@@ -183,18 +237,23 @@ export function Filmography({
       setShowSignInHint(true);
       return;
     }
-    if (next) {
-      await markMovieSeen(user.uid, {
-        tmdbId: movie.tmdbMovieId,
-        title: movie.title,
-        posterPath: movie.posterPath,
-        releaseYear: movie.releaseYear,
-        voteAverage: movie.voteAverage,
-      });
-      announce(`Marked ${movie.title} as watched`);
-    } else {
-      await unmarkMovieSeen(user.uid, movie.tmdbMovieId);
-      announce(`Marked ${movie.title} as unwatched`);
+    setSeenOverrides((prev) => ({ ...prev, [movie.tmdbMovieId]: next }));
+    announce(`Marked ${movie.title} as ${next ? "watched" : "unwatched"}`);
+    try {
+      if (next) {
+        await markMovieSeen(user.uid, {
+          tmdbId: movie.tmdbMovieId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          releaseYear: movie.releaseYear,
+          voteAverage: movie.voteAverage,
+        });
+      } else {
+        await unmarkMovieSeen(user.uid, movie.tmdbMovieId);
+      }
+    } catch {
+      setSeenOverrides((prev) => ({ ...prev, [movie.tmdbMovieId]: !next }));
+      toast.error(`Couldn't update "${movie.title}". Please try again.`);
     }
   }
 
@@ -203,21 +262,32 @@ export function Filmography({
       setShowSignInHint(true);
       return;
     }
-    if (watchlist.has(movie.tmdbMovieId)) {
-      await removeFromWatchlist(user.uid, movie.tmdbMovieId);
-      announce(`Removed ${movie.title} from watchlist`);
-    } else {
-      await addToWatchlist(user.uid, {
-        tmdbId: movie.tmdbMovieId,
-        title: movie.title,
-        posterPath: movie.posterPath,
-        releaseYear: movie.releaseYear,
-        voteAverage: movie.voteAverage,
-        genreIds: movie.genreIds,
-        sourcePersonId: personId,
-        sourcePersonName: personName,
-      });
-      announce(`Added ${movie.title} to watchlist`);
+    const next = !effectiveWatchlist.has(movie.tmdbMovieId);
+    setWatchlistOverrides((prev) => ({ ...prev, [movie.tmdbMovieId]: next }));
+    announce(
+      `${next ? "Added" : "Removed"} ${movie.title} ${next ? "to" : "from"} watchlist`,
+    );
+    try {
+      if (next) {
+        await addToWatchlist(user.uid, {
+          tmdbId: movie.tmdbMovieId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          releaseYear: movie.releaseYear,
+          voteAverage: movie.voteAverage,
+          genreIds: movie.genreIds,
+          sourcePersonId: personId,
+          sourcePersonName: personName,
+        });
+      } else {
+        await removeFromWatchlist(user.uid, movie.tmdbMovieId);
+      }
+    } catch {
+      setWatchlistOverrides((prev) => ({
+        ...prev,
+        [movie.tmdbMovieId]: !next,
+      }));
+      toast.error(`Couldn't update "${movie.title}". Please try again.`);
     }
   }
 
@@ -259,7 +329,7 @@ export function Filmography({
                   movie={movie}
                   watched={watched.has(movie.tmdbMovieId)}
                   onToggle={(next) => void toggleWatched(movie, next)}
-                  inWatchlist={watchlist.has(movie.tmdbMovieId)}
+                  inWatchlist={effectiveWatchlist.has(movie.tmdbMovieId)}
                   onToggleWatchlist={() => void toggleWatchlist(movie)}
                   statusLoading={statusLoading}
                 />

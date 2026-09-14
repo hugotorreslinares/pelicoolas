@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BookmarkIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -50,21 +51,27 @@ export function MovieWatchlistButton({
       else setShowSignInHint(true);
       return;
     }
-    if (inWatchlist) {
-      await removeFromWatchlist(user.uid, movie.tmdbMovieId);
-      setInWatchlist(false);
-      announce(`Removed ${movie.title} from watchlist`);
-    } else {
-      await addToWatchlist(user.uid, {
-        tmdbId: movie.tmdbMovieId,
-        title: movie.title,
-        posterPath: movie.posterPath,
-        releaseYear: movie.releaseYear,
-        voteAverage: movie.voteAverage,
-        genreIds: movie.genreIds,
-      });
-      setInWatchlist(true);
-      announce(`Added ${movie.title} to watchlist`);
+    const next = !inWatchlist;
+    setInWatchlist(next);
+    announce(
+      `${next ? "Added" : "Removed"} ${movie.title} ${next ? "to" : "from"} watchlist`,
+    );
+    try {
+      if (next) {
+        await addToWatchlist(user.uid, {
+          tmdbId: movie.tmdbMovieId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          releaseYear: movie.releaseYear,
+          voteAverage: movie.voteAverage,
+          genreIds: movie.genreIds,
+        });
+      } else {
+        await removeFromWatchlist(user.uid, movie.tmdbMovieId);
+      }
+    } catch {
+      setInWatchlist(!next);
+      toast.error(`Couldn't update "${movie.title}". Please try again.`);
     }
   }
 

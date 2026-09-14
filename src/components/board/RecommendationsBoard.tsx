@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
@@ -30,11 +31,31 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
   );
   const [openMovieId, setOpenMovieId] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  // Optimistically hides a removed card immediately instead of waiting on
+  // the subscription to echo the delete back — restored on failure.
+  const [removingIds, setRemovingIds] = useState<ReadonlySet<number>>(
+    new Set(),
+  );
   const isOwner = user?.uid === userId;
 
   useEffect(() => {
     return subscribeToRecommendations(userId, setMovies);
   }, [userId]);
+
+  async function handleRemove(movie: RecommendedMovie) {
+    setRemovingIds((prev) => new Set(prev).add(movie.tmdbId));
+    announce(`Removed ${movie.title}`);
+    try {
+      await removeFromRecommendations(userId, movie.tmdbId);
+    } catch {
+      setRemovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(movie.tmdbId);
+        return next;
+      });
+      toast.error(`Couldn't remove "${movie.title}". Please try again.`);
+    }
+  }
 
   async function copyLink() {
     try {
@@ -79,72 +100,76 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
         </div>
       )}
 
-      {movies !== null && movies.length === 0 && (
-        <p className="text-center text-muted-foreground">
-          {isOwner
-            ? "Nothing here yet — open any movie and tap the star to recommend it."
-            : "This board is empty for now."}
-        </p>
-      )}
+      {movies !== null &&
+        movies.filter((m) => !removingIds.has(m.tmdbId)).length === 0 && (
+          <p className="text-center text-muted-foreground">
+            {isOwner
+              ? "Nothing here yet — open any movie and tap the star to recommend it."
+              : "This board is empty for now."}
+          </p>
+        )}
 
-      {movies !== null && movies.length > 0 && (
-        <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-          {movies.map((movie) => (
-            <div key={movie.tmdbId} className="mb-3 break-inside-avoid">
-              <div className="card-elevated group relative overflow-hidden rounded-lg border">
-                <button
-                  type="button"
-                  onClick={() => setOpenMovieId(movie.tmdbId)}
-                  className="focus-ring block w-full"
-                  aria-label={`View details for ${movie.title}`}
-                >
-                  {movie.posterPath ? (
-                    <img
-                      src={tmdbImageUrl(movie.posterPath, 342)}
-                      srcSet={tmdbWidthSrcSet(movie.posterPath, POSTER_WIDTHS)}
-                      sizes={POSTER_SIZES}
-                      alt=""
-                      loading="lazy"
-                      className="w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
-                      No poster
-                    </div>
-                  )}
-                </button>
+      {movies !== null &&
+        movies.filter((m) => !removingIds.has(m.tmdbId)).length > 0 && (
+          <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+            {movies
+              .filter((m) => !removingIds.has(m.tmdbId))
+              .map((movie) => (
+                <div key={movie.tmdbId} className="mb-3 break-inside-avoid">
+                  <div className="card-elevated group relative overflow-hidden rounded-lg border">
+                    <button
+                      type="button"
+                      onClick={() => setOpenMovieId(movie.tmdbId)}
+                      className="focus-ring block w-full"
+                      aria-label={`View details for ${movie.title}`}
+                    >
+                      {movie.posterPath ? (
+                        <img
+                          src={tmdbImageUrl(movie.posterPath, 342)}
+                          srcSet={tmdbWidthSrcSet(
+                            movie.posterPath,
+                            POSTER_WIDTHS,
+                          )}
+                          sizes={POSTER_SIZES}
+                          alt=""
+                          loading="lazy"
+                          className="w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+                          No poster
+                        </div>
+                      )}
+                    </button>
 
-                {typeof movie.voteAverage === "number" && (
-                  <span className="absolute top-2 left-2 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-semibold shadow">
-                    {Math.round(movie.voteAverage * 10)}%
-                  </span>
-                )}
+                    {typeof movie.voteAverage === "number" && (
+                      <span className="absolute top-2 left-2 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-semibold shadow">
+                        {Math.round(movie.voteAverage * 10)}%
+                      </span>
+                    )}
 
-                {isOwner && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    aria-label={`Remove ${movie.title} from your recommendations`}
-                    className="absolute top-2 right-2 size-11 rounded-full shadow"
-                    onClick={() => {
-                      void removeFromRecommendations(userId, movie.tmdbId);
-                      announce(`Removed ${movie.title}`);
-                    }}
-                  >
-                    <XIcon />
-                  </Button>
-                )}
-              </div>
+                    {isOwner && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        aria-label={`Remove ${movie.title} from your recommendations`}
+                        className="absolute top-2 right-2 size-11 rounded-full shadow"
+                        onClick={() => void handleRemove(movie)}
+                      >
+                        <XIcon />
+                      </Button>
+                    )}
+                  </div>
 
-              <p className="mt-1 truncate font-medium">{movie.title}</p>
-              <p className="text-sm text-muted-foreground">
-                {movie.releaseYear ?? "Unknown"}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+                  <p className="mt-1 truncate font-medium">{movie.title}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {movie.releaseYear ?? "Unknown"}
+                  </p>
+                </div>
+              ))}
+          </div>
+        )}
 
       {!isOwner && (
         <div className="rounded-lg border bg-muted/40 p-4 text-center">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { StarIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -48,20 +49,26 @@ export function MovieRecommendButton({
       else setShowSignInHint(true);
       return;
     }
-    if (recommended) {
-      await removeFromRecommendations(user.uid, movie.tmdbMovieId);
-      setRecommended(false);
-      announce(`Removed ${movie.title} from your recommendations board`);
-    } else {
-      await addToRecommendations(user.uid, {
-        tmdbId: movie.tmdbMovieId,
-        title: movie.title,
-        posterPath: movie.posterPath,
-        releaseYear: movie.releaseYear,
-        voteAverage: movie.voteAverage,
-      });
-      setRecommended(true);
-      announce(`Added ${movie.title} to your recommendations board`);
+    const next = !recommended;
+    setRecommended(next);
+    announce(
+      `${next ? "Added" : "Removed"} ${movie.title} ${next ? "to" : "from"} your recommendations board`,
+    );
+    try {
+      if (next) {
+        await addToRecommendations(user.uid, {
+          tmdbId: movie.tmdbMovieId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          releaseYear: movie.releaseYear,
+          voteAverage: movie.voteAverage,
+        });
+      } else {
+        await removeFromRecommendations(user.uid, movie.tmdbMovieId);
+      }
+    } catch {
+      setRecommended(!next);
+      toast.error(`Couldn't update "${movie.title}". Please try again.`);
     }
   }
 

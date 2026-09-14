@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { EyeIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -49,20 +50,27 @@ export function MovieSeenButton({
       else setShowSignInHint(true);
       return;
     }
-    if (seen) {
-      await unmarkMovieSeen(user.uid, movie.tmdbMovieId);
-      setSeen(false);
-      announce(`Unmarked ${movie.title} as watched`);
-    } else {
-      await markMovieSeen(user.uid, {
-        tmdbId: movie.tmdbMovieId,
-        title: movie.title,
-        posterPath: movie.posterPath,
-        releaseYear: movie.releaseYear,
-        voteAverage: movie.voteAverage,
-      });
-      setSeen(true);
-      announce(`Marked ${movie.title} as watched`);
+    // Optimistic: flip the UI immediately, write in the background, and
+    // only touch the UI again to roll back if the write actually failed —
+    // success is silent, since the UI already shows the right state.
+    const next = !seen;
+    setSeen(next);
+    announce(`${next ? "Marked" : "Unmarked"} ${movie.title} as watched`);
+    try {
+      if (next) {
+        await markMovieSeen(user.uid, {
+          tmdbId: movie.tmdbMovieId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          releaseYear: movie.releaseYear,
+          voteAverage: movie.voteAverage,
+        });
+      } else {
+        await unmarkMovieSeen(user.uid, movie.tmdbMovieId);
+      }
+    } catch {
+      setSeen(!next);
+      toast.error(`Couldn't update "${movie.title}". Please try again.`);
     }
   }
 

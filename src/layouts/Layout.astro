@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { MobileNav } from "@/components/nav/MobileNav";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
+import { Toaster } from "@/components/ui/sonner";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { FilmIcon, BookmarkIcon, NetworkIcon } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
@@ -191,6 +192,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
       <slot />
     </main>
     <OnboardingCarousel client:idle />
+    <Toaster client:idle />
     <footer
       class="mx-auto max-w-6xl space-y-1 p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"
     >
