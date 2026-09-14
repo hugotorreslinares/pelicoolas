@@ -4,7 +4,6 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { PersonHeader } from "@/components/people/PersonHeader";
 import { PersonSearch } from "@/components/people/PersonSearch";
-import PersonInfo from "@/components/people/PersonInfo.astro";
 import { Filmography } from "@/components/filmography/Filmography";
 import { getPersonProfile } from "@/lib/tmdb/people";
 import { getFilmography } from "@/lib/tmdb/movies";
@@ -137,24 +136,19 @@ if (referer) {
 
   {
     profile && (
-      <div class="mt-4 flex flex-col gap-8 sm:flex-row">
-        <div class="min-w-0 space-y-8 sm:w-64 sm:shrink-0">
-          <PersonHeader
-            profile={profile}
-            department={department}
-            movieCount={movies.length}
-            client:load
-          />
-          <PersonInfo profile={profile} movieCount={movies.length} />
-        </div>
-        <div class="min-w-0 flex-1">
-          <Filmography
-            personId={profile.id}
-            personName={profile.name}
-            movies={movies}
-            client:load
-          />
-        </div>
+      <div class="mt-4 space-y-8">
+        <PersonHeader
+          profile={profile}
+          department={department}
+          movieCount={movies.length}
+          client:load
+        />
+        <Filmography
+          personId={profile.id}
+          personName={profile.name}
+          movies={movies}
+          client:load
+        />
       </div>
     )
   }
