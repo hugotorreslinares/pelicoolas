@@ -36,3 +36,17 @@ export interface Following {
   readonly targetPhotoURL: string | null;
   readonly since: string;
 }
+
+/**
+ * `users/{userId}/invites/{inviteId}` — an email invite sent by userId.
+ * Written server-side only (see `/api/invite`, `/api/invite/convert`) via
+ * the Admin SDK, same pattern as `notifications` — firestore.rules only
+ * governs the client reading its own invites, never writing them.
+ */
+export interface Invite {
+  readonly email: string;
+  readonly sentAt: string;
+  readonly status: "sent" | "converted";
+  readonly convertedUid: string | null;
+  readonly convertedAt: string | null;
+}

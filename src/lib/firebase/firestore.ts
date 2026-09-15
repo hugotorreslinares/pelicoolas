@@ -26,6 +26,7 @@ import type {
   Follower,
   Following,
   FollowRequest,
+  Invite,
   PublicProfile,
 } from "@/types/user";
 
@@ -419,11 +420,12 @@ export async function setSeenGenres(
 /** Upserts the public name/photo doc — call once per session after sign-in.
  *  `createdAt` is only ever set on the first sync, so it stays a true
  *  "joined" date rather than resetting on every sign-in. */
+/** Returns true the first time this uid is ever synced — used to gate one-time signup side effects (e.g. marking a pending invite as converted). */
 export async function syncPublicProfile(user: {
   readonly uid: string;
   readonly displayName: string | null;
   readonly photoURL: string | null;
-}): Promise<void> {
+}): Promise<boolean> {
   const ref = publicProfileRef(user.uid);
   const existing = await getDoc(ref);
   // Backfills createdAt for profiles synced before this field existed too —
@@ -442,6 +444,7 @@ export async function syncPublicProfile(user: {
     },
     { merge: true },
   );
+  return !hasCreatedAt;
 }
 
 export function subscribeToPublicProfile(
@@ -600,6 +603,20 @@ export function subscribeToFollowersList(
     collection(requireDb(), "users", userId, "followers"),
     (snapshot) => {
       callback(snapshot.docs.map((d) => d.data() as Follower));
+    },
+  );
+}
+
+// Read-only from the client — invites are written server-side only, via
+// /api/invite and /api/invite/convert (Admin SDK), see firestore.rules.
+export function subscribeToInvites(
+  userId: string,
+  callback: (invites: readonly Invite[]) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "invites"),
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as Invite));
     },
   );
 }

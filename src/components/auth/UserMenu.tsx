@@ -23,6 +23,11 @@ import {
 } from "@/lib/firebase/firestore";
 import { downloadJson } from "@/lib/download";
 import { announce } from "@/lib/a11y";
+import {
+  captureInviteFromUrl,
+  convertPendingInviteIfAny,
+} from "@/lib/inviteTracking";
+import { InviteDialog } from "@/components/social/InviteDialog";
 import { LoginButton } from "./LoginButton";
 
 export function UserMenu() {
@@ -30,10 +35,19 @@ export function UserMenu() {
   const [exporting, setExporting] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  // Runs once per page load regardless of auth state — an invite link can
+  // land here before the visitor has signed in at all.
+  useEffect(() => {
+    captureInviteFromUrl();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
-    void syncPublicProfile(user);
+    void syncPublicProfile(user).then((isNewUser) => {
+      if (isNewUser) void convertPendingInviteIfAny(() => user.getIdToken());
+    });
     return subscribeToFollowRequests(user.uid, (requests) =>
       setPendingRequests(requests.length),
     );
@@ -92,48 +106,58 @@ export function UserMenu() {
   }
 
   return (
-    <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <DropdownMenuTrigger className="focus-ring flex size-11 items-center justify-center rounded-full" />
-          }
-        >
-          <div className="relative">
-            <Avatar>
-              <AvatarImage
-                src={user.photoURL ?? undefined}
-                alt={user.displayName ?? ""}
-              />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <span className="absolute -right-1.5 -bottom-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-card bg-secondary px-0.5 text-[9px] font-semibold text-secondary-foreground">
-              {followerCount}
-            </span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          Account menu — {followerCount}{" "}
-          {followerCount === 1 ? "follower" : "followers"}
-        </TooltipContent>
-      </Tooltip>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem render={<a href={`/u/${user.uid}`} />}>
-          My profile{pendingRequests > 0 && ` (${pendingRequests})`}
-        </DropdownMenuItem>
-        <DropdownMenuItem render={<a href={`/board/${user.uid}`} />}>
-          My recommendations board
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          disabled={exporting}
-          onClick={() => void handleExport()}
-        >
-          {exporting ? "Exporting…" : "Export data"}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => void signOutUser()}>
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <InviteDialog
+        user={user}
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+      />
+      <DropdownMenu>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <DropdownMenuTrigger className="focus-ring flex size-11 items-center justify-center rounded-full" />
+            }
+          >
+            <div className="relative">
+              <Avatar>
+                <AvatarImage
+                  src={user.photoURL ?? undefined}
+                  alt={user.displayName ?? ""}
+                />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <span className="absolute -right-1.5 -bottom-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-card bg-secondary px-0.5 text-[9px] font-semibold text-secondary-foreground">
+                {followerCount}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            Account menu — {followerCount}{" "}
+            {followerCount === 1 ? "follower" : "followers"}
+          </TooltipContent>
+        </Tooltip>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem render={<a href={`/u/${user.uid}`} />}>
+            My profile{pendingRequests > 0 && ` (${pendingRequests})`}
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<a href={`/board/${user.uid}`} />}>
+            My recommendations board
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setInviteOpen(true)}>
+            Invite a friend
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={exporting}
+            onClick={() => void handleExport()}
+          >
+            {exporting ? "Exporting…" : "Export data"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => void signOutUser()}>
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }

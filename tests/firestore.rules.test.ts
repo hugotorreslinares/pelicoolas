@@ -373,3 +373,36 @@ describe("firestore.rules — notifications", () => {
     );
   });
 });
+
+describe("firestore.rules — invites", () => {
+  it("lets a user read their own invites, but never write them (server-only via Admin SDK)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/invites/i1"), {
+        email: "friend@example.com",
+        sentAt: "2026-01-01T00:00:00.000Z",
+        status: "sent",
+        convertedUid: null,
+        convertedAt: null,
+      });
+    });
+    const alice = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(getDoc(doc(alice, "users/alice/invites/i1")));
+    await assertFails(
+      updateDoc(doc(alice, "users/alice/invites/i1"), { status: "converted" }),
+    );
+  });
+
+  it("denies another authenticated user from reading it", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/invites/i1"), {
+        email: "friend@example.com",
+        sentAt: "2026-01-01T00:00:00.000Z",
+        status: "sent",
+        convertedUid: null,
+        convertedAt: null,
+      });
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDoc(doc(bob, "users/alice/invites/i1")));
+  });
+});

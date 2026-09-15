@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly TMDB_API_KEY: string;
+  readonly RESEND_API_KEY: string;
+  readonly RESEND_EMAIL_DOMAIN: string;
   /** Set only by the Playwright E2E harness to redirect TMDB calls at a local fixture server. Unset everywhere else, including production. */
   readonly TMDB_API_BASE_URL: string | undefined;
   readonly PUBLIC_FIREBASE_API_KEY: string;
