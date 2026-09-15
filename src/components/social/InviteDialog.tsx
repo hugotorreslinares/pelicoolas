@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { subscribeToInvites } from "@/lib/firebase/firestore";
 import type { Invite } from "@/types/user";
 
@@ -24,6 +25,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [invites, setInvites] = useState<readonly Invite[]>([]);
 
@@ -44,7 +46,7 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
           "content-type": "application/json",
           authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ email: trimmed }),
+        body: JSON.stringify({ email: trimmed, message: message.trim() }),
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as {
@@ -55,6 +57,7 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
       }
       toast.success(`Invite sent to ${trimmed}`);
       setEmail("");
+      setMessage("");
     } catch {
       toast.error("Couldn't send the invite. Please try again.");
     } finally {
@@ -71,19 +74,28 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
             Send an email invite to join Pelicoolas.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="space-y-2">
           <Input
             type="email"
             placeholder="friend@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") void handleSend();
-            }}
             disabled={sending}
           />
-          <Button disabled={sending} onClick={() => void handleSend()}>
-            {sending ? "Sending…" : "Send"}
+          <Textarea
+            placeholder="Add a personal message (optional)"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            maxLength={500}
+            rows={2}
+            disabled={sending}
+          />
+          <Button
+            className="w-full"
+            disabled={sending}
+            onClick={() => void handleSend()}
+          >
+            {sending ? "Sending…" : "Send invite"}
           </Button>
         </div>
         {invites.length > 0 && (

@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { createHash } from "node:crypto";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { verifyFirebaseIdToken } from "@/lib/firebase/verifyIdToken";
-import { getResendClient, inviteFromAddress } from "@/lib/resend";
+import { getResendClient } from "@/lib/resend";
 import { errorResponse, jsonResponse, logApiError } from "@/lib/api";
 import { isRateLimited } from "@/lib/rateLimit";
 import type { Invite } from "@/types/user";
@@ -60,6 +60,9 @@ export const POST: APIRoute = async ({ request }) => {
   if (!EMAIL_RE.test(email)) {
     return errorResponse("Invalid email address", 400);
   }
+  const rawMessage = (body as { message?: unknown }).message;
+  const message =
+    typeof rawMessage === "string" ? rawMessage.trim().slice(0, 500) : "";
 
   const db = getAdminDb();
   const id = inviteId(email);
@@ -77,15 +80,18 @@ export const POST: APIRoute = async ({ request }) => {
 
     const resend = getResendClient();
     const inviteUrl = `https://pelicoolas.com/?invite=${id}&ref=${inviterUid}`;
-    const senderLabel = inviterName
-      ? `${inviterName} te invitó`
-      : "Te invitaron";
     const { error } = await resend.emails.send(
       {
-        from: inviteFromAddress(),
         to: [email],
-        subject: `${senderLabel} a Pelicoolas`,
-        html: `<p>${senderLabel} a usar <strong>Pelicoolas</strong>, un tracker de filmografías.</p><p><a href="${inviteUrl}">Unite acá</a></p>`,
+        template: {
+          id: "invitation-email",
+          variables: {
+            inviter_name: inviterName ?? "Alguien",
+            app_url: "https://pelicoolas.com",
+            invite_url: inviteUrl,
+            ...(message ? { invitation_message: message } : {}),
+          },
+        },
       },
       { idempotencyKey: `invite/${inviterUid}/${id}` },
     );

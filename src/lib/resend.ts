@@ -11,7 +11,3 @@ export function getResendClient(): Resend {
   client = new Resend(apiKey);
   return client;
 }
-
-export function inviteFromAddress(): string {
-  return `Pelicoolas <invites@${import.meta.env.RESEND_EMAIL_DOMAIN}>`;
-}
