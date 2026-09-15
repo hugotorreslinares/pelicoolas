@@ -67,6 +67,14 @@ const navLinkClass = (active: boolean) =>
       : "text-muted-foreground hover:bg-muted hover:text-foreground"
   }`;
 
+// Desktop sidebar: icon+text row instead of the header's icon-only pill.
+const sidebarLinkClass = (active: boolean) =>
+  `focus-ring flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+    active
+      ? "bg-foreground text-background"
+      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+  }`;
+
 const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
   locale === "es" ? "es-ES" : "en-US",
   { dateStyle: "medium", timeStyle: "short" },
@@ -146,72 +154,66 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
     </div>
     <div class="film-perforations film-perforations-right" aria-hidden="true">
     </div>
-    <header class="border-b">
-      <div
-        class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-2 p-4 sm:px-6 lg:px-8"
+    <div class="md:flex">
+      <aside
+        class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between overflow-y-auto border-r p-4 md:flex"
       >
-        <a
-          href="/"
-          class="focus-ring flex items-center gap-2 text-lg font-bold tracking-tight"
-        >
-          <img src="/logo.png" alt="" width="32" height="32" class="size-8" />
-          PELICOOLAS
-        </a>
-        <div class="flex items-center gap-2 sm:gap-4">
-          <nav
-            aria-label="Main"
-            class="hidden items-center gap-1 rounded-full border p-1 sm:flex"
+        <div class="space-y-6">
+          <a
+            href="/"
+            class="focus-ring flex items-center gap-2 text-lg font-bold tracking-tight"
           >
-            <HeaderSearch
-              className={navLinkClass(isSearchActive)}
-              client:idle
-            />
+            <img src="/logo.png" alt="" width="32" height="32" class="size-8" />
+            PELICOOLAS
+          </a>
+          <HeaderSearch
+            className={sidebarLinkClass(isSearchActive)}
+            client:idle
+          />
+          <nav aria-label="Main" class="flex flex-col gap-1">
             <a
               href="/filmographies"
-              class={navLinkClass(isFilmographiesActive)}
+              class={sidebarLinkClass(isFilmographiesActive)}
               aria-current={isFilmographiesActive ? "page" : undefined}
-              title={t.nav.myFilmographies}
             >
               <FilmIcon className="size-4" />
-              <span class="sr-only">{t.nav.myFilmographies}</span>
+              {t.nav.myFilmographies}
             </a>
             <a
               href="/watched"
-              class={navLinkClass(isWatchedActive)}
+              class={sidebarLinkClass(isWatchedActive)}
               aria-current={isWatchedActive ? "page" : undefined}
-              title={t.nav.watched}
             >
               <EyeIcon className="size-4" />
-              <span class="sr-only">{t.nav.watched}</span>
+              {t.nav.watched}
             </a>
             <a
               href="/watchlist"
-              class={navLinkClass(isWatchlistActive)}
+              class={sidebarLinkClass(isWatchlistActive)}
               aria-current={isWatchlistActive ? "page" : undefined}
-              title={t.nav.watchlist}
             >
               <BookmarkIcon className="size-4" />
-              <span class="sr-only">{t.nav.watchlist}</span>
+              {t.nav.watchlist}
             </a>
             <a
               href="/connections"
-              class={navLinkClass(isConnectionsActive)}
+              class={sidebarLinkClass(isConnectionsActive)}
               aria-current={isConnectionsActive ? "page" : undefined}
-              title={t.nav.connections}
             >
               <NetworkIcon className="size-4" />
-              <span class="sr-only">{t.nav.connections}</span>
+              {t.nav.connections}
             </a>
             <a
               href="/friends"
-              class={navLinkClass(isFriendsActive)}
+              class={sidebarLinkClass(isFriendsActive)}
               aria-current={isFriendsActive ? "page" : undefined}
-              title={t.nav.friends}
             >
               <UsersIcon className="size-4" />
-              <span class="sr-only">{t.nav.friends}</span>
+              {t.nav.friends}
             </a>
           </nav>
+        </div>
+        <div class="flex items-center gap-1 border-t pt-4">
           <NotificationBell client:idle />
           <LocaleToggle
             locale={locale}
@@ -220,28 +222,113 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
           />
           <ThemeToggle label={t.account.toggleTheme} client:idle />
           <UserMenu locale={locale} client:idle />
-          <MobileNav locale={locale} client:idle />
         </div>
-      </div>
-    </header>
-    <main id="main-content" class="mx-auto max-w-6xl p-4 sm:px-6 lg:px-8">
-      <slot />
-    </main>
-    <OnboardingCarousel locale={locale} client:idle />
-    <Toaster client:idle />
-    <footer
-      class="mx-auto max-w-6xl space-y-2 border-t p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"
-    >
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-        <a
-          href="/privacy"
-          class="focus-ring hover:text-foreground hover:underline"
-          >{t.footer.privacyLink}</a
+      </aside>
+      <div class="flex-1">
+        <header class="border-b md:hidden">
+          <div
+            class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-2 p-4 sm:px-6 lg:px-8"
+          >
+            <a
+              href="/"
+              class="focus-ring flex items-center gap-2 text-lg font-bold tracking-tight"
+            >
+              <img
+                src="/logo.png"
+                alt=""
+                width="32"
+                height="32"
+                class="size-8"
+              />
+              PELICOOLAS
+            </a>
+            <div class="flex items-center gap-2 sm:gap-4">
+              <nav
+                aria-label="Main"
+                class="hidden items-center gap-1 rounded-full border p-1 sm:flex"
+              >
+                <HeaderSearch
+                  className={navLinkClass(isSearchActive)}
+                  client:idle
+                />
+                <a
+                  href="/filmographies"
+                  class={navLinkClass(isFilmographiesActive)}
+                  aria-current={isFilmographiesActive ? "page" : undefined}
+                  title={t.nav.myFilmographies}
+                >
+                  <FilmIcon className="size-4" />
+                  <span class="sr-only">{t.nav.myFilmographies}</span>
+                </a>
+                <a
+                  href="/watched"
+                  class={navLinkClass(isWatchedActive)}
+                  aria-current={isWatchedActive ? "page" : undefined}
+                  title={t.nav.watched}
+                >
+                  <EyeIcon className="size-4" />
+                  <span class="sr-only">{t.nav.watched}</span>
+                </a>
+                <a
+                  href="/watchlist"
+                  class={navLinkClass(isWatchlistActive)}
+                  aria-current={isWatchlistActive ? "page" : undefined}
+                  title={t.nav.watchlist}
+                >
+                  <BookmarkIcon className="size-4" />
+                  <span class="sr-only">{t.nav.watchlist}</span>
+                </a>
+                <a
+                  href="/connections"
+                  class={navLinkClass(isConnectionsActive)}
+                  aria-current={isConnectionsActive ? "page" : undefined}
+                  title={t.nav.connections}
+                >
+                  <NetworkIcon className="size-4" />
+                  <span class="sr-only">{t.nav.connections}</span>
+                </a>
+                <a
+                  href="/friends"
+                  class={navLinkClass(isFriendsActive)}
+                  aria-current={isFriendsActive ? "page" : undefined}
+                  title={t.nav.friends}
+                >
+                  <UsersIcon className="size-4" />
+                  <span class="sr-only">{t.nav.friends}</span>
+                </a>
+              </nav>
+              <NotificationBell client:idle />
+              <LocaleToggle
+                locale={locale}
+                label={t.locale.switchLanguage}
+                client:idle
+              />
+              <ThemeToggle label={t.account.toggleTheme} client:idle />
+              <UserMenu locale={locale} client:idle />
+              <MobileNav locale={locale} client:idle />
+            </div>
+          </div>
+        </header>
+        <main id="main-content" class="mx-auto max-w-6xl p-4 sm:px-6 lg:px-8">
+          <slot />
+        </main>
+        <OnboardingCarousel locale={locale} client:idle />
+        <Toaster client:idle />
+        <footer
+          class="mx-auto max-w-6xl space-y-2 border-t p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"
         >
-        <span>{t.footer.copyright(new Date().getFullYear())}</span>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <a
+              href="/privacy"
+              class="focus-ring hover:text-foreground hover:underline"
+              >{t.footer.privacyLink}</a
+            >
+            <span>{t.footer.copyright(new Date().getFullYear())}</span>
+          </div>
+          <p>{t.footer.tmdbAttribution}</p>
+          {showDeployInfo && <p>{t.footer.deployed(deployedAt)}</p>}
+        </footer>
       </div>
-      <p>{t.footer.tmdbAttribution}</p>
-      {showDeployInfo && <p>{t.footer.deployed(deployedAt)}</p>}
-    </footer>
+    </div>
   </body>
 </html>
