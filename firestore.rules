@@ -80,7 +80,18 @@ service cloud.firestore {
       // rules entirely) — this rule only governs the client: reading your
       // own notifications and marking them read/deleting them.
       match /notifications/{notificationId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+        // A recommendation notification is written by the RECOMMENDER, not
+        // the owner (fan-out to every follower on their own client — no
+        // Cloud Functions). Only someone userId actually follows can create
+        // one, and only as themselves (recommenderId can't be spoofed).
+        allow create: if request.auth != null && (
+          request.auth.uid == userId ||
+          (
+            request.resource.data.recommenderId == request.auth.uid &&
+            exists(/databases/$(database)/documents/users/$(userId)/following/$(request.auth.uid))
+          )
+        );
       }
 
       // Public by design — this is the shareable recommendations board

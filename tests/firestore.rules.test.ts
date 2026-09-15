@@ -372,6 +372,63 @@ describe("firestore.rules — notifications", () => {
       updateDoc(doc(bob, "users/alice/notifications/n1"), { read: true }),
     );
   });
+
+  it("lets someone alice follows create a recommendation notification for her", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/following/bob"), {
+        targetId: "bob",
+        since: "2026-01-01T00:00:00.000Z",
+      });
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(
+      setDoc(doc(bob, "users/alice/notifications/n2"), {
+        type: "recommendation",
+        recommenderId: "bob",
+        recommenderName: "Bob",
+        movieId: 1,
+        movieTitle: "Dune: Part Three",
+        posterPath: null,
+        read: false,
+      }),
+    );
+  });
+
+  it("denies a non-follower from creating a recommendation notification", async () => {
+    const carol = testEnv.authenticatedContext("carol").firestore();
+    await assertFails(
+      setDoc(doc(carol, "users/alice/notifications/n3"), {
+        type: "recommendation",
+        recommenderId: "carol",
+        recommenderName: "Carol",
+        movieId: 1,
+        movieTitle: "Dune: Part Three",
+        posterPath: null,
+        read: false,
+      }),
+    );
+  });
+
+  it("denies a follower from spoofing recommenderId as someone else", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/following/bob"), {
+        targetId: "bob",
+        since: "2026-01-01T00:00:00.000Z",
+      });
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      setDoc(doc(bob, "users/alice/notifications/n4"), {
+        type: "recommendation",
+        recommenderId: "someone-else",
+        recommenderName: "Bob",
+        movieId: 1,
+        movieTitle: "Dune: Part Three",
+        posterPath: null,
+        read: false,
+      }),
+    );
+  });
 });
 
 describe("firestore.rules — invites", () => {

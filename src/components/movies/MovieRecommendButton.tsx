@@ -15,6 +15,7 @@ import {
   isInRecommendations,
   removeFromRecommendations,
 } from "@/lib/firebase/firestore";
+import { notifyFollowersOfRecommendation } from "@/lib/firebase/notifications";
 import type { TrendingMovie } from "@/types/movie";
 
 interface MovieRecommendButtonProps {
@@ -71,6 +72,14 @@ export function MovieRecommendButton({
           voteAverage: movie.voteAverage,
           mediaType: movie.mediaType,
         });
+        // Best-effort, never blocks the toggle itself on a slow/failed
+        // fan-out — the recommendation is already saved either way.
+        void notifyFollowersOfRecommendation(user, {
+          tmdbId: movie.tmdbMovieId,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          mediaType: movie.mediaType,
+        }).catch(() => {});
       } else {
         await removeFromRecommendations(
           user.uid,

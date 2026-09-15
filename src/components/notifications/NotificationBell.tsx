@@ -22,12 +22,12 @@ import {
   subscribeToNotifications,
 } from "@/lib/firebase/notifications";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
-import type { ReleaseNotification } from "@/types/notifications";
+import type { AppNotification } from "@/types/notifications";
 
 export function NotificationBell() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<
-    readonly ReleaseNotification[]
+    readonly AppNotification[]
   >([]);
   // Distinguishes "still waiting on the first snapshot" from "confirmed
   // empty" — notifications itself starts at [] either way, so without this
@@ -87,7 +87,7 @@ export function NotificationBell() {
       </Tooltip>
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>New releases</DropdownMenuLabel>
+          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {!loaded && (
             <div className="space-y-2 p-2" role="status">
@@ -106,13 +106,21 @@ export function NotificationBell() {
           {loaded && notifications.length === 0 && (
             <p className="p-2 text-sm text-muted-foreground">
               No notifications yet — you'll hear about it when someone you
-              follow has a new movie out.
+              follow has a new movie out, or recommends something.
             </p>
           )}
           {notifications.map((n) => (
             <DropdownMenuItem
               key={n.id}
-              render={<a href={`/person/${n.personId}`} />}
+              render={
+                <a
+                  href={
+                    n.type === "new-release"
+                      ? `/person/${n.personId}`
+                      : `/u/${n.recommenderId}`
+                  }
+                />
+              }
               className="items-start gap-2"
               onClick={() => {
                 if (!n.read) void markNotificationRead(user.uid, n.id);
@@ -129,7 +137,9 @@ export function NotificationBell() {
               )}
               <span className="flex flex-col gap-0.5 text-left">
                 <span className="text-sm font-medium">
-                  {n.personName} has a new movie
+                  {n.type === "new-release"
+                    ? `${n.personName} has a new movie`
+                    : `${n.recommenderName} recommended a ${n.mediaType === "tv" ? "show" : "movie"}`}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   {n.movieTitle}
