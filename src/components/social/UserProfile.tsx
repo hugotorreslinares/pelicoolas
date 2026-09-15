@@ -289,7 +289,7 @@ function ProfileSection<M extends ProfileMovie>({
       </button>
 
       {open && movies === null && (
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[2/3] w-full rounded-lg" />
           ))}
@@ -301,7 +301,7 @@ function ProfileSection<M extends ProfileMovie>({
       )}
 
       {open && movies !== null && movies.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
           {movies.map((movie) => (
             <button
               key={movie.tmdbId}

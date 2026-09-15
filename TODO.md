@@ -94,7 +94,7 @@ Pedido: reemplazar el header actual (nav horizontal con iconos + dropdown `Mobil
 
 ### Plan por fases (cada una shippable sola, sin romper lo anterior)
 
-- [ ] **Fase 0 — Grid de 2 columnas en mobile** (standalone, cero riesgo, se puede hacer primero y ya) — cambiar `grid-cols-2` fijo en mobile en `WatchedPage.tsx`/`WatchlistPage.tsx`/`Filmography.tsx` (hoy varían entre 2-3 según página) en vez de esperar al resto del rediseño.
+- [x] **Fase 0 — Grid de 2 columnas en mobile** (2026-09-15) — `WatchedPage.tsx`/`WatchlistPage.tsx` ya usaban `grid-cols-2`; único inconsistente era `UserProfile.tsx` (`/u/{userId}`) con `grid-cols-3`, corregido a `grid-cols-2`.
 - [ ] **Fase 1 — Shell del sidebar desktop, sin filtros todavía** — nuevo layout (`SidebarLayout.astro`, coexiste con `Layout.astro`, no lo reemplaza todavía) con: logo, búsqueda integrada, nav principal con texto+ícono (Mi Biblioteca/Watched/Watchlist/Connections/Friends), notificaciones+perfil al pie. Reemplaza el header actual **globalmente** (la nav principal es igual en todas las páginas, sin filtros involucrados) — este paso sí se puede hacer de una sola vez con bajo riesgo.
 - [ ] **Fase 2 — Drawer mobile** — reemplaza el dropdown de `MobileNav.tsx` por un panel deslizante desde la izquierda (mismo contenido que el sidebar desktop), con backdrop y focus-trap (a11y — hoy el dropdown no lo necesita, un drawer full-height sí).
 - [ ] **Fase 3 — Slot de filtros + migrar `/watched` primero** (page piloto, es la que mostraron los mockups) — agregar `<slot name="filters">` al sidebar, mover el panel de año+género de `WatchedPage.tsx` ahí vía `client:load`. Probar a fondo (navegador real) antes de tocar otra página.
