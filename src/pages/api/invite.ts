@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { createHash } from "node:crypto";
-import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
+import { verifyFirebaseIdToken } from "@/lib/firebase/verifyIdToken";
 import { getResendClient, inviteFromAddress } from "@/lib/resend";
 import { errorResponse, jsonResponse, logApiError } from "@/lib/api";
 import { isRateLimited } from "@/lib/rateLimit";
@@ -32,9 +33,9 @@ export const POST: APIRoute = async ({ request }) => {
   let inviterUid: string;
   let inviterName: string | null;
   try {
-    const decoded = await getAdminAuth().verifyIdToken(token);
+    const decoded = await verifyFirebaseIdToken(token);
     inviterUid = decoded.uid;
-    inviterName = (decoded.name as string | undefined) ?? null;
+    inviterName = decoded.name;
   } catch {
     return errorResponse("Invalid or expired session", 401);
   }

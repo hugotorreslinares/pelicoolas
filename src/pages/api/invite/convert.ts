@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
-import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
+import { verifyFirebaseIdToken } from "@/lib/firebase/verifyIdToken";
 import { errorResponse, jsonResponse, logApiError } from "@/lib/api";
 import type { Invite } from "@/types/user";
 
@@ -18,7 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   let newUserUid: string;
   try {
-    newUserUid = (await getAdminAuth().verifyIdToken(token)).uid;
+    newUserUid = (await verifyFirebaseIdToken(token)).uid;
   } catch {
     return errorResponse("Invalid or expired session", 401);
   }
