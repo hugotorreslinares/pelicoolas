@@ -29,9 +29,15 @@ import {
 } from "@/lib/inviteTracking";
 import { sendWelcomeEmail } from "@/lib/welcomeEmail";
 import { InviteDialog } from "@/components/social/InviteDialog";
+import { getDictionary, type Locale } from "@/i18n";
 import { LoginButton } from "./LoginButton";
 
-export function UserMenu() {
+interface UserMenuProps {
+  readonly locale: Locale;
+}
+
+export function UserMenu({ locale }: UserMenuProps) {
+  const t = getDictionary(locale);
   const { user, loading } = useAuth();
   const [exporting, setExporting] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -70,7 +76,7 @@ export function UserMenu() {
       </Skeleton>
     );
   }
-  if (!user) return <LoginButton />;
+  if (!user) return <LoginButton locale={locale} />;
 
   const initials = user.displayName?.slice(0, 1).toUpperCase() ?? "?";
 
@@ -93,15 +99,15 @@ export function UserMenu() {
         data,
         preOpenedWindow,
       );
-      announce("Export downloaded");
+      announce(t.account.exportDownloaded);
     } catch (error) {
       preOpenedWindow?.close();
       // No app-wide toast system to hang this off of, and `announce` alone
       // (screen readers only) is exactly the kind of silent failure that
       // made this bug hard to notice in the first place — an alert is
       // heavy-handed but guarantees a sighted user actually sees it too.
-      announce("Couldn't export your data. Please try again.");
-      window.alert("Couldn't export your data. Please try again.");
+      announce(t.account.exportFailed);
+      window.alert(t.account.exportFailed);
       Sentry.captureException(error, { tags: { action: "export-data" } });
     } finally {
       setExporting(false);
@@ -136,28 +142,28 @@ export function UserMenu() {
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            Account menu — {followerCount}{" "}
-            {followerCount === 1 ? "follower" : "followers"}
+            {t.account.accountMenu(followerCount)}
           </TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuItem render={<a href={`/u/${user.uid}`} />}>
-            My profile{pendingRequests > 0 && ` (${pendingRequests})`}
+            {t.account.myProfile}
+            {pendingRequests > 0 && ` (${pendingRequests})`}
           </DropdownMenuItem>
           <DropdownMenuItem render={<a href={`/board/${user.uid}`} />}>
-            My recommendations board
+            {t.account.myBoard}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setInviteOpen(true)}>
-            Invite a friend
+            {t.account.inviteFriend}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={exporting}
             onClick={() => void handleExport()}
           >
-            {exporting ? "Exporting…" : "Export data"}
+            {exporting ? t.account.exporting : t.account.exportData}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => void signOutUser()}>
-            Sign out
+            {t.account.signOut}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

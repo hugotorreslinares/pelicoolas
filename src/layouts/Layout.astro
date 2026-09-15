@@ -7,9 +7,11 @@ import { MobileNav } from "@/components/nav/MobileNav";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { Toaster } from "@/components/ui/sonner";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
+import { LocaleToggle } from "@/components/locale/LocaleToggle";
 import { FilmIcon, BookmarkIcon, NetworkIcon, EyeIcon } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
+import { getDictionary } from "@/i18n";
 
 interface Props {
   title?: string;
@@ -35,6 +37,9 @@ const {
 const canonicalURL = new URL(canonicalPath, Astro.site);
 const ogImageURL = new URL(image, Astro.site);
 
+const locale = Astro.locals.locale;
+const t = getDictionary(locale);
+
 // /filmographies mirrors / (same <Dashboard>), so both should read as "on
 // the My Filmographies tab" — otherwise landing on / shows no active state
 // at all.
@@ -55,14 +60,14 @@ const navLinkClass = (active: boolean) =>
       : "text-muted-foreground hover:bg-muted hover:text-foreground"
   }`;
 
-const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
+const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
+  locale === "es" ? "es-ES" : "en-US",
+  { dateStyle: "medium", timeStyle: "short" },
+);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -158,50 +163,55 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
               href="/filmographies"
               class={navLinkClass(isFilmographiesActive)}
               aria-current={isFilmographiesActive ? "page" : undefined}
-              title="My Filmographies"
+              title={t.nav.myFilmographies}
             >
               <FilmIcon className="size-4" />
-              <span class="sr-only">My Filmographies</span>
+              <span class="sr-only">{t.nav.myFilmographies}</span>
             </a>
             <a
               href="/watched"
               class={navLinkClass(isWatchedActive)}
               aria-current={isWatchedActive ? "page" : undefined}
-              title="Watched"
+              title={t.nav.watched}
             >
               <EyeIcon className="size-4" />
-              <span class="sr-only">Watched</span>
+              <span class="sr-only">{t.nav.watched}</span>
             </a>
             <a
               href="/watchlist"
               class={navLinkClass(isWatchlistActive)}
               aria-current={isWatchlistActive ? "page" : undefined}
-              title="Watchlist"
+              title={t.nav.watchlist}
             >
               <BookmarkIcon className="size-4" />
-              <span class="sr-only">Watchlist</span>
+              <span class="sr-only">{t.nav.watchlist}</span>
             </a>
             <a
               href="/connections"
               class={navLinkClass(isConnectionsActive)}
               aria-current={isConnectionsActive ? "page" : undefined}
-              title="Connections"
+              title={t.nav.connections}
             >
               <NetworkIcon className="size-4" />
-              <span class="sr-only">Connections</span>
+              <span class="sr-only">{t.nav.connections}</span>
             </a>
           </nav>
           <NotificationBell client:idle />
-          <ThemeToggle client:idle />
-          <UserMenu client:idle />
-          <MobileNav client:idle />
+          <LocaleToggle
+            locale={locale}
+            label={t.locale.switchLanguage}
+            client:idle
+          />
+          <ThemeToggle label={t.account.toggleTheme} client:idle />
+          <UserMenu locale={locale} client:idle />
+          <MobileNav locale={locale} client:idle />
         </div>
       </div>
     </header>
     <main id="main-content" class="mx-auto max-w-6xl p-4 sm:px-6 lg:px-8">
       <slot />
     </main>
-    <OnboardingCarousel client:idle />
+    <OnboardingCarousel locale={locale} client:idle />
     <Toaster client:idle />
     <footer
       class="mx-auto max-w-6xl space-y-2 border-t p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"
@@ -210,14 +220,12 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString("en-US", {
         <a
           href="/privacy"
           class="focus-ring hover:text-foreground hover:underline"
-          >Privacy &amp; Data Policy</a
+          >{t.footer.privacyLink}</a
         >
-        <span>© {new Date().getFullYear()} Pelicoolas</span>
+        <span>{t.footer.copyright(new Date().getFullYear())}</span>
       </div>
-      <p>
-        This product uses the TMDB API but is not endorsed or certified by TMDB.
-      </p>
-      {showDeployInfo && <p>Deployed {deployedAt}</p>}
+      <p>{t.footer.tmdbAttribution}</p>
+      {showDeployInfo && <p>{t.footer.deployed(deployedAt)}</p>}
     </footer>
   </body>
 </html>

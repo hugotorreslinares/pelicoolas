@@ -1,4 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
+import { LOCALE_COOKIE, resolveLocale } from "@/i18n";
 
 /**
  * Google's own auth/identity domains are wildcarded broadly on purpose: the
@@ -39,7 +40,12 @@ const CSP = [
   "form-action 'self'",
 ].join("; ");
 
-export const onRequest = defineMiddleware(async (_context, next) => {
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.locals.locale = resolveLocale(
+    context.cookies.get(LOCALE_COOKIE)?.value,
+    context.request.headers.get("accept-language"),
+  );
+
   const response = await next();
   response.headers.set("Content-Security-Policy", CSP);
   response.headers.set("X-Frame-Options", "DENY");

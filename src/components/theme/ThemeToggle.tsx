@@ -6,7 +6,11 @@ import {
 } from "@/components/ui/tooltip";
 import { MoonIcon, SunIcon } from "lucide-react";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  readonly label: string;
+}
+
+export function ThemeToggle({ label }: ThemeToggleProps) {
   function toggle() {
     const isDark = document.documentElement.classList.toggle("dark");
     localStorage.setItem("theme", isDark ? "dark" : "light");
@@ -21,7 +25,7 @@ export function ThemeToggle() {
             variant="ghost"
             size="icon"
             className="size-11 rounded-full"
-            aria-label="Toggle theme"
+            aria-label={label}
             onClick={toggle}
           />
         }
@@ -29,7 +33,7 @@ export function ThemeToggle() {
         <SunIcon className="dark:hidden" />
         <MoonIcon className="hidden dark:block" />
       </TooltipTrigger>
-      <TooltipContent>Toggle theme</TooltipContent>
+      <TooltipContent>{label}</TooltipContent>
     </Tooltip>
   );
 }

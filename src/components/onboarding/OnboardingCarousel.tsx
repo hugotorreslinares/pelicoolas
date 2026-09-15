@@ -7,43 +7,17 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getDictionary, type Locale } from "@/i18n";
 
 const STORAGE_KEY = "filmo:onboardingSeen";
 
-interface Slide {
-  readonly kicker: string;
-  readonly title: string;
-  readonly description: string;
+interface OnboardingCarouselProps {
+  readonly locale: Locale;
 }
 
-const SLIDES: readonly Slide[] = [
-  {
-    kicker: "Pelicoolas",
-    title: "¿Cuántas películas de tu actor favorito realmente viste?",
-    description:
-      "Seguí a los actores y directores que te gustan, marcá lo que ya viste, y descubrí qué te falta.",
-  },
-  {
-    kicker: "Filmografías",
-    title: "Seguí actores y directores. Marcá lo que ya viste.",
-    description:
-      "Cada persona que seguís tiene su propio progreso — sabés exactamente cuánto te falta para completar su filmografía.",
-  },
-  {
-    kicker: "Watchlist & logros",
-    title: "Guardá lo que querés ver. Desbloqueá insignias.",
-    description:
-      "Tu watchlist personal, y una recompensa cada vez que completás la filmografía de alguien.",
-  },
-  {
-    kicker: "Empezá gratis",
-    title: "Tu progreso de cine, siempre visible.",
-    description:
-      "Sin redes, sin ruido. Solo vos, tus filmografías, y lo que te falta ver.",
-  },
-];
-
-export function OnboardingCarousel() {
+export function OnboardingCarousel({ locale }: OnboardingCarouselProps) {
+  const t = getDictionary(locale);
+  const slides = t.onboarding.slides;
   const [open, setOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
 
@@ -71,8 +45,8 @@ export function OnboardingCarousel() {
     }
   }
 
-  const slide = SLIDES[slideIndex];
-  const isLastSlide = slideIndex === SLIDES.length - 1;
+  const slide = slides[slideIndex];
+  const isLastSlide = slideIndex === slides.length - 1;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -90,8 +64,12 @@ export function OnboardingCarousel() {
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex gap-1.5" role="tablist" aria-label="Progreso">
-            {SLIDES.map((s, i) => (
+          <div
+            className="flex gap-1.5"
+            role="tablist"
+            aria-label={t.onboarding.progressLabel}
+          >
+            {slides.map((s, i) => (
               <span
                 key={s.kicker}
                 className={cn(
@@ -109,7 +87,7 @@ export function OnboardingCarousel() {
                 : setSlideIndex((i) => i + 1)
             }
           >
-            {isLastSlide ? "Continuar" : "Siguiente"}
+            {isLastSlide ? t.onboarding.continue : t.onboarding.next}
           </Button>
         </div>
       </DialogContent>

@@ -20,5 +20,12 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
+declare namespace App {
+  interface Locals {
+    /** Set by middleware.ts — cookie override, else Accept-Language, else DEFAULT_LOCALE. */
+    locale: import("./i18n").Locale;
+  }
+}
+
 /** ISO timestamp captured at build time, injected via vite.define in astro.config.mjs. */
 declare const __BUILD_TIME__: string;
