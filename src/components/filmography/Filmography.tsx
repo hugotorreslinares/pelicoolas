@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MovieItem } from "./MovieItem";
@@ -67,6 +68,12 @@ export function Filmography({
   const [filter, setFilter] = useState<FilmographyFilter>("all");
   const [order, setOrder] = useState<SortOrder>("newest");
   const [showSignInHint, setShowSignInHint] = useState(false);
+  // See WatchedPage: portal the filter to the desktop sidebar's slot, one
+  // React state, no cross-island sync needed.
+  const [filtersSlot, setFiltersSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setFiltersSlot(document.getElementById("page-filters-slot"));
+  }, []);
   // Neither seenIds nor watchlist distinguish "still loading" from
   // "confirmed empty" on their own (both start at empty Sets) — without
   // these, the page briefly claims 0 movies watched and no bookmarks,
@@ -300,8 +307,16 @@ export function Filmography({
         loading={statusLoading}
       />
 
+      {filtersSlot &&
+        createPortal(
+          <FilmographyFilters value={filter} onChange={setFilter} />,
+          filtersSlot,
+        )}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <FilmographyFilters value={filter} onChange={setFilter} />
+        <div className="md:hidden">
+          <FilmographyFilters value={filter} onChange={setFilter} />
+        </div>
         <Button
           size="sm"
           variant="ghost"

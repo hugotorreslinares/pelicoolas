@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -92,6 +93,12 @@ export function WatchlistPage() {
   const [watchedFilter, setWatchedFilter] = useState<WatchedFilter>("all");
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovie, setOpenMovie] = useState<WatchlistMovie | null>(null);
+  // See WatchedPage: portal the filter controls to the desktop sidebar's
+  // slot, one React state, no cross-island sync needed.
+  const [filtersSlot, setFiltersSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setFiltersSlot(document.getElementById("page-filters-slot"));
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -276,6 +283,71 @@ export function WatchlistPage() {
     setOpenMovie(pick);
   }
 
+  const watchedFilterGroup = (
+    <div className="flex gap-1 rounded-full border p-1">
+      <Button
+        size="sm"
+        variant={watchedFilter === "all" ? "default" : "ghost"}
+        onClick={() => setWatchedFilter("all")}
+      >
+        All ({movies.length})
+      </Button>
+      <Button
+        size="sm"
+        variant={watchedFilter === "unwatched" ? "default" : "ghost"}
+        onClick={() => setWatchedFilter("unwatched")}
+      >
+        To watch ({unwatchedCount})
+      </Button>
+      <Button
+        size="sm"
+        variant={watchedFilter === "watched" ? "default" : "ghost"}
+        onClick={() => setWatchedFilter("watched")}
+      >
+        Watched ({watchedCount})
+      </Button>
+    </div>
+  );
+
+  const sortSelect = (
+    <Select
+      value={order}
+      onValueChange={(value) => setOrder(value as SortOrder)}
+    >
+      <SelectTrigger size="sm" aria-label="Sort by">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="newest">Newest first</SelectItem>
+        <SelectItem value="oldest">Oldest first</SelectItem>
+        <SelectItem value="rating">Highest rated</SelectItem>
+        <SelectItem value="alphabetical">A–Z</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+
+  const genreChips = availableGenres.length > 0 && (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        size="sm"
+        variant={genreFilter === ALL_GENRES ? "default" : "outline"}
+        onClick={() => setGenreFilter(ALL_GENRES)}
+      >
+        All genres
+      </Button>
+      {availableGenres.map((id) => (
+        <Button
+          key={id}
+          size="sm"
+          variant={genreFilter === id ? "default" : "outline"}
+          onClick={() => setGenreFilter(id)}
+        >
+          {genreName(id) ?? "Other"}
+        </Button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <div className="space-y-1">
@@ -304,46 +376,21 @@ export function WatchlistPage() {
         </span>
       </Button>
 
+      {filtersSlot &&
+        createPortal(
+          <div className="flex flex-col gap-3">
+            {watchedFilterGroup}
+            {sortSelect}
+            {genreChips}
+          </div>,
+          filtersSlot,
+        )}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-1 rounded-full border p-1">
-          <Button
-            size="sm"
-            variant={watchedFilter === "all" ? "default" : "ghost"}
-            onClick={() => setWatchedFilter("all")}
-          >
-            All ({movies.length})
-          </Button>
-          <Button
-            size="sm"
-            variant={watchedFilter === "unwatched" ? "default" : "ghost"}
-            onClick={() => setWatchedFilter("unwatched")}
-          >
-            To watch ({unwatchedCount})
-          </Button>
-          <Button
-            size="sm"
-            variant={watchedFilter === "watched" ? "default" : "ghost"}
-            onClick={() => setWatchedFilter("watched")}
-          >
-            Watched ({watchedCount})
-          </Button>
-        </div>
+        <div className="md:hidden">{watchedFilterGroup}</div>
 
         <div className="flex items-center gap-2">
-          <Select
-            value={order}
-            onValueChange={(value) => setOrder(value as SortOrder)}
-          >
-            <SelectTrigger size="sm" aria-label="Sort by">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest first</SelectItem>
-              <SelectItem value="oldest">Oldest first</SelectItem>
-              <SelectItem value="rating">Highest rated</SelectItem>
-              <SelectItem value="alphabetical">A–Z</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="md:hidden">{sortSelect}</div>
 
           <div className="flex gap-1 rounded-full border p-1">
             <Tooltip>
@@ -382,27 +429,7 @@ export function WatchlistPage() {
         </div>
       </div>
 
-      {availableGenres.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant={genreFilter === ALL_GENRES ? "default" : "outline"}
-            onClick={() => setGenreFilter(ALL_GENRES)}
-          >
-            All genres
-          </Button>
-          {availableGenres.map((id) => (
-            <Button
-              key={id}
-              size="sm"
-              variant={genreFilter === id ? "default" : "outline"}
-              onClick={() => setGenreFilter(id)}
-            >
-              {genreName(id) ?? "Other"}
-            </Button>
-          ))}
-        </div>
-      )}
+      <div className="md:hidden">{genreChips}</div>
 
       {sorted.length === 0 ? (
         <p className="py-8 text-center text-muted-foreground">
