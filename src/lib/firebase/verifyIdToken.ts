@@ -17,6 +17,7 @@ const JWKS = createRemoteJWKSet(
 export interface VerifiedToken {
   readonly uid: string;
   readonly name: string | null;
+  readonly email: string | null;
 }
 
 export async function verifyFirebaseIdToken(
@@ -33,5 +34,6 @@ export async function verifyFirebaseIdToken(
   return {
     uid: payload.sub,
     name: typeof payload.name === "string" ? payload.name : null,
+    email: typeof payload.email === "string" ? payload.email : null,
   };
 }

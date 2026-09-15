@@ -27,6 +27,7 @@ import {
   captureInviteFromUrl,
   convertPendingInviteIfAny,
 } from "@/lib/inviteTracking";
+import { sendWelcomeEmail } from "@/lib/welcomeEmail";
 import { InviteDialog } from "@/components/social/InviteDialog";
 import { LoginButton } from "./LoginButton";
 
@@ -46,7 +47,9 @@ export function UserMenu() {
   useEffect(() => {
     if (!user) return;
     void syncPublicProfile(user).then((isNewUser) => {
-      if (isNewUser) void convertPendingInviteIfAny(() => user.getIdToken());
+      if (!isNewUser) return;
+      void convertPendingInviteIfAny(() => user.getIdToken());
+      void sendWelcomeEmail(() => user.getIdToken());
     });
     return subscribeToFollowRequests(user.uid, (requests) =>
       setPendingRequests(requests.length),
