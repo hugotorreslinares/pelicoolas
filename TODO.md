@@ -83,6 +83,26 @@ Repasé la app entera (home, `/search`, `/person/[id]`, `/watchlist`, `/connecti
 - [x] **Tipos de respuesta TMDB compartidos + validación en runtime** — `src/types/tmdb.ts` define un schema Zod por endpoint (`tmdbSearchPersonResponseSchema`, etc.), con el tipo inferido del propio schema en vez de una interface separada. `tmdbFetch` ahora recibe el schema y hace `safeParse`; si TMDB cambia el shape, `TmdbError` explota en el momento en vez de propagar `undefined` silenciosamente a la UI.
 - [ ] Documentar en `design.md` el porqué de cada decisión no obvia (ya iniciado) — mantenerlo vivo cada vez que se tome una decisión de arquitectura nueva.
 
+## Rediseño de navegación (análisis 2026-09-15, sin implementar)
+
+Pedido: reemplazar el header actual (nav horizontal con iconos + dropdown `MobileNav`) por **sidebar persistente en desktop** + **drawer hamburguesa en mobile**, ambos con texto+ícono (no solo ícono), y mover los filtros de género/año que hoy viven inline en cada página hacia ese panel lateral. Grid de posters en mobile pasa de 2-3 columnas a **2 fijas, más grandes**.
+
+**Complejidad real, no la aparente**: el cambio visual (sidebar en vez de header) es la parte fácil. Lo difícil es que **Pelicoolas es multi-página server-rendered (Astro), no una SPA** — cada ruta (`/watched`, `/watchlist`, `/filmographies`) es un documento HTML distinto con su propio React island. Un sidebar "persistente" que además muestre los filtros de CADA página (año+género en Watched, género+estado en Watchlist, watched/unwatched en Filmography — los 3 son distintos, confirmado revisando el código) no puede vivir como estado compartido en memoria entre páginas — hay que resolverlo con slots de Astro (`<slot name="filters">` en el layout, cada página inyecta su propio panel de filtros ahí vía `client:load`), lo cual es viable pero es la pieza de ingeniería real de este trabajo, no el sidebar en sí.
+
+**Estimación**: viable completo, sin reescribir la app a SPA. El shell del sidebar (fase 1) es 1-2 sesiones. Migrar cada página a filtros-en-sidebar (fases 3-5) es ~1 página por sesión, porque cada una tiene su propio set de filtros y hay que verificarla en el navegador antes de seguir a la próxima — no se puede migrar las 3 páginas en una pasada sin arriesgar romper algo.
+
+### Plan por fases (cada una shippable sola, sin romper lo anterior)
+
+- [ ] **Fase 0 — Grid de 2 columnas en mobile** (standalone, cero riesgo, se puede hacer primero y ya) — cambiar `grid-cols-2` fijo en mobile en `WatchedPage.tsx`/`WatchlistPage.tsx`/`Filmography.tsx` (hoy varían entre 2-3 según página) en vez de esperar al resto del rediseño.
+- [ ] **Fase 1 — Shell del sidebar desktop, sin filtros todavía** — nuevo layout (`SidebarLayout.astro`, coexiste con `Layout.astro`, no lo reemplaza todavía) con: logo, búsqueda integrada, nav principal con texto+ícono (Mi Biblioteca/Watched/Watchlist/Connections/Friends), notificaciones+perfil al pie. Reemplaza el header actual **globalmente** (la nav principal es igual en todas las páginas, sin filtros involucrados) — este paso sí se puede hacer de una sola vez con bajo riesgo.
+- [ ] **Fase 2 — Drawer mobile** — reemplaza el dropdown de `MobileNav.tsx` por un panel deslizante desde la izquierda (mismo contenido que el sidebar desktop), con backdrop y focus-trap (a11y — hoy el dropdown no lo necesita, un drawer full-height sí).
+- [ ] **Fase 3 — Slot de filtros + migrar `/watched` primero** (page piloto, es la que mostraron los mockups) — agregar `<slot name="filters">` al sidebar, mover el panel de año+género de `WatchedPage.tsx` ahí vía `client:load`. Probar a fondo (navegador real) antes de tocar otra página.
+- [ ] **Fase 4 — Migrar `/watchlist`** al mismo patrón de slot (su propio set de filtros: género + estado watched/unwatched + orden — distinto al de Watched).
+- [ ] **Fase 5 — Migrar `/filmographies`** (filtro watched/unwatched, el más simple de los 3).
+- [ ] **Fase 6 — Retirar `Layout.astro` viejo** una vez las páginas activas estén todas en `SidebarLayout.astro` — combinarlos en uno solo y borrar el dropdown de `MobileNav.tsx`.
+
+**Fuera de alcance / a decidir cuando se implemente**: acordeón colapsable para año/género en el sidebar (mencionado en el pedido, cosmético, se agrega en la fase que corresponda sin bloquear el resto); si el buscador debe vivir _solo_ en el sidebar o seguir también accesible arriba en mobile.
+
 ## Prioridad sugerida si hay que elegir por dónde seguir
 
 No hay ítem bloqueante pendiente. Auditoría visual 2026-09-09 completa (todos los ítems implementados 2026-09-09/10). Único pendiente real de todo el documento: **Firebase App Check**, bloqueado en el usuario (requiere consola/cuenta de Google propia).
