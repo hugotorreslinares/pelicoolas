@@ -104,25 +104,27 @@ export async function renderBadgeImage(badge: Badge): Promise<Blob> {
   });
 }
 
-export async function shareOrDownloadBadgeImage(badge: Badge): Promise<void> {
-  const blob = await renderBadgeImage(badge);
-  const file = new File([blob], `filmo-${badge.id}.png`, {
-    type: "image/png",
+function toBadgeFile(blob: Blob, badge: Badge): File {
+  return new File([blob], `filmo-${badge.id}.png`, { type: "image/png" });
+}
+
+export function canShareBadgeImage(blob: Blob, badge: Badge): boolean {
+  return Boolean(navigator.canShare?.({ files: [toBadgeFile(blob, badge)] }));
+}
+
+export async function shareBadgeImage(blob: Blob, badge: Badge): Promise<void> {
+  await navigator.share({
+    files: [toBadgeFile(blob, badge)],
+    title: badge.label,
+    text: `I earned "${badge.label}" on Pelicoolas`,
   });
+}
 
-  if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({
-      files: [file],
-      title: badge.label,
-      text: `I earned "${badge.label}" on Pelicoolas`,
-    });
-    return;
-  }
-
+export function downloadBadgeImage(blob: Blob, badge: Badge): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = file.name;
+  a.download = toBadgeFile(blob, badge).name;
   a.click();
   URL.revokeObjectURL(url);
 }

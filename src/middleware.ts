@@ -21,7 +21,9 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://apis.google.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' https://image.tmdb.org https://*.googleusercontent.com data:",
+  // blob: is needed for the rendered badge-share preview (Canvas -> Blob ->
+  // object URL, shown in <img> before the user shares/downloads it).
+  "img-src 'self' https://image.tmdb.org https://*.googleusercontent.com data: blob:",
   "font-src 'self' data:",
   // Sentry's browser SDK creates its event-sender as a blob: Worker — without
   // worker-src, CSP falls back to script-src (self + specific hosts only,
