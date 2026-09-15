@@ -21,6 +21,7 @@ import type {
   WatchedMovie,
   WatchlistMovie,
 } from "@/types/filmography";
+import type { FriendActivity } from "@/types/friends";
 import type { FilmographyMovie } from "@/types/movie";
 import type {
   Follower,
@@ -593,6 +594,49 @@ export function subscribeToFollowingList(
       callback(snapshot.docs.map((d) => d.data() as Following));
     },
   );
+}
+
+// Powers the /friends page's per-friend activity cards — one read each
+// against seen/watchlist/recommendations, capped to the single most recent
+// entry. A one-shot fetch (not onSnapshot): the feed doesn't need to be
+// live-updating, and a snapshot listener per list per friend would be a lot
+// of open connections for a page that's just a summary. Relies on the same
+// read access already granted to an approved follower for watchlist/seen
+// (see firestore.rules) — recommendations is public read regardless.
+export async function fetchLatestActivity(
+  userId: string,
+): Promise<FriendActivity> {
+  const [seenSnap, watchlistSnap, recommendedSnap] = await Promise.all([
+    getDocs(
+      query(
+        collection(requireDb(), "users", userId, "seen"),
+        orderBy("watchedAt", "desc"),
+        fsLimit(1),
+      ),
+    ),
+    getDocs(
+      query(
+        collection(requireDb(), "users", userId, "watchlist"),
+        orderBy("addedAt", "desc"),
+        fsLimit(1),
+      ),
+    ),
+    getDocs(
+      query(
+        collection(requireDb(), "users", userId, "recommendations"),
+        orderBy("addedAt", "desc"),
+        fsLimit(1),
+      ),
+    ),
+  ]);
+
+  return {
+    lastWatched: (seenSnap.docs[0]?.data() as SeenMovie | undefined) ?? null,
+    lastWatchlisted:
+      (watchlistSnap.docs[0]?.data() as WatchlistMovie | undefined) ?? null,
+    lastRecommended:
+      (recommendedSnap.docs[0]?.data() as RecommendedMovie | undefined) ?? null,
+  };
 }
 
 export function subscribeToFollowersList(

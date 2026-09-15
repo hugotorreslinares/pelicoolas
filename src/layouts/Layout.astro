@@ -8,7 +8,13 @@ import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { Toaster } from "@/components/ui/sonner";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { LocaleToggle } from "@/components/locale/LocaleToggle";
-import { FilmIcon, BookmarkIcon, NetworkIcon, EyeIcon } from "lucide-react";
+import {
+  FilmIcon,
+  BookmarkIcon,
+  NetworkIcon,
+  EyeIcon,
+  UsersIcon,
+} from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 import { getDictionary } from "@/i18n";
@@ -49,6 +55,7 @@ const isFilmographiesActive = pathname === "/" || pathname === "/filmographies";
 const isWatchedActive = pathname === "/watched";
 const isWatchlistActive = pathname === "/watchlist";
 const isConnectionsActive = pathname === "/connections";
+const isFriendsActive = pathname === "/friends";
 
 // size-11 (44px): minimum comfortable touch target on mobile — these are
 // icon-only links (visible label is sr-only), so padding alone previously
@@ -194,6 +201,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
             >
               <NetworkIcon className="size-4" />
               <span class="sr-only">{t.nav.connections}</span>
+            </a>
+            <a
+              href="/friends"
+              class={navLinkClass(isFriendsActive)}
+              aria-current={isFriendsActive ? "page" : undefined}
+              title={t.nav.friends}
+            >
+              <UsersIcon className="size-4" />
+              <span class="sr-only">{t.nav.friends}</span>
             </a>
           </nav>
           <NotificationBell client:idle />

@@ -5,6 +5,7 @@ import {
   EyeIcon,
   BookmarkIcon,
   NetworkIcon,
+  UsersIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ export function MobileNav({ locale }: MobileNavProps) {
     { href: "/watched", label: t.nav.watched, icon: EyeIcon },
     { href: "/watchlist", label: t.nav.watchlist, icon: BookmarkIcon },
     { href: "/connections", label: t.nav.connections, icon: NetworkIcon },
+    { href: "/friends", label: t.nav.friends, icon: UsersIcon },
   ] as const;
 
   return (

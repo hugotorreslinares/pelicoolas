@@ -24,6 +24,7 @@ export const en = {
     watched: "Watched",
     watchlist: "Watchlist",
     connections: "Connections",
+    friends: "Friends",
     menu: "Menu",
   },
   account: {
