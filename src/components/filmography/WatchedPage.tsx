@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -6,7 +6,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutGridIcon, ListIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronsDownUpIcon,
+  ChevronsUpDownIcon,
+  LayoutGridIcon,
+  ListIcon,
+} from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
@@ -55,6 +61,44 @@ function groupByYear(
     if (b === "Unknown") return -1;
     return Number(b) - Number(a);
   });
+}
+
+// Groups watched movies by which followed person's filmography they belong
+// to — a movie can (rarely) belong to more than one, so it can legitimately
+// show up under more than one person's section. Anything not in any
+// followed person's filmography (marked watched from search, or a person
+// you've since unfollowed) lands in one "Other" group instead of
+// disappearing. Hoisted out of the component (rather than computed inline
+// in PersonGroups) so WatchedPage can derive the group keys it needs for
+// the expand/collapse-all control without duplicating this logic.
+function groupByPerson(
+  movies: readonly SeenMovie[],
+  people: readonly FollowedPerson[],
+  personMovieIds: Record<number, readonly number[]>,
+): {
+  readonly stillLoading: boolean;
+  readonly groups: readonly {
+    person: FollowedPerson;
+    movies: readonly SeenMovie[];
+  }[];
+  readonly other: readonly SeenMovie[];
+} {
+  const stillLoading = people.some(
+    (p) => personMovieIds[p.tmdbId] === undefined,
+  );
+
+  const groups = people
+    .map((person) => {
+      const ids = new Set(personMovieIds[person.tmdbId] ?? []);
+      return { person, movies: movies.filter((m) => ids.has(m.tmdbId)) };
+    })
+    .filter((g) => g.movies.length > 0)
+    .sort((a, b) => b.movies.length - a.movies.length);
+
+  const grouped = new Set(groups.flatMap((g) => g.movies.map((m) => m.tmdbId)));
+  const other = movies.filter((m) => !grouped.has(m.tmdbId));
+
+  return { stillLoading, groups, other };
 }
 
 function MovieCard({
@@ -166,6 +210,42 @@ function MovieGroup({
   );
 }
 
+function GroupSection({
+  groupKey,
+  title,
+  count,
+  collapsed,
+  onToggle,
+  muted = false,
+  children,
+}: {
+  readonly groupKey: string;
+  readonly title: ReactNode;
+  readonly count: number;
+  readonly collapsed: boolean;
+  readonly onToggle: (key: string) => void;
+  readonly muted?: boolean;
+  readonly children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        onClick={() => onToggle(groupKey)}
+        className={`focus-ring flex w-full items-center gap-1.5 text-left text-sm font-semibold ${muted ? "text-muted-foreground" : ""}`}
+        aria-expanded={!collapsed}
+      >
+        <ChevronDownIcon
+          className={`size-4 shrink-0 transition-transform ${collapsed ? "-rotate-90" : ""}`}
+        />
+        {title}
+        <span className="font-normal text-muted-foreground">({count})</span>
+      </button>
+      {!collapsed && children}
+    </div>
+  );
+}
+
 export function WatchedPage() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly SeenMovie[] | null>(null);
@@ -183,6 +263,21 @@ export function WatchedPage() {
   );
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  // Keyed by "year:2024" / "person:123" / "person:other" — a single Set
+  // covers both group modes since the prefix keeps their keys disjoint, so
+  // switching modes doesn't need to reset or namespace anything separately.
+  const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+
+  function toggleGroup(key: string) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   useEffect(() => {
     try {
@@ -318,6 +413,35 @@ export function WatchedPage() {
       ? movies
       : movies.filter((m) => m.genreIds?.includes(genreFilter));
 
+  const yearGroups = groupByYear(filtered);
+  const personGroups = groupByPerson(filtered, people ?? [], personMovieIds);
+
+  // Keys for whichever grouping is currently shown — drives the
+  // expand/collapse-all control (and only that mode's groups, so switching
+  // between "By year" and "By person" doesn't carry a stale collapsed set
+  // that silently hides groups in the other view).
+  const currentGroupKeys =
+    groupMode === "year"
+      ? yearGroups.map(([year]) => `year:${year}`)
+      : [
+          ...personGroups.groups.map((g) => `person:${g.person.tmdbId}`),
+          ...(personGroups.other.length > 0 ? ["person:other"] : []),
+        ];
+  const allCollapsed =
+    currentGroupKeys.length > 0 &&
+    currentGroupKeys.every((k) => collapsedGroups.has(k));
+
+  function toggleAllGroups() {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      for (const key of currentGroupKeys) {
+        if (allCollapsed) next.delete(key);
+        else next.add(key);
+      }
+      return next;
+    });
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Watched</h1>
@@ -373,6 +497,23 @@ export function WatchedPage() {
             <TooltipContent>List view</TooltipContent>
           </Tooltip>
         </div>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                size="icon-sm"
+                variant="outline"
+                aria-label={allCollapsed ? "Expand all" : "Collapse all"}
+                onClick={toggleAllGroups}
+              />
+            }
+          >
+            {allCollapsed ? <ChevronsUpDownIcon /> : <ChevronsDownUpIcon />}
+          </TooltipTrigger>
+          <TooltipContent>
+            {allCollapsed ? "Expand all" : "Collapse all"}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {availableGenres.length > 0 && (
@@ -403,28 +544,33 @@ export function WatchedPage() {
 
       {groupMode === "year" && (
         <div className="space-y-6">
-          {groupByYear(filtered).map(([year, yearMovies]) => (
-            <div key={year} className="space-y-2">
-              <h2 className="text-sm font-semibold text-muted-foreground">
-                {year}
-              </h2>
+          {yearGroups.map(([year, yearMovies]) => (
+            <GroupSection
+              key={year}
+              groupKey={`year:${year}`}
+              title={year}
+              count={yearMovies.length}
+              collapsed={collapsedGroups.has(`year:${year}`)}
+              onToggle={toggleGroup}
+              muted
+            >
               <MovieGroup
                 movies={yearMovies}
                 viewMode={viewMode}
                 onOpen={setOpenMovieId}
               />
-            </div>
+            </GroupSection>
           ))}
         </div>
       )}
 
       {groupMode === "person" && (
         <PersonGroups
-          movies={filtered}
-          people={people ?? []}
-          personMovieIds={personMovieIds}
+          grouped={personGroups}
           viewMode={viewMode}
           onOpen={setOpenMovieId}
+          collapsedGroups={collapsedGroups}
+          onToggleGroup={toggleGroup}
         />
       )}
 
@@ -440,47 +586,25 @@ export function WatchedPage() {
 }
 
 interface PersonGroupsProps {
-  readonly movies: readonly SeenMovie[];
-  readonly people: readonly FollowedPerson[];
-  readonly personMovieIds: Record<number, readonly number[]>;
+  readonly grouped: ReturnType<typeof groupByPerson>;
   readonly viewMode: ViewMode;
   readonly onOpen: (movieId: number) => void;
+  readonly collapsedGroups: ReadonlySet<string>;
+  readonly onToggleGroup: (key: string) => void;
 }
 
-// Groups watched movies by which followed person's filmography they
-// belong to — a movie can (rarely) belong to more than one, so it can
-// legitimately show up under more than one person's section. Anything not
-// in any followed person's filmography (marked watched from search, or a
-// person you've since unfollowed) lands in one "Other" section instead of
-// disappearing.
 function PersonGroups({
-  movies,
-  people,
-  personMovieIds,
+  grouped,
   viewMode,
   onOpen,
+  collapsedGroups,
+  onToggleGroup,
 }: PersonGroupsProps) {
-  const stillLoadingGroups = people.some(
-    (p) => personMovieIds[p.tmdbId] === undefined,
-  );
-
-  const groups = people
-    .map((person) => {
-      const ids = new Set(personMovieIds[person.tmdbId] ?? []);
-      return {
-        person,
-        movies: movies.filter((m) => ids.has(m.tmdbId)),
-      };
-    })
-    .filter((g) => g.movies.length > 0)
-    .sort((a, b) => b.movies.length - a.movies.length);
-
-  const grouped = new Set(groups.flatMap((g) => g.movies.map((m) => m.tmdbId)));
-  const other = movies.filter((m) => !grouped.has(m.tmdbId));
+  const { stillLoading, groups, other } = grouped;
 
   return (
     <div className="space-y-6">
-      {stillLoadingGroups && (
+      {stillLoading && (
         <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton
@@ -491,34 +615,37 @@ function PersonGroups({
         </div>
       )}
 
-      {groups.map(({ person, movies: personMovies }) => (
-        <div key={person.tmdbId} className="space-y-2">
-          <h2 className="text-sm font-semibold">
-            <a
-              href={`/person/${person.tmdbId}`}
-              className="focus-ring hover:underline"
-            >
-              {person.name}
-            </a>
-            <span className="ml-1 font-normal text-muted-foreground">
-              ({personMovies.length})
-            </span>
-          </h2>
-          <MovieGroup
-            movies={personMovies}
-            viewMode={viewMode}
-            onOpen={onOpen}
-          />
-        </div>
-      ))}
+      {groups.map(({ person, movies: personMovies }) => {
+        const key = `person:${person.tmdbId}`;
+        return (
+          <GroupSection
+            key={key}
+            groupKey={key}
+            title={person.name}
+            count={personMovies.length}
+            collapsed={collapsedGroups.has(key)}
+            onToggle={onToggleGroup}
+          >
+            <MovieGroup
+              movies={personMovies}
+              viewMode={viewMode}
+              onOpen={onOpen}
+            />
+          </GroupSection>
+        );
+      })}
 
-      {!stillLoadingGroups && other.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-muted-foreground">
-            Not part of a followed filmography
-          </h2>
+      {!stillLoading && other.length > 0 && (
+        <GroupSection
+          groupKey="person:other"
+          title="Not part of a followed filmography"
+          count={other.length}
+          collapsed={collapsedGroups.has("person:other")}
+          onToggle={onToggleGroup}
+          muted
+        >
           <MovieGroup movies={other} viewMode={viewMode} onOpen={onOpen} />
-        </div>
+        </GroupSection>
       )}
     </div>
   );
