@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -263,6 +264,14 @@ export function WatchedPage() {
   );
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovie, setOpenMovie] = useState<SeenMovie | null>(null);
+  // Desktop sidebar has a dedicated slot for page filters (Layout.astro);
+  // portal the genre chips there so there's one filter UI, not two states
+  // to keep in sync. Falls back to inline (below, md:hidden) on mobile,
+  // where the sidebar itself is hidden.
+  const [filtersSlot, setFiltersSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setFiltersSlot(document.getElementById("page-filters-slot"));
+  }, []);
   // Keyed by "year:2024" / "person:123" / "person:other" — a single Set
   // covers both group modes since the prefix keeps their keys disjoint, so
   // switching modes doesn't need to reset or namespace anything separately.
@@ -442,9 +451,34 @@ export function WatchedPage() {
     });
   }
 
+  const genreChips = availableGenres.length > 0 && (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        size="sm"
+        variant={genreFilter === ALL_GENRES ? "default" : "outline"}
+        onClick={() => setGenreFilter(ALL_GENRES)}
+      >
+        All genres
+        <span className="text-xs opacity-70">({movies.length})</span>
+      </Button>
+      {availableGenres.map((id) => (
+        <Button
+          key={id}
+          size="sm"
+          variant={genreFilter === id ? "default" : "outline"}
+          onClick={() => setGenreFilter(id)}
+        >
+          {genreName(id) ?? "Other"}
+          <span className="text-xs opacity-70">({genreCounts.get(id)})</span>
+        </Button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Watched</h1>
+      {filtersSlot && createPortal(genreChips, filtersSlot)}
 
       <div className="flex flex-wrap items-center justify-end gap-2">
         <div className="flex gap-1 rounded-full border p-1">
@@ -516,31 +550,7 @@ export function WatchedPage() {
         </Tooltip>
       </div>
 
-      {availableGenres.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant={genreFilter === ALL_GENRES ? "default" : "outline"}
-            onClick={() => setGenreFilter(ALL_GENRES)}
-          >
-            All genres
-            <span className="text-xs opacity-70">({movies.length})</span>
-          </Button>
-          {availableGenres.map((id) => (
-            <Button
-              key={id}
-              size="sm"
-              variant={genreFilter === id ? "default" : "outline"}
-              onClick={() => setGenreFilter(id)}
-            >
-              {genreName(id) ?? "Other"}
-              <span className="text-xs opacity-70">
-                ({genreCounts.get(id)})
-              </span>
-            </Button>
-          ))}
-        </div>
-      )}
+      <div className="md:hidden">{genreChips}</div>
 
       {groupMode === "year" && (
         <div className="space-y-6">

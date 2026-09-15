@@ -212,6 +212,8 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
               {t.nav.friends}
             </a>
           </nav>
+          <div id="page-filters-slot" class="flex flex-col gap-1 empty:hidden">
+          </div>
         </div>
         <div class="flex items-center gap-1 border-t pt-4">
           <NotificationBell client:idle />
