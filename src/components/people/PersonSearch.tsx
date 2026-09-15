@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PersonCard } from "./PersonCard";
-import { TrendingMovies } from "@/components/filmography/TrendingMovies";
+import { TrendingSlider } from "@/components/filmography/TrendingSlider";
 import { announce } from "@/lib/a11y";
 import {
   addRecentSearch,
@@ -164,7 +164,11 @@ export function PersonSearch({
       )}
 
       {!query.trim() && trendingMovies.length > 0 && (
-        <TrendingMovies movies={trendingMovies} />
+        <TrendingSlider
+          items={trendingMovies}
+          mediaType="movie"
+          heading="Trending this week"
+        />
       )}
     </div>
   );

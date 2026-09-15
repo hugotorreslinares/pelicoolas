@@ -111,3 +111,46 @@ export const tmdbMovieDetailsResponseSchema = z.object({
 export type TmdbMovieDetailsResponse = z.infer<
   typeof tmdbMovieDetailsResponseSchema
 >;
+
+export const tmdbTrendingTVResponseSchema = z.object({
+  results: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      poster_path: z.string().nullable(),
+      first_air_date: z.string().optional(),
+      vote_average: z.number().optional(),
+      genre_ids: z.array(z.number()).optional(),
+    }),
+  ),
+});
+export type TmdbTrendingTVResponse = z.infer<
+  typeof tmdbTrendingTVResponseSchema
+>;
+
+export const tmdbTVDetailsResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  poster_path: z.string().nullable(),
+  first_air_date: z.string().optional(),
+  overview: z.string().nullable(),
+  number_of_seasons: z.number().nullable().optional(),
+  number_of_episodes: z.number().nullable().optional(),
+  vote_average: z.number().optional(),
+  genres: z.array(z.object({ id: z.number(), name: z.string() })),
+  // Present because getTVDetails requests append_to_response=credits,external_ids.
+  credits: z
+    .object({
+      cast: z.array(
+        z.object({
+          id: z.number(),
+          name: z.string(),
+          character: z.string().optional(),
+          profile_path: z.string().nullable(),
+        }),
+      ),
+    })
+    .optional(),
+  external_ids: z.object({ imdb_id: z.string().nullable() }).optional(),
+});
+export type TmdbTVDetailsResponse = z.infer<typeof tmdbTVDetailsResponseSchema>;

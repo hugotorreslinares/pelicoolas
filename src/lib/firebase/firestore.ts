@@ -40,16 +40,55 @@ function followedPersonRef(userId: string, personId: number) {
   return doc(requireDb(), "users", userId, "followedPeople", String(personId));
 }
 
-function watchlistMovieRef(userId: string, movieId: number) {
-  return doc(requireDb(), "users", userId, "watchlist", String(movieId));
+// Movie and TV ids are separate TMDB namespaces — a movie 550 and a TV
+// show 550 are unrelated. Movie docs keep the original bare-numeric id
+// (every doc written before TV support looks like this; no migration
+// needed), TV docs get a "tv-" prefix so the two can never collide in the
+// same collection.
+function mediaDocId(id: number, mediaType?: "movie" | "tv"): string {
+  return mediaType === "tv" ? `tv-${id}` : String(id);
 }
 
-function recommendedMovieRef(userId: string, movieId: number) {
-  return doc(requireDb(), "users", userId, "recommendations", String(movieId));
+function watchlistMovieRef(
+  userId: string,
+  movieId: number,
+  mediaType?: "movie" | "tv",
+) {
+  return doc(
+    requireDb(),
+    "users",
+    userId,
+    "watchlist",
+    mediaDocId(movieId, mediaType),
+  );
 }
 
-function seenMovieRef(userId: string, movieId: number) {
-  return doc(requireDb(), "users", userId, "seen", String(movieId));
+function recommendedMovieRef(
+  userId: string,
+  movieId: number,
+  mediaType?: "movie" | "tv",
+) {
+  return doc(
+    requireDb(),
+    "users",
+    userId,
+    "recommendations",
+    mediaDocId(movieId, mediaType),
+  );
+}
+
+function seenMovieRef(
+  userId: string,
+  movieId: number,
+  mediaType?: "movie" | "tv",
+) {
+  return doc(
+    requireDb(),
+    "users",
+    userId,
+    "seen",
+    mediaDocId(movieId, mediaType),
+  );
 }
 
 function publicProfileRef(userId: string) {
@@ -180,7 +219,7 @@ export async function addToWatchlist(
   userId: string,
   movie: Omit<WatchlistMovie, "addedAt">,
 ): Promise<void> {
-  await setDoc(watchlistMovieRef(userId, movie.tmdbId), {
+  await setDoc(watchlistMovieRef(userId, movie.tmdbId, movie.mediaType), {
     ...movie,
     addedAt: serverTimestamp(),
   });
@@ -189,8 +228,9 @@ export async function addToWatchlist(
 export async function removeFromWatchlist(
   userId: string,
   movieId: number,
+  mediaType?: "movie" | "tv",
 ): Promise<void> {
-  await deleteDoc(watchlistMovieRef(userId, movieId));
+  await deleteDoc(watchlistMovieRef(userId, movieId, mediaType));
 }
 
 /** Backfills genreIds/durationMinutes on a watchlist entry added before those fields existed. */
@@ -208,8 +248,9 @@ export async function setWatchlistDetails(
 export async function isInWatchlist(
   userId: string,
   movieId: number,
+  mediaType?: "movie" | "tv",
 ): Promise<boolean> {
-  const snapshot = await getDoc(watchlistMovieRef(userId, movieId));
+  const snapshot = await getDoc(watchlistMovieRef(userId, movieId, mediaType));
   return snapshot.exists();
 }
 
@@ -309,7 +350,7 @@ export async function addToRecommendations(
   userId: string,
   movie: Omit<RecommendedMovie, "addedAt">,
 ): Promise<void> {
-  await setDoc(recommendedMovieRef(userId, movie.tmdbId), {
+  await setDoc(recommendedMovieRef(userId, movie.tmdbId, movie.mediaType), {
     ...movie,
     addedAt: serverTimestamp(),
   });
@@ -318,15 +359,19 @@ export async function addToRecommendations(
 export async function removeFromRecommendations(
   userId: string,
   movieId: number,
+  mediaType?: "movie" | "tv",
 ): Promise<void> {
-  await deleteDoc(recommendedMovieRef(userId, movieId));
+  await deleteDoc(recommendedMovieRef(userId, movieId, mediaType));
 }
 
 export async function isInRecommendations(
   userId: string,
   movieId: number,
+  mediaType?: "movie" | "tv",
 ): Promise<boolean> {
-  const snapshot = await getDoc(recommendedMovieRef(userId, movieId));
+  const snapshot = await getDoc(
+    recommendedMovieRef(userId, movieId, mediaType),
+  );
   return snapshot.exists();
 }
 
@@ -348,7 +393,7 @@ export async function markMovieSeen(
   userId: string,
   movie: Omit<SeenMovie, "watchedAt">,
 ): Promise<void> {
-  await setDoc(seenMovieRef(userId, movie.tmdbId), {
+  await setDoc(seenMovieRef(userId, movie.tmdbId, movie.mediaType), {
     ...movie,
     watchedAt: serverTimestamp(),
   });
@@ -357,15 +402,17 @@ export async function markMovieSeen(
 export async function unmarkMovieSeen(
   userId: string,
   movieId: number,
+  mediaType?: "movie" | "tv",
 ): Promise<void> {
-  await deleteDoc(seenMovieRef(userId, movieId));
+  await deleteDoc(seenMovieRef(userId, movieId, mediaType));
 }
 
 export async function isMovieSeen(
   userId: string,
   movieId: number,
+  mediaType?: "movie" | "tv",
 ): Promise<boolean> {
-  const snapshot = await getDoc(seenMovieRef(userId, movieId));
+  const snapshot = await getDoc(seenMovieRef(userId, movieId, mediaType));
   return snapshot.exists();
 }
 

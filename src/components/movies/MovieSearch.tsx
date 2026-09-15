@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieResultRow } from "./MovieResultRow";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
-import { TrendingMovies } from "@/components/filmography/TrendingMovies";
+import { TrendingSlider } from "@/components/filmography/TrendingSlider";
 import type { TrendingMovie } from "@/types/movie";
 
 const DEBOUNCE_MS = 350;
@@ -85,7 +85,11 @@ export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
       )}
 
       {!query.trim() && trendingMovies.length > 0 && (
-        <TrendingMovies movies={trendingMovies} />
+        <TrendingSlider
+          items={trendingMovies}
+          mediaType="movie"
+          heading="Trending this week"
+        />
       )}
 
       {openMovieId !== null && (

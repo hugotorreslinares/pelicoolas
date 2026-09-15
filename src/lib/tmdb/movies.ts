@@ -122,7 +122,7 @@ export async function searchMovie(
   return data.results.map(toTrendingMovie);
 }
 
-const TRENDING_LIMIT = 12;
+const TRENDING_LIMIT = 10;
 
 export async function getTrendingMovies(): Promise<readonly TrendingMovie[]> {
   const data = await tmdbFetch(

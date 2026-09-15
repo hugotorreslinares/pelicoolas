@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { FollowedPersonCard } from "./FollowedPersonCard";
 import { HomeHeroSlider } from "./HomeHeroSlider";
 import { WelcomeHero } from "./WelcomeHero";
-import { TrendingMovies } from "./TrendingMovies";
+import { TrendingSlider } from "./TrendingSlider";
 import { ShareBadgeButton } from "./ShareBadgeButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
@@ -97,11 +97,16 @@ interface PersonStats {
 
 interface DashboardProps {
   readonly trendingMovies?: readonly TrendingMovie[];
+  readonly trendingTV?: readonly TrendingMovie[];
   /** Caps the followed-people grid (home uses this to stay short; /filmographies shows everyone). */
   readonly limit?: number;
 }
 
-export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
+export function Dashboard({
+  trendingMovies = [],
+  trendingTV = [],
+  limit,
+}: DashboardProps) {
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [statsById, setStatsById] = useState<Record<number, PersonStats>>({});
@@ -359,6 +364,24 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
   // async auth check resolved.
   const heading = "My Filmographies";
 
+  // Shown in every state (signed out, no follows yet, full dashboard) —
+  // recommend/watchlist/watched need a signed-in user, so this can't live
+  // only in the signed-out WelcomeHero branch the way it used to.
+  const trendingSection = (
+    <>
+      <TrendingSlider
+        items={trendingMovies}
+        mediaType="movie"
+        heading="Trending Movies"
+      />
+      <TrendingSlider
+        items={trendingTV}
+        mediaType="tv"
+        heading="Trending TV Shows"
+      />
+    </>
+  );
+
   if (authLoading || (user && people === null)) {
     return (
       <div className="space-y-2">
@@ -384,7 +407,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
           ))}
         </div>
 
-        <TrendingMovies movies={trendingMovies} />
+        {trendingSection}
       </div>
     );
   }
@@ -402,6 +425,7 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
           </p>
           <Button render={<a href="/search" />}>Search</Button>
         </div>
+        {trendingSection}
       </div>
     );
   }
@@ -536,6 +560,8 @@ export function Dashboard({ trendingMovies = [], limit }: DashboardProps) {
           </Button>
         </div>
       )}
+
+      {trendingSection}
     </div>
   );
 }

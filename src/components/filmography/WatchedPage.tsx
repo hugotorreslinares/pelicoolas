@@ -182,7 +182,7 @@ function MovieGroup({
 }: {
   readonly movies: readonly SeenMovie[];
   readonly viewMode: ViewMode;
-  readonly onOpen: (movieId: number) => void;
+  readonly onOpen: (movie: SeenMovie) => void;
 }) {
   if (viewMode === "list") {
     return (
@@ -191,7 +191,7 @@ function MovieGroup({
           <MovieListRow
             key={movie.tmdbId}
             movie={movie}
-            onOpen={() => onOpen(movie.tmdbId)}
+            onOpen={() => onOpen(movie)}
           />
         ))}
       </div>
@@ -203,7 +203,7 @@ function MovieGroup({
         <MovieCard
           key={movie.tmdbId}
           movie={movie}
-          onOpen={() => onOpen(movie.tmdbId)}
+          onOpen={() => onOpen(movie)}
         />
       ))}
     </div>
@@ -262,7 +262,7 @@ export function WatchedPage() {
     ALL_GENRES,
   );
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
-  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [openMovie, setOpenMovie] = useState<SeenMovie | null>(null);
   // Keyed by "year:2024" / "person:123" / "person:other" — a single Set
   // covers both group modes since the prefix keeps their keys disjoint, so
   // switching modes doesn't need to reset or namespace anything separately.
@@ -557,7 +557,7 @@ export function WatchedPage() {
               <MovieGroup
                 movies={yearMovies}
                 viewMode={viewMode}
-                onOpen={setOpenMovieId}
+                onOpen={setOpenMovie}
               />
             </GroupSection>
           ))}
@@ -568,17 +568,18 @@ export function WatchedPage() {
         <PersonGroups
           grouped={personGroups}
           viewMode={viewMode}
-          onOpen={setOpenMovieId}
+          onOpen={setOpenMovie}
           collapsedGroups={collapsedGroups}
           onToggleGroup={toggleGroup}
         />
       )}
 
-      {openMovieId !== null && (
+      {openMovie !== null && (
         <MovieDetailsDialog
-          movieId={openMovieId}
-          open={openMovieId !== null}
-          onOpenChange={(open) => !open && setOpenMovieId(null)}
+          movieId={openMovie.tmdbId}
+          mediaType={openMovie.mediaType}
+          open={openMovie !== null}
+          onOpenChange={(open) => !open && setOpenMovie(null)}
         />
       )}
     </div>
@@ -588,7 +589,7 @@ export function WatchedPage() {
 interface PersonGroupsProps {
   readonly grouped: ReturnType<typeof groupByPerson>;
   readonly viewMode: ViewMode;
-  readonly onOpen: (movieId: number) => void;
+  readonly onOpen: (movie: SeenMovie) => void;
   readonly collapsedGroups: ReadonlySet<string>;
   readonly onToggleGroup: (key: string) => void;
 }

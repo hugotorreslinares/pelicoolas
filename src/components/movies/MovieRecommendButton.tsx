@@ -41,11 +41,13 @@ export function MovieRecommendButton({
       setChecked(true);
       return;
     }
-    void isInRecommendations(user.uid, movie.tmdbMovieId).then((value) => {
-      setRecommended(value);
-      setChecked(true);
-    });
-  }, [user, movie.tmdbMovieId]);
+    void isInRecommendations(user.uid, movie.tmdbMovieId, movie.mediaType).then(
+      (value) => {
+        setRecommended(value);
+        setChecked(true);
+      },
+    );
+  }, [user, movie.tmdbMovieId, movie.mediaType]);
 
   async function toggleRecommended(e: React.MouseEvent) {
     e.stopPropagation();
@@ -67,9 +69,14 @@ export function MovieRecommendButton({
           posterPath: movie.posterPath,
           releaseYear: movie.releaseYear,
           voteAverage: movie.voteAverage,
+          mediaType: movie.mediaType,
         });
       } else {
-        await removeFromRecommendations(user.uid, movie.tmdbMovieId);
+        await removeFromRecommendations(
+          user.uid,
+          movie.tmdbMovieId,
+          movie.mediaType,
+        );
       }
     } catch {
       setRecommended(!next);

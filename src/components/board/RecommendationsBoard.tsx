@@ -36,7 +36,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
   const [movies, setMovies] = useState<readonly RecommendedMovie[] | null>(
     null,
   );
-  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [openMovie, setOpenMovie] = useState<RecommendedMovie | null>(null);
   const [copied, setCopied] = useState(false);
   // Optimistically hides a removed card immediately instead of waiting on
   // the subscription to echo the delete back — restored on failure.
@@ -54,7 +54,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
     setRemovingIds((prev) => new Set(prev).add(movie.tmdbId));
     announce(`Removed ${movie.title}`);
     try {
-      await removeFromRecommendations(userId, movie.tmdbId);
+      await removeFromRecommendations(userId, movie.tmdbId, movie.mediaType);
     } catch {
       setRemovingIds((prev) => {
         const next = new Set(prev);
@@ -142,7 +142,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
                     key={movie.tmdbId}
                     movie={movie}
                     isOwner={isOwner}
-                    onOpen={() => setOpenMovieId(movie.tmdbId)}
+                    onOpen={() => setOpenMovie(movie)}
                     onRemove={() => void handleRemove(movie)}
                   />
                 ))}
@@ -161,11 +161,12 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
         </div>
       )}
 
-      {openMovieId !== null && (
+      {openMovie !== null && (
         <MovieDetailsDialog
-          movieId={openMovieId}
-          open={openMovieId !== null}
-          onOpenChange={(open) => !open && setOpenMovieId(null)}
+          movieId={openMovie.tmdbId}
+          mediaType={openMovie.mediaType}
+          open={openMovie !== null}
+          onOpenChange={(open) => !open && setOpenMovie(null)}
         />
       )}
     </div>

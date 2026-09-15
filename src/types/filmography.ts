@@ -43,6 +43,8 @@ export interface WatchlistMovie {
   readonly genreIds?: readonly number[];
   /** Absent on watchlist entries added before this field existed. */
   readonly durationMinutes?: number | null;
+  /** Absent means "movie" — see mediaDocId in firestore.ts for why the doc id itself also encodes this. */
+  readonly mediaType?: "movie" | "tv";
 }
 
 export type FilmographyFilter = "all" | "watched" | "unwatched";
@@ -55,6 +57,8 @@ export interface RecommendedMovie {
   readonly releaseYear: number | null;
   readonly voteAverage: number | null;
   readonly addedAt: string;
+  /** Absent means "movie". */
+  readonly mediaType?: "movie" | "tv";
 }
 
 /**
@@ -74,4 +78,6 @@ export interface SeenMovie {
   /** Absent on entries marked seen before this field existed — same
    *  optional-then-backfilled pattern as WatchlistMovie.genreIds. */
   readonly genreIds?: readonly number[];
+  /** Absent means "movie". */
+  readonly mediaType?: "movie" | "tv";
 }

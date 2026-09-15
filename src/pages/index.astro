@@ -5,15 +5,27 @@ import Layout from "@/layouts/Layout.astro";
 import { Dashboard } from "@/components/filmography/Dashboard";
 import { RecentUsersSlider } from "@/components/social/RecentUsersSlider";
 import { getTrendingMovies } from "@/lib/tmdb/movies";
+import { getTrendingTV } from "@/lib/tmdb/tv";
 import { TmdbError } from "@/lib/tmdb/client";
 
 // Best-effort: if TMDB is down, the dashboard still renders fine without
-// the trending row rather than breaking the whole page over it.
+// the trending rows rather than breaking the whole page over it. Fetched
+// in parallel — one TmdbError shouldn't wait on the other's round-trip.
 let trendingMovies: Awaited<ReturnType<typeof getTrendingMovies>> = [];
-try {
-  trendingMovies = await getTrendingMovies();
-} catch (e) {
-  if (!(e instanceof TmdbError)) throw e;
+let trendingTV: Awaited<ReturnType<typeof getTrendingTV>> = [];
+const [moviesResult, tvResult] = await Promise.allSettled([
+  getTrendingMovies(),
+  getTrendingTV(),
+]);
+if (moviesResult.status === "fulfilled") {
+  trendingMovies = moviesResult.value;
+} else if (!(moviesResult.reason instanceof TmdbError)) {
+  throw moviesResult.reason;
+}
+if (tvResult.status === "fulfilled") {
+  trendingTV = tvResult.value;
+} else if (!(tvResult.reason instanceof TmdbError)) {
+  throw tvResult.reason;
 }
 ---
 
@@ -24,7 +36,12 @@ try {
   noindex
 >
   <div class="space-y-8">
-    <Dashboard client:load trendingMovies={trendingMovies} limit={15} />
+    <Dashboard
+      client:load
+      trendingMovies={trendingMovies}
+      trendingTV={trendingTV}
+      limit={15}
+    />
     <RecentUsersSlider client:idle />
   </div>
 </Layout>

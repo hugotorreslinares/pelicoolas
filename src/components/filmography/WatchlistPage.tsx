@@ -91,7 +91,7 @@ export function WatchlistPage() {
   );
   const [watchedFilter, setWatchedFilter] = useState<WatchedFilter>("all");
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
-  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [openMovie, setOpenMovie] = useState<WatchlistMovie | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -262,8 +262,9 @@ export function WatchlistPage() {
           releaseYear: movie.releaseYear,
           voteAverage: movie.voteAverage,
           genreIds: movie.genreIds,
+          mediaType: movie.mediaType,
         })
-      : unmarkMovieSeen(user.uid, movie.tmdbId);
+      : unmarkMovieSeen(user.uid, movie.tmdbId, movie.mediaType);
     write.catch(() =>
       toast.error(`Couldn't update "${movie.title}". Please try again.`),
     );
@@ -272,7 +273,7 @@ export function WatchlistPage() {
   function pickRandom() {
     const pool = unwatchedMovies.length > 0 ? unwatchedMovies : movies!;
     const pick = pool[Math.floor(Math.random() * pool.length)];
-    setOpenMovieId(pick.tmdbId);
+    setOpenMovie(pick);
   }
 
   return (
@@ -414,10 +415,14 @@ export function WatchlistPage() {
               key={movie.tmdbId}
               movie={movie}
               watched={seenIds.has(movie.tmdbId)}
-              onOpen={() => setOpenMovieId(movie.tmdbId)}
+              onOpen={() => setOpenMovie(movie)}
               onToggleWatched={() => toggleWatched(movie)}
               onRemove={() => {
-                void removeFromWatchlist(user.uid, movie.tmdbId);
+                void removeFromWatchlist(
+                  user.uid,
+                  movie.tmdbId,
+                  movie.mediaType,
+                );
                 announce(`Removed ${movie.title} from watchlist`);
               }}
             />
@@ -430,10 +435,14 @@ export function WatchlistPage() {
               key={movie.tmdbId}
               movie={movie}
               watched={seenIds.has(movie.tmdbId)}
-              onOpen={() => setOpenMovieId(movie.tmdbId)}
+              onOpen={() => setOpenMovie(movie)}
               onToggleWatched={() => toggleWatched(movie)}
               onRemove={() => {
-                void removeFromWatchlist(user.uid, movie.tmdbId);
+                void removeFromWatchlist(
+                  user.uid,
+                  movie.tmdbId,
+                  movie.mediaType,
+                );
                 announce(`Removed ${movie.title} from watchlist`);
               }}
             />
@@ -441,11 +450,12 @@ export function WatchlistPage() {
         </div>
       )}
 
-      {openMovieId !== null && (
+      {openMovie !== null && (
         <MovieDetailsDialog
-          movieId={openMovieId}
-          open={openMovieId !== null}
-          onOpenChange={(open) => !open && setOpenMovieId(null)}
+          movieId={openMovie.tmdbId}
+          mediaType={openMovie.mediaType}
+          open={openMovie !== null}
+          onOpenChange={(open) => !open && setOpenMovie(null)}
         />
       )}
     </div>

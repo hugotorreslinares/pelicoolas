@@ -5,6 +5,7 @@ import type {
   FilmographyMovie,
   MovieDetails,
   TrendingMovie,
+  TVDetails,
 } from "@/types/movie";
 
 // Client-side cached wrappers around this app's own /api/* proxies (never
@@ -49,6 +50,22 @@ export async function fetchMovieDetails(
   const data = (await res.json()) as { movie: MovieDetails };
   writeCache(cacheKey, data.movie);
   return data.movie;
+}
+
+export async function fetchTVDetails(tvId: number): Promise<TVDetails | null> {
+  // Own "tv:" cache-key namespace, not shared with fetchMovieDetails'
+  // "movie:" — a TV id and a movie id can collide numerically (separate
+  // TMDB namespaces), so sharing a key prefix would return the wrong
+  // cached details for one of them.
+  const cacheKey = `tv:${tvId}`;
+  const cached = readCache<TVDetails>(cacheKey, MOVIE_CACHE_MAX_AGE_MS);
+  if (cached) return cached;
+
+  const res = await fetch(`/api/tv/${tvId}`);
+  if (!res.ok) return null;
+  const data = (await res.json()) as { show: TVDetails };
+  writeCache(cacheKey, data.show);
+  return data.show;
 }
 
 export async function fetchSimilarMovies(

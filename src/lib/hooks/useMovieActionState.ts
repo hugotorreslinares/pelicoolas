@@ -44,14 +44,14 @@ export function useMovieActionState(
     }
     setChecked(false);
     void Promise.all([
-      isMovieSeen(user.uid, movie.tmdbMovieId),
-      isInWatchlist(user.uid, movie.tmdbMovieId),
+      isMovieSeen(user.uid, movie.tmdbMovieId, movie.mediaType),
+      isInWatchlist(user.uid, movie.tmdbMovieId, movie.mediaType),
     ]).then(([seen, listed]) => {
       setWatched(seen);
       setInWatchlist(listed);
       setChecked(true);
     });
-  }, [user, movie.tmdbMovieId]);
+  }, [user, movie.tmdbMovieId, movie.mediaType]);
 
   function requireSignIn(): boolean {
     if (user) return false;
@@ -72,8 +72,9 @@ export function useMovieActionState(
           releaseYear: movie.releaseYear,
           voteAverage: movie.voteAverage,
           genreIds: movie.genreIds,
+          mediaType: movie.mediaType,
         })
-      : unmarkMovieSeen(user!.uid, movie.tmdbMovieId);
+      : unmarkMovieSeen(user!.uid, movie.tmdbMovieId, movie.mediaType);
     write.catch(() => {
       setWatched(!next);
       toast.error(`Couldn't update "${movie.title}". Please try again.`);
@@ -95,8 +96,9 @@ export function useMovieActionState(
           releaseYear: movie.releaseYear,
           voteAverage: movie.voteAverage,
           genreIds: movie.genreIds,
+          mediaType: movie.mediaType,
         })
-      : removeFromWatchlist(user!.uid, movie.tmdbMovieId);
+      : removeFromWatchlist(user!.uid, movie.tmdbMovieId, movie.mediaType);
     write.catch(() => {
       setInWatchlist(!next);
       toast.error(`Couldn't update "${movie.title}". Please try again.`);

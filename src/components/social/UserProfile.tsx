@@ -41,7 +41,10 @@ export function UserProfile({ userId }: UserProfileProps) {
   const [pendingRequest, setPendingRequest] = useState(false);
   const [isFollower, setIsFollower] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [openMovie, setOpenMovie] = useState<{
+    readonly tmdbId: number;
+    readonly mediaType?: "movie" | "tv";
+  } | null>(null);
   const [copied, setCopied] = useState(false);
 
   const isOwner = user?.uid === userId;
@@ -192,7 +195,7 @@ export function UserProfile({ userId }: UserProfileProps) {
         title="Favorites"
         userId={userId}
         subscribeFn={subscribeToRecommendations}
-        onOpen={setOpenMovieId}
+        onOpen={setOpenMovie}
         defaultOpen
       />
 
@@ -202,13 +205,13 @@ export function UserProfile({ userId }: UserProfileProps) {
             title="Watched"
             userId={userId}
             subscribeFn={subscribeToSeenMoviesFull}
-            onOpen={setOpenMovieId}
+            onOpen={setOpenMovie}
           />
           <ProfileSection
             title="Watchlist"
             userId={userId}
             subscribeFn={subscribeToWatchlist}
-            onOpen={setOpenMovieId}
+            onOpen={setOpenMovie}
           />
         </>
       ) : (
@@ -221,11 +224,12 @@ export function UserProfile({ userId }: UserProfileProps) {
         </div>
       )}
 
-      {openMovieId !== null && (
+      {openMovie !== null && (
         <MovieDetailsDialog
-          movieId={openMovieId}
-          open={openMovieId !== null}
-          onOpenChange={(open) => !open && setOpenMovieId(null)}
+          movieId={openMovie.tmdbId}
+          mediaType={openMovie.mediaType}
+          open={openMovie !== null}
+          onOpenChange={(open) => !open && setOpenMovie(null)}
         />
       )}
     </div>
@@ -236,6 +240,7 @@ interface ProfileMovie {
   readonly tmdbId: number;
   readonly title: string;
   readonly posterPath: string | null;
+  readonly mediaType?: "movie" | "tv";
 }
 
 interface ProfileSectionProps<M extends ProfileMovie> {
@@ -245,7 +250,7 @@ interface ProfileSectionProps<M extends ProfileMovie> {
     userId: string,
     callback: (movies: readonly M[]) => void,
   ) => () => void;
-  readonly onOpen: (movieId: number) => void;
+  readonly onOpen: (movie: ProfileMovie) => void;
   /** Closed sections don't subscribe at all until opened — keeps the
    *  page's initial load cheap when a list is big and not the main draw
    *  (e.g. Watched). Favorites stays open — it's usually short and is the
@@ -301,7 +306,7 @@ function ProfileSection<M extends ProfileMovie>({
             <button
               key={movie.tmdbId}
               type="button"
-              onClick={() => onOpen(movie.tmdbId)}
+              onClick={() => onOpen(movie)}
               className="focus-ring card-elevated text-left"
               aria-label={`View details for ${movie.title}`}
             >

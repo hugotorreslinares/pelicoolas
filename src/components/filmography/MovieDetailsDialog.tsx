@@ -16,25 +16,88 @@ import {
   tmdbWidthSrcSet,
   tmdbDensitySrcSet,
 } from "@/lib/tmdb/image";
-import { fetchMovieDetails } from "@/lib/movieData";
+import { fetchMovieDetails, fetchTVDetails } from "@/lib/movieData";
 import { MovieActions } from "@/components/movies/MovieActions";
 import { MovieRecommendButton } from "@/components/movies/MovieRecommendButton";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { LoginButton } from "@/components/auth/LoginButton";
-import type { MovieDetails, TrendingMovie } from "@/types/movie";
+import type {
+  CastMember,
+  ExternalRatings,
+  MovieDetails,
+  TrendingMovie,
+  TVDetails,
+} from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
 
-// The three toggle buttons (seen/recommend/watchlist) each just need the
-// same handful of summary fields off MovieDetails.
-function movieSummary(details: MovieDetails): TrendingMovie {
+type MediaType = "movie" | "tv";
+
+// MovieDetails and TVDetails differ in one field a movie has that a show
+// doesn't (runtimeMinutes vs seasonCount/episodeCount) — normalizing both
+// into this shared view right after fetch means the rest of the dialog's
+// JSX doesn't need to branch on mediaType at all, only this one mapping
+// does.
+interface DialogView {
+  readonly id: number;
+  readonly title: string;
+  readonly posterPath: string | null;
+  readonly overview: string | null;
+  readonly releaseYear: number | null;
+  readonly voteAverage: number | null;
+  readonly genres: readonly string[];
+  readonly genreIds: readonly number[];
+  readonly cast: readonly CastMember[];
+  readonly externalRatings: ExternalRatings | null;
+  readonly subtitle: string;
+}
+
+function toDialogView(
+  details: MovieDetails | TVDetails,
+  mediaType: MediaType,
+): DialogView {
+  const secondaryFact =
+    mediaType === "movie"
+      ? (details as MovieDetails).runtimeMinutes
+        ? `${(details as MovieDetails).runtimeMinutes} min`
+        : null
+      : (details as TVDetails).seasonCount
+        ? `${(details as TVDetails).seasonCount} season${(details as TVDetails).seasonCount === 1 ? "" : "s"}`
+        : null;
+
   return {
-    tmdbMovieId: details.id,
+    id: details.id,
     title: details.title,
     posterPath: details.posterPath,
+    overview: details.overview,
     releaseYear: details.releaseYear,
     voteAverage: details.voteAverage,
+    genres: details.genres,
     genreIds: details.genreIds,
+    cast: details.cast,
+    externalRatings: details.externalRatings,
+    subtitle: [
+      details.releaseYear ?? "Unknown",
+      secondaryFact,
+      details.genres.join(", ") || null,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  };
+}
+
+// The three toggle buttons (seen/recommend/watchlist) each just need the
+// same handful of summary fields, plus mediaType so they read/write the
+// right Firestore doc (see mediaDocId in firestore.ts).
+function movieSummary(view: DialogView, mediaType: MediaType): TrendingMovie {
+  return {
+    tmdbMovieId: view.id,
+    title: view.title,
+    posterPath: view.posterPath,
+    releaseYear: view.releaseYear,
+    voteAverage: view.voteAverage,
+    genreIds: view.genreIds,
+    mediaType,
   };
 }
 
@@ -42,19 +105,22 @@ interface MovieDetailsDialogProps {
   readonly movieId: number;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  /** Defaults to "movie" — every pre-existing call site opens a movie. */
+  readonly mediaType?: MediaType;
 }
 
 export function MovieDetailsDialog({
   movieId,
   open,
   onOpenChange,
+  mediaType = "movie",
 }: MovieDetailsDialogProps) {
-  const [details, setDetails] = useState<MovieDetails | null>(null);
+  const [view, setView] = useState<DialogView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
   const actionState = useMovieActionState(
-    details
-      ? movieSummary(details)
+    view
+      ? movieSummary(view, mediaType)
       : {
           tmdbMovieId: movieId,
           title: "",
@@ -62,21 +128,30 @@ export function MovieDetailsDialog({
           releaseYear: null,
           voteAverage: null,
           genreIds: [],
+          mediaType,
         },
     () => setShowSignIn(true),
   );
 
   useEffect(() => {
     if (!open) return;
-    setDetails(null);
+    setView(null);
     setError(null);
-    fetchMovieDetails(movieId)
-      .then((movie) => {
-        if (!movie) throw new Error("request failed");
-        setDetails(movie);
+    const fetchDetails =
+      mediaType === "tv" ? fetchTVDetails(movieId) : fetchMovieDetails(movieId);
+    fetchDetails
+      .then((details) => {
+        if (!details) throw new Error("request failed");
+        setView(toDialogView(details, mediaType));
       })
-      .catch(() => setError("We couldn't load this movie. Please try again."));
-  }, [open, movieId]);
+      .catch(() =>
+        setError(
+          mediaType === "tv"
+            ? "We couldn't load this show. Please try again."
+            : "We couldn't load this movie. Please try again.",
+        ),
+      );
+  }, [open, movieId, mediaType]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -103,7 +178,7 @@ export function MovieDetailsDialog({
           </div>
         )}
 
-        {!error && !details && (
+        {!error && !view && (
           <div className="space-y-3">
             <Skeleton className="h-64 w-full rounded-lg md:h-96" />
             <Skeleton className="h-5 w-2/3" />
@@ -112,16 +187,16 @@ export function MovieDetailsDialog({
           </div>
         )}
 
-        {!error && details && (
+        {!error && view && (
           // min-w-0: DialogContent is a CSS grid, and grid items default to
           // min-width:auto — without this, a slightly-too-wide child (the
           // ratings row, a long unbroken word) stretches the whole dialog
           // and forces horizontal scroll instead of wrapping.
           <div className="min-w-0">
-            {details.posterPath && (
+            {view.posterPath && (
               <img
-                src={tmdbImageUrl(details.posterPath, 342)}
-                srcSet={tmdbWidthSrcSet(details.posterPath, POSTER_WIDTHS)}
+                src={tmdbImageUrl(view.posterPath, 342)}
+                srcSet={tmdbWidthSrcSet(view.posterPath, POSTER_WIDTHS)}
                 sizes="(min-width: 640px) 448px, 100vw"
                 alt=""
                 className="mb-2 h-64 w-full rounded-lg object-cover md:h-96"
@@ -129,10 +204,10 @@ export function MovieDetailsDialog({
             )}
             <DialogHeader>
               <div className="flex items-start justify-between gap-2">
-                <DialogTitle>{details.title}</DialogTitle>
+                <DialogTitle>{view.title}</DialogTitle>
                 <div className="flex shrink-0 items-center gap-1">
                   <MovieActions
-                    movie={{ tmdbMovieId: details.id, title: details.title }}
+                    movie={{ tmdbMovieId: view.id, title: view.title }}
                     watched={actionState.watched}
                     inWatchlist={actionState.inWatchlist}
                     onToggleWatched={actionState.toggleWatched}
@@ -141,7 +216,7 @@ export function MovieDetailsDialog({
                     placement="inline"
                   />
                   <MovieRecommendButton
-                    movie={movieSummary(details)}
+                    movie={movieSummary(view, mediaType)}
                     onRequireSignIn={() => setShowSignIn(true)}
                   />
                 </div>
@@ -150,66 +225,59 @@ export function MovieDetailsDialog({
                 <div className="flex items-center gap-2">
                   <LoginButton size="sm" />
                   <span className="text-xs text-muted-foreground">
-                    to track, save, or recommend movies
+                    to track, save, or recommend{" "}
+                    {mediaType === "tv" ? "shows" : "movies"}
                   </span>
                 </div>
               )}
-              <p className="text-sm text-muted-foreground">
-                {[
-                  details.releaseYear ?? "Unknown",
-                  details.runtimeMinutes
-                    ? `${details.runtimeMinutes} min`
-                    : null,
-                  details.genres.join(", ") || null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-fit"
-                render={<a href={`/map?movie=${details.id}`} />}
-              >
-                <NetworkIcon data-icon="inline-start" />
-                View in Movie Map
-              </Button>
+              <p className="text-sm text-muted-foreground">{view.subtitle}</p>
+              {mediaType === "movie" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-fit"
+                  render={<a href={`/map?movie=${view.id}`} />}
+                >
+                  <NetworkIcon data-icon="inline-start" />
+                  View in Movie Map
+                </Button>
+              )}
             </DialogHeader>
             <DialogDescription className="mt-2">
-              {details.overview || "No overview available."}
+              {view.overview || "No overview available."}
             </DialogDescription>
 
-            {details.externalRatings &&
-              (details.externalRatings.imdb ||
-                details.externalRatings.rottenTomatoes ||
-                details.externalRatings.metacritic) && (
+            {view.externalRatings &&
+              (view.externalRatings.imdb ||
+                view.externalRatings.rottenTomatoes ||
+                view.externalRatings.metacritic) && (
                 <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                  {details.externalRatings.imdb && (
+                  {view.externalRatings.imdb && (
                     <span>
                       <span className="font-medium">IMDb</span>{" "}
-                      {details.externalRatings.imdb}
+                      {view.externalRatings.imdb}
                     </span>
                   )}
-                  {details.externalRatings.rottenTomatoes && (
+                  {view.externalRatings.rottenTomatoes && (
                     <span>
                       <span className="font-medium">Rotten Tomatoes</span>{" "}
-                      {details.externalRatings.rottenTomatoes}
+                      {view.externalRatings.rottenTomatoes}
                     </span>
                   )}
-                  {details.externalRatings.metacritic && (
+                  {view.externalRatings.metacritic && (
                     <span>
                       <span className="font-medium">Metacritic</span>{" "}
-                      {details.externalRatings.metacritic}
+                      {view.externalRatings.metacritic}
                     </span>
                   )}
                 </div>
               )}
 
-            {details.cast.length > 0 && (
+            {view.cast.length > 0 && (
               <div className="mt-4 space-y-2">
                 <p className="text-sm font-medium">Cast</p>
                 <div className="flex gap-3 overflow-x-auto pb-1">
-                  {details.cast.map((member) => (
+                  {view.cast.map((member) => (
                     <a
                       key={member.personId}
                       href={`/person/${member.personId}`}
