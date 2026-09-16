@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
+import { LoginButton } from "@/components/auth/LoginButton";
 import {
   followPerson,
   isFollowingPerson,
@@ -74,9 +75,12 @@ export function FollowButton({
         {following ? "✓ Following" : "+ Follow"}
       </Button>
       {showSignInHint && (
-        <p className="text-sm text-muted-foreground">
-          Sign in to follow filmographies.
-        </p>
+        <div className="flex items-center gap-2">
+          <LoginButton size="sm" />
+          <span className="text-xs text-muted-foreground">
+            to follow filmographies
+          </span>
+        </div>
       )}
     </div>
   );

@@ -7,6 +7,7 @@ import { FilmographyFilters } from "./FilmographyFilters";
 import { FilmographyProgress } from "./FilmographyProgress";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
+import { LoginButton } from "@/components/auth/LoginButton";
 import {
   addToWatchlist,
   getLegacyWatchedIds,
@@ -327,9 +328,12 @@ export function Filmography({
       </div>
 
       {showSignInHint && (
-        <p className="text-sm text-muted-foreground">
-          Sign in to track and save movies.
-        </p>
+        <div className="flex items-center gap-2">
+          <LoginButton size="sm" />
+          <span className="text-xs text-muted-foreground">
+            to track and save movies
+          </span>
+        </div>
       )}
 
       <div className="space-y-6">
