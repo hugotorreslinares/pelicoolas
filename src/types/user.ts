@@ -11,6 +11,13 @@ export interface PublicProfile {
   /** Set once, on first sync — never overwritten by later sign-ins. Drives
    *  the "recently joined" slider on the home page. */
   readonly createdAt: string;
+  /** Lowercase, unique, fixed once claimed (no renames in v1). Powers
+   *  prefix search (`usernameLower >= q && < q + ""`) and the
+   *  `usernames/{username}` reservation doc. Null until the user claims one
+   *  (existing accounts predate this field). */
+  readonly usernameLower: string | null;
+  /** As typed by the user — display-only, casing preserved. */
+  readonly username: string | null;
 }
 
 /** `users/{userId}/followRequests/{requesterId}` — pending, created by the requester. */

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { announce } from "@/lib/a11y";
+import { useAuth } from "@/lib/hooks/useAuth";
 import {
   approveFollowRequest,
   denyFollowRequest,
@@ -15,6 +16,7 @@ interface FollowRequestsInboxProps {
 }
 
 export function FollowRequestsInbox({ userId }: FollowRequestsInboxProps) {
+  const { user } = useAuth();
   const [requests, setRequests] = useState<readonly FollowRequest[]>([]);
 
   useEffect(() => subscribeToFollowRequests(userId, setRequests), [userId]);
@@ -22,9 +24,20 @@ export function FollowRequestsInbox({ userId }: FollowRequestsInboxProps) {
   if (requests.length === 0) return null;
 
   async function handleApprove(request: FollowRequest) {
+    if (!user) return;
     try {
-      await approveFollowRequest(userId, request);
-      announce(`Approved ${request.requesterName ?? "this user"}`);
+      // Mutual follow — see approveFollowRequest.
+      await approveFollowRequest(
+        {
+          uid: user.uid,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        },
+        request,
+      );
+      announce(
+        `You and ${request.requesterName ?? "this user"} are now friends`,
+      );
     } catch {
       toast.error("Couldn't approve this request. Please try again.");
     }

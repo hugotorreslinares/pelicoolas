@@ -2,6 +2,15 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Username reservation — id = the lowercase username, doc existence IS
+    // the "taken" check (atomic via create-fails-if-exists, no transaction
+    // needed). Fixed once claimed — no update/delete in v1 (no renames).
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if request.auth != null &&
+        request.resource.data.uid == request.auth.uid;
+    }
+
     match /users/{userId} {
       // Public by design — just name/photo, so a shared profile link
       // (/u/{userId}) has something to show before anyone follows anyone.
@@ -28,6 +37,13 @@ service cloud.firestore {
           (request.auth.uid == userId || request.auth.uid == followerId);
         allow write: if request.auth != null && request.auth.uid == userId;
         allow delete: if request.auth != null && request.auth.uid == followerId;
+
+        // Mutual-follow (friend accept): followerId may declare themselves a
+        // follower of userId too, but only as proof userId actually invited
+        // followerId first (their followRequest to followerId still exists)
+        // — same anti-spoof shape as /following below, mirrored.
+        allow create: if request.auth != null && request.auth.uid == followerId &&
+          exists(/databases/$(database)/documents/users/$(followerId)/followRequests/$(userId));
       }
 
       // Who userId follows — a mirror of `followers` on the follower's own

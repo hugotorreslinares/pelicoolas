@@ -3,6 +3,8 @@ import { EyeIcon, BookmarkIcon, StarIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { FriendSearch } from "./FriendSearch";
+import { FollowRequestsInbox } from "@/components/social/FollowRequestsInbox";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   fetchLatestActivity,
@@ -184,13 +186,17 @@ export function FriendsPage() {
 
   if (following.length === 0) {
     return (
-      <div className="space-y-3 text-center">
+      <div className="space-y-4">
         <h1 className="text-xl font-semibold">Friends</h1>
-        <p className="text-muted-foreground">
-          You're not following anyone yet. Ask a friend for their profile link,
-          or share yours from the account menu.
-        </p>
-        <Button render={<a href={`/u/${user.uid}`} />}>My profile</Button>
+        <FriendSearch />
+        <FollowRequestsInbox userId={user.uid} />
+        <div className="space-y-3 text-center">
+          <p className="text-muted-foreground">
+            You're not following anyone yet. Search for a friend's username
+            above, or ask them for their profile link.
+          </p>
+          <Button render={<a href={`/u/${user.uid}`} />}>My profile</Button>
+        </div>
       </div>
     );
   }
@@ -198,6 +204,8 @@ export function FriendsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Friends</h1>
+      <FriendSearch />
+      <FollowRequestsInbox userId={user.uid} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {following.map((friend) => (
           <FriendCard

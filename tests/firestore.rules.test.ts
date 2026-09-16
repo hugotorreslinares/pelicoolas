@@ -164,6 +164,77 @@ describe("firestore.rules — follow requests/followers/following", () => {
   });
 });
 
+describe("firestore.rules — usernames", () => {
+  it("lets a user reserve a username under their own uid, but not on behalf of someone else", async () => {
+    const aliceDb = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(aliceDb, "usernames/alice_a"), { uid: "alice" }),
+    );
+    await assertFails(setDoc(doc(aliceDb, "usernames/bob_b"), { uid: "bob" }));
+  });
+
+  it("denies claiming a username someone else already reserved", async () => {
+    const aliceDb = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(aliceDb, "usernames/shared"), { uid: "alice" }),
+    );
+    // The doc already exists, so Bob's setDoc is an `update`, not a
+    // `create` — and there's no `allow update` at all, so it's denied by
+    // default. This is exactly the atomic "create fails if taken" the
+    // reservation scheme relies on.
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(setDoc(doc(bobDb, "usernames/shared"), { uid: "bob" }));
+  });
+
+  it("anyone can read a username reservation", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "usernames/alice_a"), {
+        uid: "alice",
+      });
+    });
+    const anonDb = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(anonDb, "usernames/alice_a")));
+  });
+});
+
+describe("firestore.rules — mutual follow on accept", () => {
+  it("lets the target declare themselves a follower back, only if they invited the requester first", async () => {
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    // No followRequest from Alice to Bob exists yet — Bob can't claim to
+    // follow Alice this way.
+    await assertFails(
+      setDoc(doc(bobDb, "users/alice/followers/bob"), { followerId: "bob" }),
+    );
+
+    // Alice invited Bob (users/bob/followRequests/alice) — now Bob accepting
+    // can write the reverse: he follows Alice too.
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/bob/followRequests/alice"), {
+        requesterId: "alice",
+      });
+    });
+    await assertSucceeds(
+      setDoc(doc(bobDb, "users/alice/followers/bob"), { followerId: "bob" }),
+    );
+  });
+
+  it("doesn't let a third party piggyback on someone else's invite", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/bob/followRequests/alice"), {
+        requesterId: "alice",
+      });
+    });
+    // Carol has no invite of her own to Bob — she can't declare herself a
+    // follower of Alice by riding Alice's request to Bob.
+    const carolDb = testEnv.authenticatedContext("carol").firestore();
+    await assertFails(
+      setDoc(doc(carolDb, "users/alice/followers/carol"), {
+        followerId: "carol",
+      }),
+    );
+  });
+});
+
 describe("firestore.rules — followedPeople + nested watchedMovies", () => {
   it("lets a user follow a person and mark a movie watched under their own uid", async () => {
     const db = testEnv.authenticatedContext("alice").firestore();

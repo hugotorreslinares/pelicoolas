@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { MobileNav } from "@/components/nav/MobileNav";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
+import { UsernamePrompt } from "@/components/onboarding/UsernamePrompt";
 import { Toaster } from "@/components/ui/sonner";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { LocaleToggle } from "@/components/locale/LocaleToggle";
@@ -315,6 +316,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
           <slot />
         </main>
         <OnboardingCarousel locale={locale} client:idle />
+        <UsernamePrompt client:idle />
         <Toaster client:idle />
         <footer
           class="mx-auto max-w-6xl space-y-2 border-t p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"

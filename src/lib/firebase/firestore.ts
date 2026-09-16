@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
   writeBatch,
 } from "firebase/firestore";
 import { db } from "./client";
@@ -495,6 +496,62 @@ export async function syncPublicProfile(user: {
   return !hasCreatedAt;
 }
 
+function usernameRef(usernameLower: string) {
+  return doc(requireDb(), "usernames", usernameLower);
+}
+
+const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
+
+export function isValidUsername(username: string): boolean {
+  return USERNAME_PATTERN.test(username.toLowerCase());
+}
+
+/**
+ * Claims `username` for `uid`: reserves it (fails if already taken — the
+ * `create` succeeds only if the doc doesn't exist yet, no transaction
+ * needed) then denormalizes it onto the public profile for prefix search.
+ * Throws (Firestore permission-denied) if the username is already claimed.
+ */
+export async function claimUsername(
+  uid: string,
+  username: string,
+): Promise<void> {
+  const usernameLower = username.toLowerCase();
+  if (!isValidUsername(usernameLower)) {
+    throw new Error("Invalid username");
+  }
+  await setDoc(usernameRef(usernameLower), {
+    uid,
+    createdAt: serverTimestamp(),
+  });
+  await setDoc(
+    publicProfileRef(uid),
+    { username, usernameLower },
+    { merge: true },
+  );
+}
+
+// Firestore has no native full-text search — prefix range query on the
+// denormalized usernameLower field is the whole trick (see design.md-style
+// note on PublicProfile). Exact-prefix only, no typo tolerance in v1.
+export async function searchUsersByUsername(
+  prefix: string,
+  count = 10,
+): Promise<readonly PublicProfile[]> {
+  const p = prefix.trim().toLowerCase();
+  if (!p) return [];
+  const snapshot = await getDocs(
+    query(
+      collection(requireDb(), "users"),
+      orderBy("usernameLower"),
+      where("usernameLower", ">=", p),
+      where("usernameLower", "<", p + ""),
+      fsLimit(count),
+    ),
+  );
+  return snapshot.docs.map((d) => d.data() as PublicProfile);
+}
+
 export function subscribeToPublicProfile(
   userId: string,
   callback: (profile: PublicProfile | null) => void,
@@ -565,17 +622,44 @@ export function subscribeToFollowRequestStatus(
   });
 }
 
+// A friend invite (see sendFollowRequest / the FriendSearch flow) is
+// accepted as a MUTUAL follow, not one-way: the requester follows the
+// target (as before) AND the target follows the requester back. Sequential,
+// not batched — same non-transactional tradeoff as unfollow's two deletes;
+// firestore.rules requires the followRequest doc to still exist for the
+// second write's exists() check, so it's deleted last.
 export async function approveFollowRequest(
-  targetId: string,
+  target: {
+    readonly uid: string;
+    readonly displayName: string | null;
+    readonly photoURL: string | null;
+  },
   request: FollowRequest,
 ): Promise<void> {
-  await setDoc(followerRef(targetId, request.requesterId), {
+  await setDoc(followerRef(target.uid, request.requesterId), {
     followerId: request.requesterId,
     followerName: request.requesterName,
     followerPhotoURL: request.requesterPhotoURL,
     since: serverTimestamp(),
   });
-  await deleteDoc(followRequestRef(targetId, request.requesterId));
+  await setDoc(followerRef(request.requesterId, target.uid), {
+    followerId: target.uid,
+    followerName: target.displayName,
+    followerPhotoURL: target.photoURL,
+    since: serverTimestamp(),
+  });
+  // The target's own `following` mirror can complete right away — the
+  // followers doc it depends on (just above) already exists. The
+  // requester's mirror still completes the old way (on visiting the
+  // target's profile — see UserProfile.tsx) since only the requester's own
+  // client is allowed to write it.
+  await setDoc(followingRef(target.uid, request.requesterId), {
+    targetId: request.requesterId,
+    targetName: request.requesterName,
+    targetPhotoURL: request.requesterPhotoURL,
+    since: serverTimestamp(),
+  });
+  await deleteDoc(followRequestRef(target.uid, request.requesterId));
 }
 
 export async function denyFollowRequest(
