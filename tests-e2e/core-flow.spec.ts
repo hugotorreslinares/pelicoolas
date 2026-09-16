@@ -24,10 +24,7 @@ async function clearFirestore(): Promise<void> {
 // without going through Google's (unautomatable) popup flow. Idempotent:
 // a re-run against an already-seeded emulator gets EMAIL_EXISTS, which is
 // fine.
-// Returns the seeded user's uid — needed afterward to pre-claim a
-// username directly in Firestore (see beforeAll) so the blocking
-// UsernamePrompt modal doesn't sit on top of the page under test.
-async function seedTestUser(): Promise<string> {
+async function seedTestUser(): Promise<void> {
   const res = await fetch(
     `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FAKE_API_KEY}`,
     {
@@ -40,57 +37,18 @@ async function seedTestUser(): Promise<string> {
       }),
     },
   );
-  if (res.ok) {
-    const body: { localId: string } = await res.json();
-    return body.localId;
-  }
+  if (res.ok) return;
   const body: { error?: { message?: string } } = await res
     .json()
     .catch(() => ({}));
   if (body.error?.message !== "EMAIL_EXISTS") {
     throw new Error(`Failed to seed E2E test user: ${JSON.stringify(body)}`);
   }
-  // Already exists (idempotent re-run) — sign in instead to get its uid.
-  const signInRes = await fetch(
-    `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FAKE_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        email: TEST_EMAIL,
-        password: TEST_PASSWORD,
-        returnSecureToken: true,
-      }),
-    },
-  );
-  const signInBody: { localId: string } = await signInRes.json();
-  return signInBody.localId;
-}
-
-// Writes users/{uid}.username directly via the Firestore emulator's REST
-// API (no security rules apply to emulator REST calls) — must run AFTER
-// clearFirestore, which wipes the whole database including this doc.
-async function seedUsername(uid: string): Promise<void> {
-  await fetch(
-    `${FIRESTORE_EMULATOR_URL}/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${uid}` +
-      "?updateMask.fieldPaths=username&updateMask.fieldPaths=usernameLower",
-    {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        fields: {
-          username: { stringValue: "e2euser" },
-          usernameLower: { stringValue: "e2euser" },
-        },
-      }),
-    },
-  );
 }
 
 test.beforeAll(async () => {
-  const uid = await seedTestUser();
+  await seedTestUser();
   await clearFirestore();
-  await seedUsername(uid);
 });
 
 test("search → follow → mark watched → see progress", async ({ page }) => {
@@ -145,13 +103,25 @@ test("search → follow → mark watched → see progress", async ({ page }) => 
       typeof (window as unknown as Record<string, unknown>).__e2eSignIn ===
       "function",
   );
+  // Also pre-claims a username for the freshly signed-in test user —
+  // otherwise the blocking UsernamePrompt modal (see UsernamePrompt.tsx)
+  // sits on top of the page and every click below times out on it.
   await page.evaluate(
-    ([email, password]) =>
-      (
+    async ([email, password]) => {
+      const cred = await (
         window as unknown as {
-          __e2eSignIn: (e: string, p: string) => Promise<unknown>;
+          __e2eSignIn: (
+            e: string,
+            p: string,
+          ) => Promise<{ user: { uid: string } }>;
         }
-      ).__e2eSignIn(email, password),
+      ).__e2eSignIn(email, password);
+      await (
+        window as unknown as {
+          __e2eClaimUsername: (uid: string, username: string) => Promise<void>;
+        }
+      ).__e2eClaimUsername(cred.user.uid, "e2euser");
+    },
     [TEST_EMAIL, TEST_PASSWORD],
   );
 

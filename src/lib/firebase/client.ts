@@ -7,7 +7,9 @@ import {
 } from "firebase/auth";
 import {
   connectFirestoreEmulator,
+  doc,
   getFirestore,
+  setDoc,
   type Firestore,
 } from "firebase/firestore";
 
@@ -50,5 +52,22 @@ if (auth && db && import.meta.env.PUBLIC_USE_FIREBASE_EMULATOR === "true") {
       }
     ).__e2eSignIn = (email, password) =>
       signInWithEmailAndPassword(auth, email, password);
+
+    // Same idea as __e2eSignIn: pre-claims a username for the test user so
+    // the blocking UsernamePrompt modal doesn't sit on top of the page
+    // under test. Not importing claimUsername from firestore.ts here to
+    // avoid a circular import (it imports `db` from this module) — this is
+    // the same merge-write, minus the `usernames/{username}` reservation
+    // doc, which nothing under test needs.
+    (
+      window as unknown as {
+        __e2eClaimUsername: (uid: string, username: string) => Promise<void>;
+      }
+    ).__e2eClaimUsername = (uid, username) =>
+      setDoc(
+        doc(db, "users", uid),
+        { username, usernameLower: username.toLowerCase() },
+        { merge: true },
+      );
   }
 }
