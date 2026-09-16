@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getMovieDetails } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
+import { resolveWatchRegion } from "@/lib/region";
 import {
   jsonResponse,
   errorResponse,
@@ -24,8 +25,19 @@ export const GET: APIRoute = async ({ params, request }) => {
     return errorResponse("Invalid movie id", 400);
   }
 
+  // Region is part of the URL (not just derived server-side from
+  // Accept-Language) because the response below is cached on Vercel's
+  // shared CDN with no Vary header — baking the region into the querystring
+  // is what keeps that cache correct per-region instead of serving
+  // whichever region happened to be first to warm the cache.
+  const regionParam = new URL(request.url).searchParams.get("region");
+  const region =
+    regionParam && /^[A-Za-z]{2}$/.test(regionParam)
+      ? regionParam.toUpperCase()
+      : resolveWatchRegion(request.headers.get("accept-language"));
+
   try {
-    const movie = await getMovieDetails(movieId);
+    const movie = await getMovieDetails(movieId, region);
     return jsonResponse({ movie }, CACHE_SECONDS);
   } catch (error) {
     if (error instanceof TmdbError) {

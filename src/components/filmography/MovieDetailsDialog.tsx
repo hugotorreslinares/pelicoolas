@@ -27,6 +27,7 @@ import type {
   MovieDetails,
   TrendingMovie,
   TVDetails,
+  WatchProviders,
 } from "@/types/movie";
 
 const POSTER_WIDTHS = [342, 500, 780];
@@ -49,6 +50,7 @@ interface DialogView {
   readonly genreIds: readonly number[];
   readonly cast: readonly CastMember[];
   readonly externalRatings: ExternalRatings | null;
+  readonly watchProviders: WatchProviders | null;
   readonly subtitle: string;
 }
 
@@ -76,6 +78,7 @@ function toDialogView(
     genreIds: details.genreIds,
     cast: details.cast,
     externalRatings: details.externalRatings,
+    watchProviders: details.watchProviders,
     subtitle: [
       details.releaseYear ?? "Unknown",
       secondaryFact,
@@ -99,6 +102,78 @@ function movieSummary(view: DialogView, mediaType: MediaType): TrendingMovie {
     genreIds: view.genreIds,
     mediaType,
   };
+}
+
+function ProviderRow({
+  label,
+  providers,
+}: {
+  readonly label: string;
+  readonly providers: WatchProviders["flatrate"];
+}) {
+  if (providers.length === 0) return null;
+  return (
+    <div className="flex items-center gap-2">
+      <p className="w-14 shrink-0 text-xs text-muted-foreground">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {providers.map((p) => (
+          <div
+            key={p.providerId}
+            title={p.providerName}
+            className="size-8 shrink-0 overflow-hidden rounded-lg"
+          >
+            {p.logoPath ? (
+              <img
+                src={tmdbImageUrl(p.logoPath, 92)}
+                alt={p.providerName}
+                className="size-full object-cover"
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center bg-muted text-[10px] font-medium">
+                {p.providerName.slice(0, 2)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// TMDB's ToS require linking to their own attribution page (view.link)
+// rather than deep-linking a specific provider — see
+// https://developer.themoviedb.org/docs/watch-providers.
+function WatchProvidersSection({
+  providers,
+}: {
+  readonly providers: WatchProviders;
+}) {
+  const stream = [...providers.flatrate, ...providers.free, ...providers.ads];
+  const hasAny =
+    stream.length > 0 || providers.rent.length > 0 || providers.buy.length > 0;
+  if (!hasAny) return null;
+
+  return (
+    <div className="mt-4 space-y-2">
+      <a
+        href={providers.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="focus-ring text-sm font-medium hover:underline"
+      >
+        Where to watch
+      </a>
+      <div className="space-y-1.5">
+        <ProviderRow label="Stream" providers={stream} />
+        <ProviderRow label="Rent" providers={providers.rent} />
+        <ProviderRow label="Buy" providers={providers.buy} />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Streaming availability via JustWatch, may not be complete or 100%
+        accurate.
+      </p>
+    </div>
+  );
 }
 
 interface MovieDetailsDialogProps {
@@ -272,6 +347,10 @@ export function MovieDetailsDialog({
                   )}
                 </div>
               )}
+
+            {view.watchProviders && (
+              <WatchProvidersSection providers={view.watchProviders} />
+            )}
 
             {view.cast.length > 0 && (
               <div className="mt-4 space-y-2">

@@ -44,6 +44,28 @@ export interface ExternalRatings {
   readonly metacritic: string | null;
 }
 
+export interface WatchProviderOption {
+  readonly providerId: number;
+  readonly providerName: string;
+  readonly logoPath: string | null;
+}
+
+/**
+ * Where to watch, for the viewer's region (see `lib/region.ts`) — from
+ * TMDB's JustWatch-sourced `/watch/providers` data. Null when TMDB has
+ * nothing for this title in that region (common outside the US/a handful
+ * of big markets) — not an error, just nothing to show.
+ */
+export interface WatchProviders {
+  /** TMDB's own JustWatch attribution page for this title. */
+  readonly link: string;
+  readonly flatrate: readonly WatchProviderOption[];
+  readonly rent: readonly WatchProviderOption[];
+  readonly buy: readonly WatchProviderOption[];
+  readonly free: readonly WatchProviderOption[];
+  readonly ads: readonly WatchProviderOption[];
+}
+
 export interface MovieDetails {
   readonly id: number;
   readonly title: string;
@@ -58,6 +80,7 @@ export interface MovieDetails {
   readonly cast: readonly CastMember[];
   /** null when TMDB has no imdb_id for this movie, or OMDb has nothing/is unreachable — never blocks the rest of the details. */
   readonly externalRatings: ExternalRatings | null;
+  readonly watchProviders: WatchProviders | null;
 }
 
 /**
@@ -80,4 +103,5 @@ export interface TVDetails {
   readonly genreIds: readonly number[];
   readonly cast: readonly CastMember[];
   readonly externalRatings: ExternalRatings | null;
+  readonly watchProviders: WatchProviders | null;
 }

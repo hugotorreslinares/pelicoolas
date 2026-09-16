@@ -81,6 +81,29 @@ export type TmdbTrendingMoviesResponse = z.infer<
   typeof tmdbTrendingMoviesResponseSchema
 >;
 
+const tmdbWatchProviderOptionSchema = z.object({
+  provider_id: z.number(),
+  provider_name: z.string(),
+  logo_path: z.string().nullable(),
+});
+
+// Nested under append_to_response=watch/providers, one entry per ISO
+// country code under `results` — see lib/region.ts for how the region to
+// read is picked.
+const tmdbWatchProvidersResponseSchema = z.object({
+  results: z.record(
+    z.string(),
+    z.object({
+      link: z.string(),
+      flatrate: z.array(tmdbWatchProviderOptionSchema).optional(),
+      rent: z.array(tmdbWatchProviderOptionSchema).optional(),
+      buy: z.array(tmdbWatchProviderOptionSchema).optional(),
+      free: z.array(tmdbWatchProviderOptionSchema).optional(),
+      ads: z.array(tmdbWatchProviderOptionSchema).optional(),
+    }),
+  ),
+});
+
 export const tmdbMovieDetailsResponseSchema = z.object({
   id: z.number(),
   title: z.string(),
@@ -107,6 +130,9 @@ export const tmdbMovieDetailsResponseSchema = z.object({
       ),
     })
     .optional(),
+  // Present because getMovieDetails requests append_to_response includes
+  // "watch/providers" — key has a literal slash, TMDB's own naming.
+  "watch/providers": tmdbWatchProvidersResponseSchema.optional(),
 });
 export type TmdbMovieDetailsResponse = z.infer<
   typeof tmdbMovieDetailsResponseSchema
@@ -152,5 +178,6 @@ export const tmdbTVDetailsResponseSchema = z.object({
     })
     .optional(),
   external_ids: z.object({ imdb_id: z.string().nullable() }).optional(),
+  "watch/providers": tmdbWatchProvidersResponseSchema.optional(),
 });
 export type TmdbTVDetailsResponse = z.infer<typeof tmdbTVDetailsResponseSchema>;

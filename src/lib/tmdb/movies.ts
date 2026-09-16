@@ -10,7 +10,12 @@ import type {
   FilmographyMovie,
   MovieDetails,
   TrendingMovie,
+  WatchProviders,
 } from "@/types/movie";
+import type {
+  TmdbMovieDetailsResponse,
+  TmdbTVDetailsResponse,
+} from "@/types/tmdb";
 
 export function toReleaseYear(releaseDate: string | undefined): number | null {
   if (!releaseDate) return null;
@@ -62,11 +67,42 @@ export async function getFilmography(
 
 const CAST_LIMIT = 10;
 
-export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
+// Shared by getMovieDetails and getTVDetails — both request
+// append_to_response=...,watch/providers and need the same
+// pick-my-region-out-of-every-country mapping.
+export function toWatchProviders(
+  data: Pick<
+    TmdbMovieDetailsResponse | TmdbTVDetailsResponse,
+    "watch/providers"
+  >,
+  region: string,
+): WatchProviders | null {
+  const entry = data["watch/providers"]?.results[region];
+  if (!entry) return null;
+  const map = (list: typeof entry.flatrate) =>
+    (list ?? []).map((p) => ({
+      providerId: p.provider_id,
+      providerName: p.provider_name,
+      logoPath: p.logo_path,
+    }));
+  return {
+    link: entry.link,
+    flatrate: map(entry.flatrate),
+    rent: map(entry.rent),
+    buy: map(entry.buy),
+    free: map(entry.free),
+    ads: map(entry.ads),
+  };
+}
+
+export async function getMovieDetails(
+  movieId: number,
+  region: string,
+): Promise<MovieDetails> {
   const data = await tmdbFetch(
     `/movie/${movieId}`,
     tmdbMovieDetailsResponseSchema,
-    { append_to_response: "credits" },
+    { append_to_response: "credits,watch/providers" },
   );
 
   const externalRatings = await getExternalRatings(data.imdb_id);
@@ -88,6 +124,7 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
       profilePath: c.profile_path,
     })),
     externalRatings,
+    watchProviders: toWatchProviders(data, region),
   };
 }
 

@@ -1,4 +1,5 @@
 import { readCache, writeCache } from "@/lib/clientCache";
+import { resolveWatchRegion } from "@/lib/region";
 import type { PersonProfile } from "@/types/person";
 import type { CreditDepartment } from "@/types/filmography";
 import type {
@@ -38,14 +39,25 @@ export async function fetchPersonData(
   return data;
 }
 
+// The /api/movie and /api/tv proxies need the region in the querystring
+// (see their own comments) to keep TMDB's watch-providers data correct per
+// visitor on a shared CDN cache — navigator.language ("es-MX") is the same
+// kind of tag resolveWatchRegion already parses out of Accept-Language.
+function clientWatchRegion(): string {
+  return resolveWatchRegion(
+    typeof navigator !== "undefined" ? navigator.language : null,
+  );
+}
+
 export async function fetchMovieDetails(
   movieId: number,
 ): Promise<MovieDetails | null> {
-  const cacheKey = `movie:${movieId}`;
+  const region = clientWatchRegion();
+  const cacheKey = `movie:${movieId}:${region}`;
   const cached = readCache<MovieDetails>(cacheKey, MOVIE_CACHE_MAX_AGE_MS);
   if (cached) return cached;
 
-  const res = await fetch(`/api/movie/${movieId}`);
+  const res = await fetch(`/api/movie/${movieId}?region=${region}`);
   if (!res.ok) return null;
   const data = (await res.json()) as { movie: MovieDetails };
   writeCache(cacheKey, data.movie);
@@ -57,11 +69,12 @@ export async function fetchTVDetails(tvId: number): Promise<TVDetails | null> {
   // "movie:" — a TV id and a movie id can collide numerically (separate
   // TMDB namespaces), so sharing a key prefix would return the wrong
   // cached details for one of them.
-  const cacheKey = `tv:${tvId}`;
+  const region = clientWatchRegion();
+  const cacheKey = `tv:${tvId}:${region}`;
   const cached = readCache<TVDetails>(cacheKey, MOVIE_CACHE_MAX_AGE_MS);
   if (cached) return cached;
 
-  const res = await fetch(`/api/tv/${tvId}`);
+  const res = await fetch(`/api/tv/${tvId}?region=${region}`);
   if (!res.ok) return null;
   const data = (await res.json()) as { show: TVDetails };
   writeCache(cacheKey, data.show);

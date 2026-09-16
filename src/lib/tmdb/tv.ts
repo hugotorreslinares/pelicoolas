@@ -5,7 +5,7 @@ import {
   tmdbTVDetailsResponseSchema,
 } from "@/types/tmdb";
 import type { TrendingMovie, TVDetails } from "@/types/movie";
-import { toReleaseYear } from "./movies";
+import { toReleaseYear, toWatchProviders } from "./movies";
 
 const TRENDING_LIMIT = 10;
 
@@ -31,9 +31,12 @@ export async function getTrendingTV(): Promise<readonly TrendingMovie[]> {
 
 const CAST_LIMIT = 10;
 
-export async function getTVDetails(tvId: number): Promise<TVDetails> {
+export async function getTVDetails(
+  tvId: number,
+  region: string,
+): Promise<TVDetails> {
   const data = await tmdbFetch(`/tv/${tvId}`, tmdbTVDetailsResponseSchema, {
-    append_to_response: "credits,external_ids",
+    append_to_response: "credits,external_ids,watch/providers",
   });
 
   const externalRatings = await getExternalRatings(data.external_ids?.imdb_id);
@@ -56,5 +59,6 @@ export async function getTVDetails(tvId: number): Promise<TVDetails> {
       profilePath: c.profile_path,
     })),
     externalRatings,
+    watchProviders: toWatchProviders(data, region),
   };
 }
