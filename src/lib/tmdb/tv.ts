@@ -1,6 +1,7 @@
 import { tmdbFetch } from "./client";
 import { getExternalRatings } from "@/lib/omdb";
 import {
+  tmdbSearchTVResponseSchema,
   tmdbTrendingTVResponseSchema,
   tmdbTVDetailsResponseSchema,
 } from "@/types/tmdb";
@@ -24,6 +25,25 @@ export async function getTrendingTV(): Promise<readonly TrendingMovie[]> {
     // (see lib/tmdb/genres.ts, movie-only) — dropped here rather than risk
     // a TV show's genre rendering as the wrong movie genre name wherever
     // genreIds gets displayed (Watched/Watchlist genre filter chips).
+    genreIds: [],
+    mediaType: "tv" as const,
+  }));
+}
+
+export async function searchTV(
+  query: string,
+): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch("/search/tv", tmdbSearchTVResponseSchema, {
+    query,
+    include_adult: "false",
+  });
+  return data.results.map((show) => ({
+    tmdbMovieId: show.id,
+    title: show.name,
+    posterPath: show.poster_path,
+    releaseYear: toReleaseYear(show.first_air_date),
+    voteAverage: show.vote_average ?? null,
+    // See getTrendingTV — TV/movie genre ids are separate TMDB namespaces.
     genreIds: [],
     mediaType: "tv" as const,
   }));

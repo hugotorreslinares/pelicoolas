@@ -2,13 +2,18 @@
 import Layout from "@/layouts/Layout.astro";
 import { SearchTabs } from "@/components/search/SearchTabs";
 import { getTrendingMovies } from "@/lib/tmdb/movies";
+import { getTrendingTV } from "@/lib/tmdb/tv";
 import { TmdbError } from "@/lib/tmdb/client";
 
 // Best-effort, same pattern as the home dashboard: if TMDB is down, the
 // search page still renders fine without the trending fallback content.
 let trendingMovies: Awaited<ReturnType<typeof getTrendingMovies>> = [];
+let trendingTV: Awaited<ReturnType<typeof getTrendingTV>> = [];
 try {
-  trendingMovies = await getTrendingMovies();
+  [trendingMovies, trendingTV] = await Promise.all([
+    getTrendingMovies(),
+    getTrendingTV(),
+  ]);
 } catch (e) {
   if (!(e instanceof TmdbError)) throw e;
 }
@@ -16,12 +21,16 @@ try {
 
 <Layout
   title="Search — Pelicoolas"
-  description="Search actors, directors, and movies — follow filmographies or add movies to your watchlist."
+  description="Search actors, directors, movies, and TV shows — follow filmographies or add titles to your watchlist."
 >
   <div class="space-y-6 py-8 text-center">
     <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
-      Search actors, directors & movies
+      Search actors, directors, movies & TV shows
     </h1>
-    <SearchTabs client:load trendingMovies={trendingMovies} />
+    <SearchTabs
+      client:load
+      trendingMovies={trendingMovies}
+      trendingTV={trendingTV}
+    />
   </div>
 </Layout>

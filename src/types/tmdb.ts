@@ -138,6 +138,19 @@ export type TmdbMovieDetailsResponse = z.infer<
   typeof tmdbMovieDetailsResponseSchema
 >;
 
+export const tmdbSearchTVResponseSchema = z.object({
+  results: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      poster_path: z.string().nullable(),
+      first_air_date: z.string().optional(),
+      vote_average: z.number().optional(),
+    }),
+  ),
+});
+export type TmdbSearchTVResponse = z.infer<typeof tmdbSearchTVResponseSchema>;
+
 export const tmdbTrendingTVResponseSchema = z.object({
   results: z.array(
     z.object({

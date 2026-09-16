@@ -8,6 +8,7 @@ import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { UsernamePrompt } from "@/components/onboarding/UsernamePrompt";
 import { Toaster } from "@/components/ui/sonner";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
+import { SidebarSearch } from "@/components/search/SidebarSearch";
 import { LocaleToggle } from "@/components/locale/LocaleToggle";
 import {
   FilmIcon,
@@ -167,10 +168,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
             <img src="/logo.png" alt="" width="32" height="32" class="size-8" />
             PELICOOLAS
           </a>
-          <HeaderSearch
-            className={sidebarLinkClass(isSearchActive)}
-            client:idle
-          />
+          <SidebarSearch client:idle />
           <nav aria-label="Main" class="flex flex-col gap-1">
             <a
               href="/filmographies"

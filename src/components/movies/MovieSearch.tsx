@@ -8,16 +8,29 @@ import type { TrendingMovie } from "@/types/movie";
 
 const DEBOUNCE_MS = 350;
 
+type MediaType = "movie" | "tv";
+
 interface MovieSearchProps {
+  readonly mediaType?: MediaType;
   readonly trendingMovies?: readonly TrendingMovie[];
 }
 
-export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
+const SEARCH_ENDPOINT: Record<MediaType, string> = {
+  movie: "/api/search-movie",
+  tv: "/api/search-tv",
+};
+
+export function MovieSearch({
+  mediaType = "movie",
+  trendingMovies = [],
+}: MovieSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly TrendingMovie[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  // Full result object, not just an id — MovieDetailsDialog needs mediaType
+  // to fetch the right endpoint (see the dialog's own mediaType prop).
+  const [openMovie, setOpenMovie] = useState<TrendingMovie | null>(null);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -31,7 +44,7 @@ export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `/api/search-movie?q=${encodeURIComponent(trimmed)}`,
+          `${SEARCH_ENDPOINT[mediaType]}?q=${encodeURIComponent(trimmed)}`,
         );
         if (!res.ok) throw new Error("request failed");
         const data = (await res.json()) as {
@@ -40,19 +53,27 @@ export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
         setResults(data.results);
         setError(null);
       } catch {
-        setError("We couldn't load movies. Please try again.");
+        setError(
+          mediaType === "tv"
+            ? "We couldn't load shows. Please try again."
+            : "We couldn't load movies. Please try again.",
+        );
       } finally {
         setLoading(false);
       }
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, mediaType]);
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-4">
       <Input
-        placeholder="Search movie title..."
+        placeholder={
+          mediaType === "tv"
+            ? "Search TV show title..."
+            : "Search movie title..."
+        }
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -68,7 +89,9 @@ export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
 
       {!loading && !error && query.trim() && results.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          No movies found. Try another title.
+          {mediaType === "tv"
+            ? "No shows found. Try another title."
+            : "No movies found. Try another title."}
         </p>
       )}
 
@@ -78,7 +101,7 @@ export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
             <MovieResultRow
               key={movie.tmdbMovieId}
               movie={movie}
-              onClick={() => setOpenMovieId(movie.tmdbMovieId)}
+              onClick={() => setOpenMovie(movie)}
             />
           ))}
         </div>
@@ -87,16 +110,17 @@ export function MovieSearch({ trendingMovies = [] }: MovieSearchProps) {
       {!query.trim() && trendingMovies.length > 0 && (
         <TrendingSlider
           items={trendingMovies}
-          mediaType="movie"
+          mediaType={mediaType}
           heading="Trending this week"
         />
       )}
 
-      {openMovieId !== null && (
+      {openMovie && (
         <MovieDetailsDialog
-          movieId={openMovieId}
-          open={openMovieId !== null}
-          onOpenChange={(open) => !open && setOpenMovieId(null)}
+          movieId={openMovie.tmdbMovieId}
+          mediaType={mediaType}
+          open={openMovie !== null}
+          onOpenChange={(open) => !open && setOpenMovie(null)}
         />
       )}
     </div>
