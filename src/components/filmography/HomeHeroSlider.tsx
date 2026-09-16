@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { WelcomeHero } from "./WelcomeHero";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
+import { SocialHero } from "./SocialHero";
 import { cn } from "@/lib/utils";
 import type { FollowedPerson } from "@/types/filmography";
 
@@ -12,18 +13,26 @@ interface HomeHeroSliderProps {
 // page to explain what the app does — the welcome message used to only
 // show for anonymous visitors. Once there ARE followed people, the photo
 // wall (FollowedPeopleHero) is worth showing too, but it shouldn't bump
-// the welcome message off screen entirely, so both live in a two-slide
-// swipeable carousel. With nobody followed, there's only one slide and no
-// carousel chrome at all.
+// the welcome message off screen entirely, so both live in a swipeable
+// carousel alongside a social slide (SocialHero) that's always present —
+// an already-active user is exactly who has friends to go find, so it
+// isn't gated on any state the way the welcome/photo-wall slides are.
 export function HomeHeroSlider({ people }: HomeHeroSliderProps) {
   const hasPhotos = people.some((p) => p.profilePath !== null);
+  const slides: readonly ReactNode[] = hasPhotos
+    ? [
+        <WelcomeHero key="welcome" />,
+        <FollowedPeopleHero key="followed" people={people} />,
+        <SocialHero key="social" />,
+      ]
+    : [<WelcomeHero key="welcome" />, <SocialHero key="social" />];
+
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const slideRefs = useRef<readonly (HTMLDivElement | null)[]>([]);
+  const slideRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [activeIndex, setActiveIndex] = useState(0);
   const [height, setHeight] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    if (!hasPhotos) return;
     const el = slideRefs.current[activeIndex];
     if (!el) return;
     const observer = new ResizeObserver(([entry]) =>
@@ -31,9 +40,7 @@ export function HomeHeroSlider({ people }: HomeHeroSliderProps) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [activeIndex, hasPhotos]);
-
-  if (!hasPhotos) return <WelcomeHero />;
+  }, [activeIndex]);
 
   function handleScroll() {
     const el = scrollerRef.current;
@@ -55,30 +62,25 @@ export function HomeHeroSlider({ people }: HomeHeroSliderProps) {
         className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth transition-[height] duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{ height }}
       >
-        <div
-          ref={(el) => {
-            slideRefs.current = [el, slideRefs.current[1] ?? null];
-          }}
-          className="w-full shrink-0 snap-center self-start"
-        >
-          <WelcomeHero />
-        </div>
-        <div
-          ref={(el) => {
-            slideRefs.current = [slideRefs.current[0] ?? null, el];
-          }}
-          className="w-full shrink-0 snap-center self-start"
-        >
-          <FollowedPeopleHero people={people} />
-        </div>
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            ref={(el) => {
+              slideRefs.current[index] = el;
+            }}
+            className="w-full shrink-0 snap-center self-start"
+          >
+            {slide}
+          </div>
+        ))}
       </div>
 
       <div className="flex justify-center gap-1.5">
-        {[0, 1].map((index) => (
+        {slides.map((_, index) => (
           <button
             key={index}
             type="button"
-            aria-label={`Go to slide ${index + 1} of 2`}
+            aria-label={`Go to slide ${index + 1} of ${slides.length}`}
             aria-current={activeIndex === index}
             onClick={() => goTo(index)}
             className={cn(

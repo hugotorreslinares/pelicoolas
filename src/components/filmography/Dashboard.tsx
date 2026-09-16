@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { FollowedPersonCard } from "./FollowedPersonCard";
 import { HomeHeroSlider } from "./HomeHeroSlider";
-import { WelcomeHero } from "./WelcomeHero";
 import { TrendingSlider } from "./TrendingSlider";
 import { ShareBadgeButton } from "./ShareBadgeButton";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -395,7 +394,7 @@ export function Dashboard({
   if (!user) {
     return (
       <div className="space-y-12">
-        <WelcomeHero />
+        <HomeHeroSlider people={[]} />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {HOME_FEATURES.map(({ icon: Icon, title, description }) => (
