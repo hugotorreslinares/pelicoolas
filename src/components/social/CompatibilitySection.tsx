@@ -17,6 +17,50 @@ interface CompatibilitySectionProps {
   }) => void;
 }
 
+function TitlePosterGrid({
+  titles,
+  onOpenMovie,
+}: {
+  readonly titles: readonly {
+    tmdbId: number;
+    mediaType: "movie" | "tv";
+    title: string;
+    posterPath: string | null;
+  }[];
+  readonly onOpenMovie: (movie: {
+    tmdbId: number;
+    mediaType?: "movie" | "tv";
+  }) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
+      {titles.map((t) => (
+        <button
+          key={`${t.mediaType}-${t.tmdbId}`}
+          type="button"
+          onClick={() => onOpenMovie(t)}
+          className="focus-ring card-elevated text-left"
+          aria-label={`View details for ${t.title}`}
+        >
+          {t.posterPath ? (
+            <img
+              src={tmdbImageUrl(t.posterPath, 185)}
+              alt=""
+              loading="lazy"
+              className="aspect-[2/3] w-full rounded-lg border object-cover"
+            />
+          ) : (
+            <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
+              No image
+            </div>
+          )}
+          <p className="mt-1 truncate text-xs font-medium">{t.title}</p>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Collapsible({
   title,
   count,
@@ -75,6 +119,12 @@ export function CompatibilitySection({
 
   const { score, commonTitles, commonGenres, commonPeople } = compatibility;
   const name = theirDisplayName ?? "this user";
+  // Distinct from "Movies & shows in common" (which also counts a title
+  // either of you has already watched) — specifically both still-want-to-
+  // watch, so it reads as "here's what to plan a watch party around".
+  const bothWatchlisted = commonTitles.filter(
+    (t) => t.mine === "watchlist" && t.theirs === "watchlist",
+  );
 
   return (
     <div className="card-elevated space-y-4 rounded-lg border p-4">
@@ -86,32 +136,15 @@ export function CompatibilitySection({
         </p>
       </div>
 
+      <Collapsible
+        title="On both your watchlists"
+        count={bothWatchlisted.length}
+      >
+        <TitlePosterGrid titles={bothWatchlisted} onOpenMovie={onOpenMovie} />
+      </Collapsible>
+
       <Collapsible title="Movies & shows in common" count={commonTitles.length}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
-          {commonTitles.map((t) => (
-            <button
-              key={`${t.mediaType}-${t.tmdbId}`}
-              type="button"
-              onClick={() => onOpenMovie(t)}
-              className="focus-ring card-elevated text-left"
-              aria-label={`View details for ${t.title}`}
-            >
-              {t.posterPath ? (
-                <img
-                  src={tmdbImageUrl(t.posterPath, 185)}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-[2/3] w-full rounded-lg border object-cover"
-                />
-              ) : (
-                <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-                  No image
-                </div>
-              )}
-              <p className="mt-1 truncate text-xs font-medium">{t.title}</p>
-            </button>
-          ))}
-        </div>
+        <TitlePosterGrid titles={commonTitles} onOpenMovie={onOpenMovie} />
       </Collapsible>
 
       <Collapsible title="Genres in common" count={commonGenres.length}>
