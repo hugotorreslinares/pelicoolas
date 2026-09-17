@@ -33,6 +33,7 @@ export const en = {
     watchlist: "Watchlist",
     connections: "Connections",
     friends: "Friends",
+    movieMap: "Movie Map",
     menu: "Menu",
   },
   account: {

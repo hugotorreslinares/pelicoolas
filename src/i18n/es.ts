@@ -10,6 +10,7 @@ export const es: Dictionary = {
     watchlist: "Watchlist",
     connections: "Conexiones",
     friends: "Amigos",
+    movieMap: "Movie Map",
     menu: "Menú",
   },
   account: {

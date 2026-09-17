@@ -16,6 +16,7 @@ import {
   NetworkIcon,
   EyeIcon,
   UsersIcon,
+  WaypointsIcon,
 } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
@@ -57,6 +58,7 @@ const isFilmographiesActive = pathname === "/" || pathname === "/filmographies";
 const isWatchedActive = pathname === "/watched";
 const isWatchlistActive = pathname === "/watchlist";
 const isConnectionsActive = pathname === "/connections";
+const isMapActive = pathname === "/map";
 const isFriendsActive = pathname === "/friends";
 
 // size-11 (44px): minimum comfortable touch target on mobile — these are
@@ -203,6 +205,14 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
               {t.nav.connections}
             </a>
             <a
+              href="/map"
+              class={sidebarLinkClass(isMapActive)}
+              aria-current={isMapActive ? "page" : undefined}
+            >
+              <WaypointsIcon className="size-4" />
+              {t.nav.movieMap}
+            </a>
+            <a
               href="/friends"
               class={sidebarLinkClass(isFriendsActive)}
               aria-current={isFriendsActive ? "page" : undefined}
@@ -286,6 +296,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
                 >
                   <NetworkIcon className="size-4" />
                   <span class="sr-only">{t.nav.connections}</span>
+                </a>
+                <a
+                  href="/map"
+                  class={navLinkClass(isMapActive)}
+                  aria-current={isMapActive ? "page" : undefined}
+                  title={t.nav.movieMap}
+                >
+                  <WaypointsIcon className="size-4" />
+                  <span class="sr-only">{t.nav.movieMap}</span>
                 </a>
                 <a
                   href="/friends"
