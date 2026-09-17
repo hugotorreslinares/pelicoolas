@@ -198,7 +198,7 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
         )}
       </div>
 
-      {isOwner && <FollowRequestsInbox userId={userId} />}
+      {isOwner && <FollowRequestsInbox userId={userId} locale={locale} />}
 
       {isOwner && (
         <>

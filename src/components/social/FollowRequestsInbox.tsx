@@ -9,13 +9,19 @@ import {
   denyFollowRequest,
   subscribeToFollowRequests,
 } from "@/lib/firebase/firestore";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FollowRequest } from "@/types/user";
 
 interface FollowRequestsInboxProps {
   readonly userId: string;
+  readonly locale: Locale;
 }
 
-export function FollowRequestsInbox({ userId }: FollowRequestsInboxProps) {
+export function FollowRequestsInbox({
+  userId,
+  locale,
+}: FollowRequestsInboxProps) {
+  const t = getDictionary(locale);
   const { user } = useAuth();
   const [requests, setRequests] = useState<readonly FollowRequest[]>([]);
 
@@ -36,26 +42,26 @@ export function FollowRequestsInbox({ userId }: FollowRequestsInboxProps) {
         request,
       );
       announce(
-        `You and ${request.requesterName ?? "this user"} are now friends`,
+        t.friends.nowFriends(request.requesterName ?? t.friends.thisUser),
       );
     } catch {
-      toast.error("Couldn't approve this request. Please try again.");
+      toast.error(t.friends.couldntApprove);
     }
   }
 
   async function handleDeny(request: FollowRequest) {
     try {
       await denyFollowRequest(userId, request.requesterId);
-      announce(`Denied ${request.requesterName ?? "this user"}`);
+      announce(t.friends.denied(request.requesterName ?? t.friends.thisUser));
     } catch {
-      toast.error("Couldn't deny this request. Please try again.");
+      toast.error(t.friends.couldntDeny);
     }
   }
 
   return (
     <div className="space-y-2 rounded-lg border p-3">
       <p className="text-sm font-semibold">
-        Follow requests ({requests.length})
+        {t.friends.followRequests(requests.length)}
       </p>
       <div className="space-y-2">
         {requests.map((request) => (
@@ -70,17 +76,17 @@ export function FollowRequestsInbox({ userId }: FollowRequestsInboxProps) {
               </AvatarFallback>
             </Avatar>
             <p className="min-w-0 flex-1 truncate text-sm font-medium">
-              {request.requesterName ?? "Pelicoolas user"}
+              {request.requesterName ?? t.friends.pelicoolasUser}
             </p>
             <Button
               size="sm"
               variant="outline"
               onClick={() => void handleDeny(request)}
             >
-              Deny
+              {t.friends.deny}
             </Button>
             <Button size="sm" onClick={() => void handleApprove(request)}>
-              Approve
+              {t.friends.approve}
             </Button>
           </div>
         ))}

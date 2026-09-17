@@ -120,6 +120,7 @@ export function UserMenu({ locale }: UserMenuProps) {
         user={user}
         open={inviteOpen}
         onOpenChange={setInviteOpen}
+        locale={locale}
       />
       <DropdownMenu>
         <Tooltip>

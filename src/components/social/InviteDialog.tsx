@@ -13,17 +13,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { subscribeToInvites } from "@/lib/firebase/firestore";
+import { getDictionary, type Locale } from "@/i18n";
 import type { Invite } from "@/types/user";
 
 interface InviteDialogProps {
   readonly user: User;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  readonly locale: Locale;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
+export function InviteDialog({
+  user,
+  open,
+  onOpenChange,
+  locale,
+}: InviteDialogProps) {
+  const t = getDictionary(locale);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -34,7 +42,7 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
   async function handleSend() {
     const trimmed = email.trim();
     if (!EMAIL_RE.test(trimmed)) {
-      toast.error("Enter a valid email address.");
+      toast.error(t.invite.invalidEmail);
       return;
     }
     setSending(true);
@@ -52,14 +60,14 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
         const body = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
-        toast.error(body?.error ?? "Couldn't send the invite.");
+        toast.error(body?.error ?? t.invite.couldntSend);
         return;
       }
-      toast.success(`Invite sent to ${trimmed}`);
+      toast.success(t.invite.inviteSentTo(trimmed));
       setEmail("");
       setMessage("");
     } catch {
-      toast.error("Couldn't send the invite. Please try again.");
+      toast.error(t.invite.couldntSendRetry);
     } finally {
       setSending(false);
     }
@@ -69,21 +77,19 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite a friend</DialogTitle>
-          <DialogDescription>
-            Send an email invite to join Pelicoolas.
-          </DialogDescription>
+          <DialogTitle>{t.invite.title}</DialogTitle>
+          <DialogDescription>{t.invite.description}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
           <Input
             type="email"
-            placeholder="friend@example.com"
+            placeholder={t.invite.emailPlaceholder}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={sending}
           />
           <Textarea
-            placeholder="Add a personal message (optional)"
+            placeholder={t.invite.messagePlaceholder}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             maxLength={500}
@@ -95,13 +101,13 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
             disabled={sending}
             onClick={() => void handleSend()}
           >
-            {sending ? "Sending…" : "Send invite"}
+            {sending ? t.invite.sending : t.invite.sendInvite}
           </Button>
         </div>
         {invites.length > 0 && (
           <div className="space-y-1 pt-2">
             <p className="text-xs font-medium text-muted-foreground">
-              Sent invites
+              {t.invite.sentInvites}
             </p>
             <ul className="max-h-40 space-y-1 overflow-y-auto text-sm">
               {invites.map((invite) => (
@@ -111,7 +117,9 @@ export function InviteDialog({ user, open, onOpenChange }: InviteDialogProps) {
                 >
                   <span className="truncate">{invite.email}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {invite.status === "converted" ? "Joined ✓" : "Sent"}
+                    {invite.status === "converted"
+                      ? t.invite.joined
+                      : t.invite.sent}
                   </span>
                 </li>
               ))}

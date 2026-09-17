@@ -284,6 +284,32 @@ export const en = {
     inviteSentTo: (username: string) => `Invite sent to @${username}`,
     pageHeading: "Search actors, directors, movies & TV shows",
   },
+  friends: {
+    followRequests: (count: number) => `Follow requests (${count})`,
+    deny: "Deny",
+    approve: "Approve",
+    nowFriends: (name: string) => `You and ${name} are now friends`,
+    couldntApprove: "Couldn't approve this request. Please try again.",
+    denied: (name: string) => `Denied ${name}`,
+    couldntDeny: "Couldn't deny this request. Please try again.",
+    thisUser: "this user",
+    pelicoolasUser: "Pelicoolas user",
+  },
+  invite: {
+    invalidEmail: "Enter a valid email address.",
+    couldntSend: "Couldn't send the invite.",
+    couldntSendRetry: "Couldn't send the invite. Please try again.",
+    inviteSentTo: (email: string) => `Invite sent to ${email}`,
+    title: "Invite a friend",
+    description: "Send an email invite to join Pelicoolas.",
+    emailPlaceholder: "friend@example.com",
+    messagePlaceholder: "Add a personal message (optional)",
+    sending: "Sending…",
+    sendInvite: "Send invite",
+    sentInvites: "Sent invites",
+    joined: "Joined ✓",
+    sent: "Sent",
+  },
 };
 
 export type Dictionary = typeof en;

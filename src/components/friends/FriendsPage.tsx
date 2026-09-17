@@ -194,7 +194,7 @@ export function FriendsPage({ locale }: FriendsPageProps) {
       <div className="space-y-4">
         <h1 className="text-xl font-semibold">Friends</h1>
         <FriendSearch locale={locale} />
-        <FollowRequestsInbox userId={user.uid} />
+        <FollowRequestsInbox userId={user.uid} locale={locale} />
         <div className="space-y-3 text-center">
           <p className="text-muted-foreground">
             You're not following anyone yet. Search for a friend's username
@@ -210,7 +210,7 @@ export function FriendsPage({ locale }: FriendsPageProps) {
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Friends</h1>
       <FriendSearch locale={locale} />
-      <FollowRequestsInbox userId={user.uid} />
+      <FollowRequestsInbox userId={user.uid} locale={locale} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {following.map((friend) => (
           <FriendCard
