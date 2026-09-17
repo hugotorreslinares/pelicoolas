@@ -5,6 +5,28 @@ import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import vercel from "@astrojs/vercel";
 import sentry from "@sentry/astro";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+
+// satori (used by the OG-image route) loads harfbuzzjs' hb.wasm via a
+// dynamic fs read for text shaping — @vercel/nft's static trace can't see
+// that path, so without explicitly including it the file is silently
+// missing from the deployed function and the route 500s at request time.
+// harfbuzzjs isn't a direct dependency (only satori's), so it isn't
+// `require.resolve`-able from here — scanned out of pnpm's flat store
+// instead, robust to the exact version pnpm pins.
+function findHarfbuzzWasm() {
+  const pnpmDir = join(process.cwd(), "node_modules", ".pnpm");
+  const entry = readdirSync(pnpmDir).find((name) =>
+    name.startsWith("harfbuzzjs@"),
+  );
+  if (!entry) {
+    throw new Error(
+      "harfbuzzjs not found in node_modules/.pnpm — did satori's dependency change?",
+    );
+  }
+  return `./node_modules/.pnpm/${entry}/node_modules/harfbuzzjs/hb.wasm`;
+}
 
 // Sourcemap upload (org/project/authToken) only runs when SENTRY_AUTH_TOKEN
 // is set — without it the integration still captures errors via
@@ -81,5 +103,7 @@ export default defineConfig({
     },
   },
 
-  adapter: vercel(),
+  adapter: vercel({
+    includeFiles: [findHarfbuzzWasm()],
+  }),
 });
