@@ -2,15 +2,35 @@
 export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { UserProfile } from "@/components/social/UserProfile";
+import { getAdminDb } from "@/lib/firebase/admin";
+import type { PublicProfile } from "@/types/user";
 
 const { userId } = Astro.params;
 if (!userId) return Astro.redirect("/");
 const locale = Astro.locals.locale;
+
+// Public profile doc (name/photo only, see firestore.rules) — best-effort:
+// a lookup failure just falls back to the generic title/image, same as
+// before this fetch existed.
+let profile: PublicProfile | null;
+try {
+  const snap = await getAdminDb().doc(`users/${userId}`).get();
+  profile = snap.exists ? (snap.data() as PublicProfile) : null;
+} catch {
+  profile = null;
+}
+
+const name = profile?.displayName ?? profile?.username ?? null;
+const title = name ? `${name} on Pelicoolas` : "Profile — Pelicoolas";
+const description = name
+  ? `See what ${name} has watched, their watchlist, and their favorite movies on Pelicoolas.`
+  : "Follow a Pelicoolas user to see what they've watched, their watchlist, and their favorites.";
 ---
 
 <Layout
-  title="Profile — Pelicoolas"
-  description="Follow a Pelicoolas user to see what they've watched, their watchlist, and their favorites."
+  title={title}
+  description={description}
+  image={profile?.photoURL ?? undefined}
   noindex
 >
   <UserProfile locale={locale} userId={userId} client:load />
