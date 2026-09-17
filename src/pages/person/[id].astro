@@ -12,6 +12,7 @@ import { ArrowLeftIcon, ClapperboardIcon } from "lucide-react";
 import engagement from "@/config/engagement.json";
 import type { CreditDepartment } from "@/types/filmography";
 
+const locale = Astro.locals.locale;
 const MAX_DESCRIPTION_LENGTH = 160;
 
 function truncate(text: string, maxLength: number): string {
@@ -141,6 +142,7 @@ if (referer) {
           client:load
         />
         <Filmography
+          locale={locale}
           personId={profile.id}
           personName={profile.name}
           movies={movies}

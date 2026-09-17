@@ -67,4 +67,112 @@ export const es: Dictionary = {
   locale: {
     switchLanguage: "Cambiar idioma",
   },
+  common: {
+    gridView: "Vista de cuadrícula",
+    listView: "Vista de lista",
+    copyLinkToShare: "Copiar link para compartir",
+    copied: "¡Copiado!",
+    search: "Buscar",
+    noImage: "Sin imagen",
+    nothingHereYet: "Todavía no hay nada acá.",
+  },
+  dashboard: {
+    heading: "Mis filmografías",
+    features: [
+      {
+        title: "Filmografías",
+        description:
+          "Seguí el progreso película por película de cada persona que seguís.",
+      },
+      {
+        title: "Watchlist",
+        description: "Guardá lo que querés ver, filtrable por género.",
+      },
+      {
+        title: "Conexiones",
+        description: "Explorá cómo se relacionan películas y personas.",
+      },
+      {
+        title: "Insignias",
+        description:
+          "Ganá y compartí insignias a medida que completás filmografías.",
+      },
+    ],
+    findPerson: "Buscá un actor o director cuyas películas quieras explorar.",
+    yourYearInFilm: "Tu año en el cine",
+    almostThere: "Casi lo lográs",
+    moviesToComplete: (remaining) =>
+      `— faltan ${remaining} ${remaining === 1 ? "película" : "películas"}`,
+    peopleFollowing: (count) => `${count} personas que seguís`,
+    sortRecent: "Seguidos recientemente",
+    sortAge: "Edad",
+    sortWatched: "Más vistas",
+    sortWatchlist: "Tamaño de watchlist",
+    viewAll: (count) => `Ver las ${count}`,
+    trendingMovies: "Películas en tendencia",
+    trendingTV: "Series en tendencia",
+  },
+  watched: {
+    heading: "Vistas",
+    signInPrompt: "Iniciá sesión para ver todo lo que marcaste como visto.",
+    emptyHeading: "Todavía no marcaste nada como visto.",
+    emptyBody:
+      "Marcá películas como vistas desde una filmografía, la búsqueda o el watchlist — van a aparecer todas acá.",
+    searchActorsDirectors: "Buscar actores y directores",
+    allGenres: "Todos los géneros",
+    otherGenre: "Otro",
+    byYear: "Por año",
+    byPerson: "Por persona",
+    expandAll: "Expandir todo",
+    collapseAll: "Colapsar todo",
+  },
+  watchlist: {
+    heading: "Watchlist",
+    myWatchlist: "Mi Watchlist",
+    signInPrompt: "Iniciá sesión para guardar películas en tu radar.",
+    emptyHeading: "Tu watchlist está vacía.",
+    emptyBody:
+      "Mientras explorás una filmografía, tocá el ícono de marcador en una película para agregarla acá — o empezá desde la página de una persona seguida o un resultado de búsqueda.",
+    searchActorsDirectors: "Buscar actores y directores",
+    myFilmographies: "Mis filmografías",
+    stats: (total, watched, toWatch) =>
+      `${total} películas · ${watched} vistas · ${toWatch} por ver`,
+    pickForMe: "Elegí algo por mí",
+    pickForMeSubtitle: "Elige una película al azar de tu watchlist",
+    filterAll: (count) => `Todas (${count})`,
+    filterToWatch: (count) => `Por ver (${count})`,
+    filterWatched: (count) => `Vistas (${count})`,
+    sortBy: "Ordenar por",
+    sortNewest: "Más nuevas primero",
+    sortOldest: "Más viejas primero",
+    sortRating: "Mejor calificadas",
+    sortAlphabetical: "A–Z",
+    allGenres: "Todos los géneros",
+    otherGenre: "Otro",
+    noMoviesMatch: "No hay películas que coincidan con estos filtros.",
+    markedWatched: (title, marked) =>
+      marked
+        ? `Marcaste "${title}" como vista`
+        : `Desmarcaste "${title}" como vista`,
+    couldntUpdate: (title) =>
+      `No se pudo actualizar "${title}". Intentá de nuevo.`,
+  },
+  filmography: {
+    mostRecent: "Más recientes",
+    oldest: "Más antiguas",
+    signInToTrack: "para seguir y guardar películas",
+    markedWatched: (title, watched) =>
+      watched
+        ? `Marcaste "${title}" como vista`
+        : `Desmarcaste "${title}" como vista`,
+    watchlistChanged: (title, added) =>
+      added
+        ? `Agregaste "${title}" al watchlist`
+        : `Quitaste "${title}" del watchlist`,
+    couldntUpdate: (title) =>
+      `No se pudo actualizar "${title}". Intentá de nuevo.`,
+    filterAll: "Todas",
+    filterUnwatched: "No vistas",
+    filterWatched: "Vistas",
+  },
 };

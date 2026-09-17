@@ -3,6 +3,8 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { WatchedPage } from "@/components/filmography/WatchedPage";
+
+const locale = Astro.locals.locale;
 ---
 
 <Layout
@@ -10,5 +12,5 @@ import { WatchedPage } from "@/components/filmography/WatchedPage";
   description="Every movie you've marked watched, across every actor, director, and however you found it."
   noindex
 >
-  <WatchedPage client:load />
+  <WatchedPage client:load locale={locale} />
 </Layout>

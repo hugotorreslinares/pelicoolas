@@ -3,6 +3,8 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { WatchlistPage } from "@/components/filmography/WatchlistPage";
+
+const locale = Astro.locals.locale;
 ---
 
 <Layout
@@ -10,5 +12,5 @@ import { WatchlistPage } from "@/components/filmography/WatchlistPage";
   description="Movies you've bookmarked from the filmographies you follow, ready to watch next."
   noindex
 >
-  <WatchlistPage client:load />
+  <WatchlistPage client:load locale={locale} />
 </Layout>

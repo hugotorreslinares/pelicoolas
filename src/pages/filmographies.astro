@@ -3,6 +3,8 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { Dashboard } from "@/components/filmography/Dashboard";
+
+const locale = Astro.locals.locale;
 ---
 
 <Layout
@@ -11,5 +13,5 @@ import { Dashboard } from "@/components/filmography/Dashboard";
   noindex
   canonicalPath="/"
 >
-  <Dashboard client:load />
+  <Dashboard client:load locale={locale} />
 </Layout>

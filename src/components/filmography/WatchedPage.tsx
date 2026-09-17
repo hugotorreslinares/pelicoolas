@@ -25,6 +25,7 @@ import { mapWithConcurrency } from "@/lib/concurrency";
 import { fetchMovieDetails, fetchPersonData } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FollowedPerson, SeenMovie } from "@/types/filmography";
 
 const POSTER_WIDTHS = [185, 342, 500];
@@ -247,7 +248,12 @@ function GroupSection({
   );
 }
 
-export function WatchedPage() {
+interface WatchedPageProps {
+  readonly locale: Locale;
+}
+
+export function WatchedPage({ locale }: WatchedPageProps) {
+  const t = getDictionary(locale);
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly SeenMovie[] | null>(null);
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
@@ -362,7 +368,7 @@ export function WatchedPage() {
   if (authLoading) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="sr-only">Watched</h1>
+        <h1 className="sr-only">{t.watched.heading}</h1>
         <Skeleton className="mx-auto h-7 w-32" />
         <Skeleton className="mx-auto h-5 w-56" />
       </div>
@@ -372,7 +378,7 @@ export function WatchedPage() {
   if (user && movies === null) {
     return (
       <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-        <h1 className="sr-only">Watched</h1>
+        <h1 className="sr-only">{t.watched.heading}</h1>
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton
             key={i}
@@ -386,10 +392,8 @@ export function WatchedPage() {
   if (!user) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">Watched</h1>
-        <p className="text-muted-foreground">
-          Sign in to see everything you've marked watched.
-        </p>
+        <h1 className="text-xl font-semibold">{t.watched.heading}</h1>
+        <p className="text-muted-foreground">{t.watched.signInPrompt}</p>
       </div>
     );
   }
@@ -397,12 +401,11 @@ export function WatchedPage() {
   if (!movies || movies.length === 0) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">Nothing marked watched yet.</h1>
-        <p className="text-muted-foreground">
-          Mark movies watched from a filmography, search, or the watchlist —
-          they'll all show up here.
-        </p>
-        <Button render={<a href="/search" />}>Search actors & directors</Button>
+        <h1 className="text-xl font-semibold">{t.watched.emptyHeading}</h1>
+        <p className="text-muted-foreground">{t.watched.emptyBody}</p>
+        <Button render={<a href="/search" />}>
+          {t.watched.searchActorsDirectors}
+        </Button>
       </div>
     );
   }
@@ -458,7 +461,7 @@ export function WatchedPage() {
         variant={genreFilter === ALL_GENRES ? "default" : "outline"}
         onClick={() => setGenreFilter(ALL_GENRES)}
       >
-        All genres
+        {t.watched.allGenres}
         <span className="text-xs opacity-70">({movies.length})</span>
       </Button>
       {availableGenres.map((id) => (
@@ -468,7 +471,7 @@ export function WatchedPage() {
           variant={genreFilter === id ? "default" : "outline"}
           onClick={() => setGenreFilter(id)}
         >
-          {genreName(id) ?? "Other"}
+          {genreName(id) ?? t.watched.otherGenre}
           <span className="text-xs opacity-70">({genreCounts.get(id)})</span>
         </Button>
       ))}
@@ -477,7 +480,7 @@ export function WatchedPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Watched</h1>
+      <h1 className="text-xl font-semibold">{t.watched.heading}</h1>
       {filtersSlot && createPortal(genreChips, filtersSlot)}
 
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -487,14 +490,14 @@ export function WatchedPage() {
             variant={groupMode === "year" ? "default" : "ghost"}
             onClick={() => setGroupMode("year")}
           >
-            By year
+            {t.watched.byYear}
           </Button>
           <Button
             size="sm"
             variant={groupMode === "person" ? "default" : "ghost"}
             onClick={() => setGroupMode("person")}
           >
-            By person
+            {t.watched.byPerson}
           </Button>
         </div>
         <div className="flex gap-1 rounded-full border p-1">
@@ -504,7 +507,7 @@ export function WatchedPage() {
                 <Button
                   size="icon-sm"
                   variant={viewMode === "grid" ? "default" : "ghost"}
-                  aria-label="Grid view"
+                  aria-label={t.common.gridView}
                   aria-pressed={viewMode === "grid"}
                   onClick={() => setViewMode("grid")}
                 />
@@ -512,7 +515,7 @@ export function WatchedPage() {
             >
               <LayoutGridIcon />
             </TooltipTrigger>
-            <TooltipContent>Grid view</TooltipContent>
+            <TooltipContent>{t.common.gridView}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
@@ -520,7 +523,7 @@ export function WatchedPage() {
                 <Button
                   size="icon-sm"
                   variant={viewMode === "list" ? "default" : "ghost"}
-                  aria-label="List view"
+                  aria-label={t.common.listView}
                   aria-pressed={viewMode === "list"}
                   onClick={() => setViewMode("list")}
                 />
@@ -528,7 +531,7 @@ export function WatchedPage() {
             >
               <ListIcon />
             </TooltipTrigger>
-            <TooltipContent>List view</TooltipContent>
+            <TooltipContent>{t.common.listView}</TooltipContent>
           </Tooltip>
         </div>
         <Tooltip>
@@ -537,7 +540,9 @@ export function WatchedPage() {
               <Button
                 size="icon-sm"
                 variant="outline"
-                aria-label={allCollapsed ? "Expand all" : "Collapse all"}
+                aria-label={
+                  allCollapsed ? t.watched.expandAll : t.watched.collapseAll
+                }
                 onClick={toggleAllGroups}
               />
             }
@@ -545,7 +550,7 @@ export function WatchedPage() {
             {allCollapsed ? <ChevronsUpDownIcon /> : <ChevronsDownUpIcon />}
           </TooltipTrigger>
           <TooltipContent>
-            {allCollapsed ? "Expand all" : "Collapse all"}
+            {allCollapsed ? t.watched.expandAll : t.watched.collapseAll}
           </TooltipContent>
         </Tooltip>
       </div>

@@ -31,6 +31,7 @@ import { awardBadgeOnce, subscribeToBadges } from "@/lib/firebase/badges";
 import { calculateAge } from "@/lib/age";
 import { mapWithConcurrency } from "@/lib/concurrency";
 import { fetchPersonData } from "@/lib/movieData";
+import { getDictionary, type Locale } from "@/i18n";
 import engagement from "@/config/engagement.json";
 import type { FollowedPerson } from "@/types/filmography";
 import type { TrendingMovie } from "@/types/movie";
@@ -54,37 +55,16 @@ function readStoredViewMode(): ViewMode {
   }
 }
 
-const HOME_FEATURES = [
-  {
-    icon: FilmIcon,
-    title: "Filmographies",
-    description: "Track movie-by-movie progress for every person you follow.",
-  },
-  {
-    icon: BookmarkIcon,
-    title: "Watchlist",
-    description: "Save what you want to see, filterable by genre.",
-  },
-  {
-    icon: NetworkIcon,
-    title: "Connections",
-    description: "Explore how movies and people relate to each other.",
-  },
-  {
-    icon: TrophyIcon,
-    title: "Badges",
-    description: "Earn and share badges as you complete filmographies.",
-  },
+// Icons for dashboard.features (title/description come from the i18n
+// dictionary, order-matched) — see t.dashboard.features.
+const HOME_FEATURE_ICONS = [
+  FilmIcon,
+  BookmarkIcon,
+  NetworkIcon,
+  TrophyIcon,
 ] as const;
 
 type SortMode = "recent" | "age" | "watched" | "watchlist";
-
-const SORT_OPTIONS: readonly { value: SortMode; label: string }[] = [
-  { value: "recent", label: "Recently followed" },
-  { value: "age", label: "Age" },
-  { value: "watched", label: "Most watched" },
-  { value: "watchlist", label: "Watchlist size" },
-];
 
 interface PersonStats {
   readonly totalCount: number | null;
@@ -95,6 +75,7 @@ interface PersonStats {
 }
 
 interface DashboardProps {
+  readonly locale: Locale;
   readonly trendingMovies?: readonly TrendingMovie[];
   readonly trendingTV?: readonly TrendingMovie[];
   /** Caps the followed-people grid (home uses this to stay short; /filmographies shows everyone). */
@@ -102,10 +83,18 @@ interface DashboardProps {
 }
 
 export function Dashboard({
+  locale,
   trendingMovies = [],
   trendingTV = [],
   limit,
 }: DashboardProps) {
+  const t = getDictionary(locale);
+  const SORT_OPTIONS: readonly { value: SortMode; label: string }[] = [
+    { value: "recent", label: t.dashboard.sortRecent },
+    { value: "age", label: t.dashboard.sortAge },
+    { value: "watched", label: t.dashboard.sortWatched },
+    { value: "watchlist", label: t.dashboard.sortWatchlist },
+  ];
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [statsById, setStatsById] = useState<Record<number, PersonStats>>({});
@@ -361,7 +350,7 @@ export function Dashboard({
   // rather than only in a client-resolved branch — axe-core's
   // page-has-heading-one flagged this when it scanned before Firebase's
   // async auth check resolved.
-  const heading = "My Filmographies";
+  const heading = t.dashboard.heading;
 
   // Shown in every state (signed out, no follows yet, full dashboard) —
   // recommend/watchlist/watched need a signed-in user, so this can't live
@@ -371,12 +360,12 @@ export function Dashboard({
       <TrendingSlider
         items={trendingMovies}
         mediaType="movie"
-        heading="Trending Movies"
+        heading={t.dashboard.trendingMovies}
       />
       <TrendingSlider
         items={trendingTV}
         mediaType="tv"
-        heading="Trending TV Shows"
+        heading={t.dashboard.trendingTV}
       />
     </>
   );
@@ -397,13 +386,16 @@ export function Dashboard({
         <HomeHeroSlider people={[]} />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {HOME_FEATURES.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="card-elevated rounded-lg border p-4">
-              <Icon className="mb-2 size-5 text-primary" />
-              <p className="font-medium">{title}</p>
-              <p className="text-sm text-muted-foreground">{description}</p>
-            </div>
-          ))}
+          {t.dashboard.features.map(({ title, description }, i) => {
+            const Icon = HOME_FEATURE_ICONS[i];
+            return (
+              <div key={title} className="card-elevated rounded-lg border p-4">
+                <Icon className="mb-2 size-5 text-primary" />
+                <p className="font-medium">{title}</p>
+                <p className="text-sm text-muted-foreground">{description}</p>
+              </div>
+            );
+          })}
         </div>
 
         {trendingSection}
@@ -419,10 +411,8 @@ export function Dashboard({
         <h1 className="sr-only">{heading}</h1>
         <HomeHeroSlider people={heroPeople} />
         <div className="space-y-3 text-center">
-          <p className="text-muted-foreground">
-            Find an actor or director whose movies you want to explore.
-          </p>
-          <Button render={<a href="/search" />}>Search</Button>
+          <p className="text-muted-foreground">{t.dashboard.findPerson}</p>
+          <Button render={<a href="/search" />}>{t.common.search}</Button>
         </div>
         {trendingSection}
       </div>
@@ -436,7 +426,7 @@ export function Dashboard({
         <h1 className="text-xl font-semibold">{heading}</h1>
         {engagement.wrapped && (
           <Button size="sm" variant="outline" render={<a href="/wrapped" />}>
-            Your Year in Film
+            {t.dashboard.yourYearInFilm}
           </Button>
         )}
       </div>
@@ -457,7 +447,7 @@ export function Dashboard({
 
       {engagement.nudges.dashboardAlmostThere && almostThere.length > 0 && (
         <div className="rounded-lg border bg-muted/40 p-3">
-          <p className="mb-2 text-sm font-medium">Almost there</p>
+          <p className="mb-2 text-sm font-medium">{t.dashboard.almostThere}</p>
           <ul className="space-y-1 text-sm">
             {almostThere.map(({ person, remaining }) => (
               <li key={person.tmdbId}>
@@ -468,8 +458,7 @@ export function Dashboard({
                   {person.name}
                 </a>{" "}
                 <span className="text-muted-foreground">
-                  — {remaining} {remaining === 1 ? "movie" : "movies"} to
-                  complete
+                  {t.dashboard.moviesToComplete(remaining)}
                 </span>
               </li>
             ))}
@@ -479,7 +468,7 @@ export function Dashboard({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          {people.length} people you're following
+          {t.dashboard.peopleFollowing(people.length)}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {SORT_OPTIONS.map((option) => (
@@ -500,7 +489,7 @@ export function Dashboard({
                     <Button
                       size="icon-sm"
                       variant={viewMode === "grid" ? "default" : "ghost"}
-                      aria-label="Grid view"
+                      aria-label={t.common.gridView}
                       aria-pressed={viewMode === "grid"}
                       onClick={() => setViewMode("grid")}
                     />
@@ -508,7 +497,7 @@ export function Dashboard({
                 >
                   <LayoutGridIcon />
                 </TooltipTrigger>
-                <TooltipContent>Grid view</TooltipContent>
+                <TooltipContent>{t.common.gridView}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger
@@ -516,7 +505,7 @@ export function Dashboard({
                     <Button
                       size="icon-sm"
                       variant={viewMode === "list" ? "default" : "ghost"}
-                      aria-label="List view"
+                      aria-label={t.common.listView}
                       aria-pressed={viewMode === "list"}
                       onClick={() => setViewMode("list")}
                     />
@@ -524,7 +513,7 @@ export function Dashboard({
                 >
                   <ListIcon />
                 </TooltipTrigger>
-                <TooltipContent>List view</TooltipContent>
+                <TooltipContent>{t.common.listView}</TooltipContent>
               </Tooltip>
             </div>
           )}
@@ -555,7 +544,7 @@ export function Dashboard({
       {limit && people.length > limit && (
         <div className="text-center">
           <Button variant="outline" render={<a href="/filmographies" />}>
-            View all {people.length}
+            {t.dashboard.viewAll(people.length)}
           </Button>
         </div>
       )}

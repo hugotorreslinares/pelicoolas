@@ -8,6 +8,7 @@ import { FilmographyProgress } from "./FilmographyProgress";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import { LoginButton } from "@/components/auth/LoginButton";
+import { getDictionary, type Locale } from "@/i18n";
 import {
   addToWatchlist,
   getLegacyWatchedIds,
@@ -26,6 +27,7 @@ import type { FilmographyFilter } from "@/types/filmography";
 const DECADE_SPAN_THRESHOLD = 5;
 
 interface FilmographyProps {
+  readonly locale: Locale;
   readonly personId: number;
   readonly personName: string;
   readonly movies: readonly FilmographyMovie[];
@@ -59,10 +61,12 @@ function groupByYear(
 }
 
 export function Filmography({
+  locale,
   personId,
   personName,
   movies,
 }: FilmographyProps) {
+  const t = getDictionary(locale);
   const { user } = useAuth();
   const [seenIds, setSeenIds] = useState<ReadonlySet<number>>(new Set());
   const [watchlist, setWatchlist] = useState<ReadonlySet<number>>(new Set());
@@ -246,7 +250,7 @@ export function Filmography({
       return;
     }
     setSeenOverrides((prev) => ({ ...prev, [movie.tmdbMovieId]: next }));
-    announce(`Marked ${movie.title} as ${next ? "watched" : "unwatched"}`);
+    announce(t.filmography.markedWatched(movie.title, next));
     try {
       if (next) {
         await markMovieSeen(user.uid, {
@@ -262,7 +266,7 @@ export function Filmography({
       }
     } catch {
       setSeenOverrides((prev) => ({ ...prev, [movie.tmdbMovieId]: !next }));
-      toast.error(`Couldn't update "${movie.title}". Please try again.`);
+      toast.error(t.filmography.couldntUpdate(movie.title));
     }
   }
 
@@ -273,9 +277,7 @@ export function Filmography({
     }
     const next = !effectiveWatchlist.has(movie.tmdbMovieId);
     setWatchlistOverrides((prev) => ({ ...prev, [movie.tmdbMovieId]: next }));
-    announce(
-      `${next ? "Added" : "Removed"} ${movie.title} ${next ? "to" : "from"} watchlist`,
-    );
+    announce(t.filmography.watchlistChanged(movie.title, next));
     try {
       if (next) {
         await addToWatchlist(user.uid, {
@@ -296,7 +298,7 @@ export function Filmography({
         ...prev,
         [movie.tmdbMovieId]: !next,
       }));
-      toast.error(`Couldn't update "${movie.title}". Please try again.`);
+      toast.error(t.filmography.couldntUpdate(movie.title));
     }
   }
 
@@ -310,20 +312,28 @@ export function Filmography({
 
       {filtersSlot &&
         createPortal(
-          <FilmographyFilters value={filter} onChange={setFilter} />,
+          <FilmographyFilters
+            locale={locale}
+            value={filter}
+            onChange={setFilter}
+          />,
           filtersSlot,
         )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="md:hidden">
-          <FilmographyFilters value={filter} onChange={setFilter} />
+          <FilmographyFilters
+            locale={locale}
+            value={filter}
+            onChange={setFilter}
+          />
         </div>
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setOrder(order === "newest" ? "oldest" : "newest")}
         >
-          {order === "newest" ? "Most recent" : "Oldest"}
+          {order === "newest" ? t.filmography.mostRecent : t.filmography.oldest}
         </Button>
       </div>
 
@@ -331,7 +341,7 @@ export function Filmography({
         <div className="flex items-center gap-2">
           <LoginButton size="sm" />
           <span className="text-xs text-muted-foreground">
-            to track and save movies
+            {t.filmography.signInToTrack}
           </span>
         </div>
       )}

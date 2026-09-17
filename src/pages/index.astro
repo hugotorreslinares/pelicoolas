@@ -8,6 +8,8 @@ import { getTrendingMovies } from "@/lib/tmdb/movies";
 import { getTrendingTV } from "@/lib/tmdb/tv";
 import { TmdbError } from "@/lib/tmdb/client";
 
+const locale = Astro.locals.locale;
+
 // Best-effort: if TMDB is down, the dashboard still renders fine without
 // the trending rows rather than breaking the whole page over it. Fetched
 // in parallel — one TmdbError shouldn't wait on the other's round-trip.
@@ -38,6 +40,7 @@ if (tvResult.status === "fulfilled") {
   <div class="space-y-8">
     <Dashboard
       client:load
+      locale={locale}
       trendingMovies={trendingMovies}
       trendingTV={trendingTV}
       limit={15}

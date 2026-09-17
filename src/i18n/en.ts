@@ -14,6 +14,14 @@ interface Slide {
 /** Fixed-length tuple (not `readonly Slide[]`) so `es.ts` must supply exactly the same number of slides — a length mismatch is a type error. */
 type Slides = readonly [Slide, Slide, Slide, Slide];
 
+interface Feature {
+  readonly title: string;
+  readonly description: string;
+}
+
+/** Fixed-length tuple, same reasoning as Slides above. */
+type Features = readonly [Feature, Feature, Feature, Feature];
+
 // No `as const` here — leaf strings must widen to `string` (not literal
 // types) so es.ts can hold different text while still satisfying
 // `Dictionary`'s shape (keys, nesting, interpolation-function signatures).
@@ -82,6 +90,107 @@ export const en = {
   },
   locale: {
     switchLanguage: "Switch language",
+  },
+  common: {
+    gridView: "Grid view",
+    listView: "List view",
+    copyLinkToShare: "Copy link to share",
+    copied: "Copied!",
+    search: "Search",
+    noImage: "No image",
+    nothingHereYet: "Nothing here yet.",
+  },
+  dashboard: {
+    heading: "My Filmographies",
+    features: [
+      {
+        title: "Filmographies",
+        description:
+          "Track movie-by-movie progress for every person you follow.",
+      },
+      {
+        title: "Watchlist",
+        description: "Save what you want to see, filterable by genre.",
+      },
+      {
+        title: "Connections",
+        description: "Explore how movies and people relate to each other.",
+      },
+      {
+        title: "Badges",
+        description: "Earn and share badges as you complete filmographies.",
+      },
+    ] satisfies Features,
+    findPerson: "Find an actor or director whose movies you want to explore.",
+    yourYearInFilm: "Your Year in Film",
+    almostThere: "Almost there",
+    moviesToComplete: (remaining: number) =>
+      `— ${remaining} ${remaining === 1 ? "movie" : "movies"} to complete`,
+    peopleFollowing: (count: number) => `${count} people you're following`,
+    sortRecent: "Recently followed",
+    sortAge: "Age",
+    sortWatched: "Most watched",
+    sortWatchlist: "Watchlist size",
+    viewAll: (count: number) => `View all ${count}`,
+    trendingMovies: "Trending Movies",
+    trendingTV: "Trending TV Shows",
+  },
+  watched: {
+    heading: "Watched",
+    signInPrompt: "Sign in to see everything you've marked watched.",
+    emptyHeading: "Nothing marked watched yet.",
+    emptyBody:
+      "Mark movies watched from a filmography, search, or the watchlist — they'll all show up here.",
+    searchActorsDirectors: "Search actors & directors",
+    allGenres: "All genres",
+    otherGenre: "Other",
+    byYear: "By year",
+    byPerson: "By person",
+    expandAll: "Expand all",
+    collapseAll: "Collapse all",
+  },
+  watchlist: {
+    heading: "Watchlist",
+    myWatchlist: "My Watchlist",
+    signInPrompt: "Sign in to keep movies on your radar.",
+    emptyHeading: "Your watchlist is empty.",
+    emptyBody:
+      "While exploring a filmography, tap the bookmark icon on a movie to add it here — or start from a followed person's page or a search result.",
+    searchActorsDirectors: "Search actors & directors",
+    myFilmographies: "My Filmographies",
+    stats: (total: number, watched: number, toWatch: number) =>
+      `${total} movies · ${watched} watched · ${toWatch} to watch`,
+    pickForMe: "Pick something for me",
+    pickForMeSubtitle: "Picks a random movie from your watchlist",
+    filterAll: (count: number) => `All (${count})`,
+    filterToWatch: (count: number) => `To watch (${count})`,
+    filterWatched: (count: number) => `Watched (${count})`,
+    sortBy: "Sort by",
+    sortNewest: "Newest first",
+    sortOldest: "Oldest first",
+    sortRating: "Highest rated",
+    sortAlphabetical: "A–Z",
+    allGenres: "All genres",
+    otherGenre: "Other",
+    noMoviesMatch: "No movies match these filters.",
+    markedWatched: (title: string, marked: boolean) =>
+      `${marked ? "Marked" : "Unmarked"} ${title} as watched`,
+    couldntUpdate: (title: string) =>
+      `Couldn't update "${title}". Please try again.`,
+  },
+  filmography: {
+    mostRecent: "Most recent",
+    oldest: "Oldest",
+    signInToTrack: "to track and save movies",
+    markedWatched: (title: string, watched: boolean) =>
+      `Marked ${title} as ${watched ? "watched" : "unwatched"}`,
+    watchlistChanged: (title: string, added: boolean) =>
+      `${added ? "Added" : "Removed"} ${title} ${added ? "to" : "from"} watchlist`,
+    couldntUpdate: (title: string) =>
+      `Couldn't update "${title}". Please try again.`,
+    filterAll: "All",
+    filterUnwatched: "Unwatched",
+    filterWatched: "Watched",
   },
 };
 

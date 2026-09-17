@@ -34,6 +34,7 @@ import { mapWithConcurrency } from "@/lib/concurrency";
 import { fetchMovieDetails } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
+import { getDictionary, type Locale } from "@/i18n";
 import { formatDuration } from "@/lib/format";
 import engagement from "@/config/engagement.json";
 import type { WatchlistMovie } from "@/types/filmography";
@@ -82,7 +83,12 @@ function readStoredViewMode(): ViewMode {
   }
 }
 
-export function WatchlistPage() {
+interface WatchlistPageProps {
+  readonly locale: Locale;
+}
+
+export function WatchlistPage({ locale }: WatchlistPageProps) {
+  const t = getDictionary(locale);
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<readonly WatchlistMovie[] | null>(null);
   const [seenIds, setSeenIds] = useState<ReadonlySet<number>>(new Set());
@@ -175,7 +181,7 @@ export function WatchlistPage() {
   if (authLoading) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="sr-only">Watchlist</h1>
+        <h1 className="sr-only">{t.watchlist.heading}</h1>
         <Skeleton className="mx-auto h-7 w-32" />
         <Skeleton className="mx-auto h-5 w-56" />
       </div>
@@ -185,7 +191,7 @@ export function WatchlistPage() {
   if (user && movies === null) {
     return (
       <div className="space-y-4">
-        <h1 className="sr-only">Watchlist</h1>
+        <h1 className="sr-only">{t.watchlist.heading}</h1>
         <Skeleton className="h-24 w-full rounded-lg" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -199,10 +205,8 @@ export function WatchlistPage() {
   if (!user) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">Watchlist</h1>
-        <p className="text-muted-foreground">
-          Sign in to keep movies on your radar.
-        </p>
+        <h1 className="text-xl font-semibold">{t.watchlist.heading}</h1>
+        <p className="text-muted-foreground">{t.watchlist.signInPrompt}</p>
       </div>
     );
   }
@@ -210,17 +214,14 @@ export function WatchlistPage() {
   if (!movies || movies.length === 0) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">Your watchlist is empty.</h1>
-        <p className="text-muted-foreground">
-          While exploring a filmography, tap the bookmark icon on a movie to add
-          it here — or start from a followed person's page or a search result.
-        </p>
+        <h1 className="text-xl font-semibold">{t.watchlist.emptyHeading}</h1>
+        <p className="text-muted-foreground">{t.watchlist.emptyBody}</p>
         <div className="flex flex-wrap justify-center gap-2">
           <Button render={<a href="/search" />}>
-            Search actors & directors
+            {t.watchlist.searchActorsDirectors}
           </Button>
           <Button variant="outline" render={<a href="/filmographies" />}>
-            My Filmographies
+            {t.watchlist.myFilmographies}
           </Button>
         </div>
       </div>
@@ -260,7 +261,7 @@ export function WatchlistPage() {
 
   const toggleWatched = (movie: WatchlistMovie) => {
     const next = !seenIds.has(movie.tmdbId);
-    announce(`${next ? "Marked" : "Unmarked"} ${movie.title} as watched`);
+    announce(t.watchlist.markedWatched(movie.title, next));
     const write = next
       ? markMovieSeen(user.uid, {
           tmdbId: movie.tmdbId,
@@ -272,9 +273,7 @@ export function WatchlistPage() {
           mediaType: movie.mediaType,
         })
       : unmarkMovieSeen(user.uid, movie.tmdbId, movie.mediaType);
-    write.catch(() =>
-      toast.error(`Couldn't update "${movie.title}". Please try again.`),
-    );
+    write.catch(() => toast.error(t.watchlist.couldntUpdate(movie.title)));
   };
 
   function pickRandom() {
@@ -290,21 +289,21 @@ export function WatchlistPage() {
         variant={watchedFilter === "all" ? "default" : "ghost"}
         onClick={() => setWatchedFilter("all")}
       >
-        All ({movies.length})
+        {t.watchlist.filterAll(movies.length)}
       </Button>
       <Button
         size="sm"
         variant={watchedFilter === "unwatched" ? "default" : "ghost"}
         onClick={() => setWatchedFilter("unwatched")}
       >
-        To watch ({unwatchedCount})
+        {t.watchlist.filterToWatch(unwatchedCount)}
       </Button>
       <Button
         size="sm"
         variant={watchedFilter === "watched" ? "default" : "ghost"}
         onClick={() => setWatchedFilter("watched")}
       >
-        Watched ({watchedCount})
+        {t.watchlist.filterWatched(watchedCount)}
       </Button>
     </div>
   );
@@ -314,14 +313,16 @@ export function WatchlistPage() {
       value={order}
       onValueChange={(value) => setOrder(value as SortOrder)}
     >
-      <SelectTrigger size="sm" aria-label="Sort by">
+      <SelectTrigger size="sm" aria-label={t.watchlist.sortBy}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="newest">Newest first</SelectItem>
-        <SelectItem value="oldest">Oldest first</SelectItem>
-        <SelectItem value="rating">Highest rated</SelectItem>
-        <SelectItem value="alphabetical">A–Z</SelectItem>
+        <SelectItem value="newest">{t.watchlist.sortNewest}</SelectItem>
+        <SelectItem value="oldest">{t.watchlist.sortOldest}</SelectItem>
+        <SelectItem value="rating">{t.watchlist.sortRating}</SelectItem>
+        <SelectItem value="alphabetical">
+          {t.watchlist.sortAlphabetical}
+        </SelectItem>
       </SelectContent>
     </Select>
   );
@@ -333,7 +334,7 @@ export function WatchlistPage() {
         variant={genreFilter === ALL_GENRES ? "default" : "outline"}
         onClick={() => setGenreFilter(ALL_GENRES)}
       >
-        All genres
+        {t.watchlist.allGenres}
       </Button>
       {availableGenres.map((id) => (
         <Button
@@ -342,7 +343,7 @@ export function WatchlistPage() {
           variant={genreFilter === id ? "default" : "outline"}
           onClick={() => setGenreFilter(id)}
         >
-          {genreName(id) ?? "Other"}
+          {genreName(id) ?? t.watchlist.otherGenre}
         </Button>
       ))}
     </div>
@@ -351,10 +352,9 @@ export function WatchlistPage() {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">My Watchlist</h1>
+        <h1 className="text-xl font-semibold">{t.watchlist.myWatchlist}</h1>
         <p className="text-sm text-muted-foreground">
-          {movies.length} movies · {watchedCount} watched · {unwatchedCount} to
-          watch
+          {t.watchlist.stats(movies.length, watchedCount, unwatchedCount)}
         </p>
         <FilmographyProgress
           watchedCount={watchedCount}
@@ -369,10 +369,10 @@ export function WatchlistPage() {
       >
         <span className="flex items-center gap-2">
           <ShuffleIcon />
-          Pick something for me
+          {t.watchlist.pickForMe}
         </span>
         <span className="text-xs font-normal opacity-80">
-          Picks a random movie from your watchlist
+          {t.watchlist.pickForMeSubtitle}
         </span>
       </Button>
 
@@ -399,7 +399,7 @@ export function WatchlistPage() {
                   <Button
                     size="icon-sm"
                     variant={viewMode === "grid" ? "default" : "ghost"}
-                    aria-label="Grid view"
+                    aria-label={t.common.gridView}
                     aria-pressed={viewMode === "grid"}
                     onClick={() => setViewMode("grid")}
                   />
@@ -407,7 +407,7 @@ export function WatchlistPage() {
               >
                 <LayoutGridIcon />
               </TooltipTrigger>
-              <TooltipContent>Grid view</TooltipContent>
+              <TooltipContent>{t.common.gridView}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger
@@ -415,7 +415,7 @@ export function WatchlistPage() {
                   <Button
                     size="icon-sm"
                     variant={viewMode === "list" ? "default" : "ghost"}
-                    aria-label="List view"
+                    aria-label={t.common.listView}
                     aria-pressed={viewMode === "list"}
                     onClick={() => setViewMode("list")}
                   />
@@ -423,7 +423,7 @@ export function WatchlistPage() {
               >
                 <ListIcon />
               </TooltipTrigger>
-              <TooltipContent>List view</TooltipContent>
+              <TooltipContent>{t.common.listView}</TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -433,7 +433,7 @@ export function WatchlistPage() {
 
       {sorted.length === 0 ? (
         <p className="py-8 text-center text-muted-foreground">
-          No movies match these filters.
+          {t.watchlist.noMoviesMatch}
         </p>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
