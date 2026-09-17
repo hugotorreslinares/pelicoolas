@@ -6,6 +6,7 @@ import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog"
 import { InfoIcon, Loader2Icon } from "lucide-react";
 import { fetchMovieDetails, fetchSimilarMovies } from "@/lib/movieData";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { TrendingMovie } from "@/types/movie";
 
 // A force-directed take on movie-map.com/rec: instead of a static page of
@@ -49,7 +50,12 @@ function targetDistFor(rank: number, count: number): number {
   return MIN_EDGE_DIST + (rank / Math.max(1, count - 1)) * EDGE_RANGE;
 }
 
-export function MovieMap() {
+interface MovieMapProps {
+  readonly locale: Locale;
+}
+
+export function MovieMap({ locale }: MovieMapProps) {
+  const t = getDictionary(locale);
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<readonly TrendingMovie[]>(
     [],
@@ -347,15 +353,15 @@ export function MovieMap() {
       <div className="flex flex-wrap items-center gap-2">
         {nodes.length > 0 && (
           <Button type="button" size="sm" variant="outline" onClick={resetMap}>
-            Reset map
+            {t.movieMap.resetMap}
           </Button>
         )}
         <div className="relative min-w-48 flex-1">
           <Input
             placeholder={
               nodes.length > 0
-                ? "Add another movie…"
-                : "Search a movie to start…"
+                ? t.movieMap.addAnotherMovie
+                : t.movieMap.searchToStart
             }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -364,7 +370,7 @@ export function MovieMap() {
             <Loader2Icon
               className="absolute top-1/2 right-2.5 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
               role="status"
-              aria-label="Loading"
+              aria-label={t.movieMap.loading}
             />
           )}
           {searchResults.length > 0 && (
@@ -395,16 +401,14 @@ export function MovieMap() {
             variant="outline"
             onClick={() => setDetailsMovieId(focusedNode.id)}
           >
-            View {focusedNode.title}
+            {t.movieMap.view(focusedNode.title)}
           </Button>
         )}
       </div>
 
       {nodes.length === 0 && !loading && (
         <p className="text-sm text-muted-foreground">
-          Search a movie above to map out what's similar to it. Click any result
-          on the map to pull in its own similar movies too — the map keeps
-          growing, nothing gets replaced.
+          {t.movieMap.searchAbove}
         </p>
       )}
 
@@ -508,8 +512,8 @@ export function MovieMap() {
                 >
                   <button
                     type="button"
-                    aria-label={`View details for ${node.title}`}
-                    title="View details"
+                    aria-label={t.movieMap.viewDetailsFor(node.title)}
+                    title={t.movieMap.viewDetails}
                     onClick={(e) => {
                       e.stopPropagation();
                       setDetailsMovieId(node.id);
@@ -527,9 +531,8 @@ export function MovieMap() {
 
       {nodes.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          Scroll to zoom, drag to pan. Click a poster to pull in what's similar
-          to it — the highlighted one is your current focus.
-          {nodes.length >= MAX_NODES && " Map is at its size limit."}
+          {t.movieMap.scrollToZoom}
+          {nodes.length >= MAX_NODES && t.movieMap.atSizeLimit}
         </p>
       )}
 

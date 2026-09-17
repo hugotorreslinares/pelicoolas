@@ -342,4 +342,46 @@ export const es: Dictionary = {
     removeFrom: (title) => `Quitar ${title} de tus recomendaciones`,
     removeFromRecommendations: "Quitar de recomendaciones",
   },
+  connections: {
+    heading: "Conexiones",
+    subtitle:
+      "Cómo se cruzan la gente que seguís y las películas en las que aparecen.",
+    tabPeople: "Gente que trabajó junta",
+    tabCast: "Reparto compartido",
+    tabMap: "Mapa de películas",
+    signInPrompt: "Iniciá sesión para ver cómo se conectan tus filmografías.",
+    followSomePeople:
+      "Seguí a algunos actores o directores para ver cómo se conectan sus películas.",
+    searchActorsDirectors: "Buscar actores y directores",
+    noOverlapsYet:
+      "Todavía no hay cruces — la gente que seguís no comparte ninguna película (dentro de su filmografía rastreada).",
+    scanDescription:
+      "Revisa el reparto completo de cada película de tu filmografía buscando actores que aparecen más de una vez — no solo a quienes seguís.",
+    limitedToFirst: (max) => ` Limitado a las primeras ${max} películas.`,
+    scanning: (progress, total) => `Escaneando ${progress}/${total}…`,
+    rescan: "Volver a escanear",
+    findSharedActors: "Buscar actores compartidos",
+    noSharedActor: "Ningún actor aparece en más de una de estas películas.",
+    movies: (count) => `— ${count} películas`,
+    exploreNeighborhood:
+      "Explorá el entorno de cualquier película — inspirado en",
+    withPostersLayout: ", con pósters, diseño en vivo, y pan/zoom.",
+    viewDetailsFor: (title) => `Ver detalles de ${title}`,
+    noPoster: "Sin póster",
+    unknown: "Desconocido",
+  },
+  movieMap: {
+    resetMap: "Reiniciar mapa",
+    addAnotherMovie: "Agregar otra película…",
+    searchToStart: "Buscá una película para empezar…",
+    loading: "Cargando",
+    view: (title) => `Ver ${title}`,
+    searchAbove:
+      "Buscá una película arriba para mapear lo similar a ella. Tocá cualquier resultado del mapa para traer también sus propias películas similares — el mapa sigue creciendo, nada se reemplaza.",
+    scrollToZoom:
+      "Desplazate para hacer zoom, arrastrá para mover. Tocá un póster para traer lo similar a él — el resaltado es tu foco actual.",
+    atSizeLimit: " El mapa llegó a su límite de tamaño.",
+    viewDetailsFor: (title) => `Ver detalles de ${title}`,
+    viewDetails: "Ver detalles",
+  },
 };

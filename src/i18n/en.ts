@@ -364,6 +364,48 @@ export const en = {
     removeFrom: (title: string) => `Remove ${title} from your recommendations`,
     removeFromRecommendations: "Remove from recommendations",
   },
+  connections: {
+    heading: "Connections",
+    subtitle:
+      "How the people you follow — and the movies they're in — overlap.",
+    tabPeople: "People who worked together",
+    tabCast: "Shared cast",
+    tabMap: "Movie map",
+    signInPrompt: "Sign in to see how your filmographies connect.",
+    followSomePeople:
+      "Follow a few actors or directors to see how their movies connect.",
+    searchActorsDirectors: "Search actors & directors",
+    noOverlapsYet:
+      "No overlaps yet — the people you follow haven't shared a movie (that's in their tracked filmography).",
+    scanDescription:
+      "Checks the full cast of every movie in your filmography for actors who show up more than once — not just the people you follow.",
+    limitedToFirst: (max: number) => ` Limited to the first ${max} movies.`,
+    scanning: (progress: number, total: number) =>
+      `Scanning ${progress}/${total}…`,
+    rescan: "Re-scan",
+    findSharedActors: "Find shared actors",
+    noSharedActor: "No actor appears in more than one of these movies.",
+    movies: (count: number) => `— ${count} movies`,
+    exploreNeighborhood: "Explore any movie's neighborhood — inspired by",
+    withPostersLayout: ", with posters, live layout, and pan/zoom.",
+    viewDetailsFor: (title: string) => `View details for ${title}`,
+    noPoster: "No poster",
+    unknown: "Unknown",
+  },
+  movieMap: {
+    resetMap: "Reset map",
+    addAnotherMovie: "Add another movie…",
+    searchToStart: "Search a movie to start…",
+    loading: "Loading",
+    view: (title: string) => `View ${title}`,
+    searchAbove:
+      "Search a movie above to map out what's similar to it. Click any result on the map to pull in its own similar movies too — the map keeps growing, nothing gets replaced.",
+    scrollToZoom:
+      "Scroll to zoom, drag to pan. Click a poster to pull in what's similar to it — the highlighted one is your current focus.",
+    atSizeLimit: " Map is at its size limit.",
+    viewDetailsFor: (title: string) => `View details for ${title}`,
+    viewDetails: "View details",
+  },
 };
 
 export type Dictionary = typeof en;

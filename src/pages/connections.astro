@@ -2,6 +2,8 @@
 export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { ConnectionsPage } from "@/components/connections/ConnectionsPage";
+
+const locale = Astro.locals.locale;
 ---
 
 <Layout
@@ -9,5 +11,5 @@ import { ConnectionsPage } from "@/components/connections/ConnectionsPage";
   description="See how the movies and people in your filmography connect — shared cast, actors who worked together."
   noindex
 >
-  <ConnectionsPage client:load />
+  <ConnectionsPage locale={locale} client:load />
 </Layout>

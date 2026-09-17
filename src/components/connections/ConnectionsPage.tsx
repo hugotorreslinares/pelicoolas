@@ -13,6 +13,7 @@ import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import { fetchMovieDetails, fetchPersonData } from "@/lib/movieData";
 import { mapWithConcurrency } from "@/lib/concurrency";
 import { readCache, writeCache } from "@/lib/clientCache";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FollowedPerson } from "@/types/filmography";
 import type { CastMember, FilmographyMovie } from "@/types/movie";
 
@@ -42,13 +43,17 @@ const SCAN_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // matches fetchMovieDetails'
 
 type ConnectionsTab = "people" | "cast" | "map";
 
-const TABS: readonly { value: ConnectionsTab; label: string }[] = [
-  { value: "people", label: "People who worked together" },
-  { value: "cast", label: "Shared cast" },
-  { value: "map", label: "Movie map" },
-];
+interface ConnectionsPageProps {
+  readonly locale: Locale;
+}
 
-export function ConnectionsPage() {
+export function ConnectionsPage({ locale }: ConnectionsPageProps) {
+  const t = getDictionary(locale);
+  const TABS: readonly { value: ConnectionsTab; label: string }[] = [
+    { value: "people", label: t.connections.tabPeople },
+    { value: "cast", label: t.connections.tabCast },
+    { value: "map", label: t.connections.tabMap },
+  ];
   const { user, loading: authLoading } = useAuth();
   const [followed, setFollowed] = useState<readonly FollowedPerson[] | null>(
     null,
@@ -185,7 +190,7 @@ export function ConnectionsPage() {
     setScanning(false);
   }
 
-  const heading = "Connections";
+  const heading = t.connections.heading;
 
   if (authLoading || (user && followed === null)) {
     return (
@@ -201,9 +206,7 @@ export function ConnectionsPage() {
     return (
       <div className="space-y-3 text-center">
         <h1 className="text-xl font-semibold">{heading}</h1>
-        <p className="text-muted-foreground">
-          Sign in to see how your filmographies connect.
-        </p>
+        <p className="text-muted-foreground">{t.connections.signInPrompt}</p>
       </div>
     );
   }
@@ -215,7 +218,7 @@ export function ConnectionsPage() {
       <div>
         <h1 className="text-xl font-semibold">{heading}</h1>
         <p className="text-sm text-muted-foreground">
-          How the people you follow — and the movies they're in — overlap.
+          {t.connections.subtitle}
         </p>
       </div>
 
@@ -238,10 +241,10 @@ export function ConnectionsPage() {
       {!hasFollowed && tab !== "map" && (
         <div className="space-y-3 text-center">
           <p className="text-muted-foreground">
-            Follow a few actors or directors to see how their movies connect.
+            {t.connections.followSomePeople}
           </p>
           <Button render={<a href="/search" />}>
-            Search actors & directors
+            {t.connections.searchActorsDirectors}
           </Button>
         </div>
       )}
@@ -258,8 +261,7 @@ export function ConnectionsPage() {
 
             {!loadingFilmographies && coStarGroups.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                No overlaps yet — the people you follow haven't shared a movie
-                (that's in their tracked filmography).
+                {t.connections.noOverlapsYet}
               </p>
             )}
 
@@ -271,6 +273,7 @@ export function ConnectionsPage() {
                     movie={movie}
                     people={people}
                     onOpen={() => setOpenMovieId(movie.tmdbMovieId)}
+                    t={t}
                   />
                 ))}
               </div>
@@ -284,11 +287,9 @@ export function ConnectionsPage() {
           <section className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm text-muted-foreground">
-                Checks the full cast of every movie in your filmography for
-                actors who show up more than once — not just the people you
-                follow.
+                {t.connections.scanDescription}
                 {allMovies.length > MAX_SCAN_MOVIES &&
-                  ` Limited to the first ${MAX_SCAN_MOVIES} movies.`}
+                  t.connections.limitedToFirst(MAX_SCAN_MOVIES)}
               </p>
               <Button
                 size="sm"
@@ -297,16 +298,16 @@ export function ConnectionsPage() {
                 onClick={() => void runScan()}
               >
                 {scanning
-                  ? `Scanning ${scanProgress}/${scanTotal}…`
+                  ? t.connections.scanning(scanProgress, scanTotal)
                   : sharedCastGroups
-                    ? "Re-scan"
-                    : "Find shared actors"}
+                    ? t.connections.rescan
+                    : t.connections.findSharedActors}
               </Button>
             </div>
 
             {sharedCastGroups && sharedCastGroups.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                No actor appears in more than one of these movies.
+                {t.connections.noSharedActor}
               </p>
             )}
 
@@ -335,7 +336,7 @@ export function ConnectionsPage() {
                         {member.name}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        — {movies.length} movies
+                        {t.connections.movies(movies.length)}
                       </span>
                     </a>
                     <PosterCarousel movies={movies} onSelect={setOpenMovieId} />
@@ -350,7 +351,7 @@ export function ConnectionsPage() {
       {tab === "map" && (
         <section className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Explore any movie's neighborhood — inspired by{" "}
+            {t.connections.exploreNeighborhood}{" "}
             <a
               href="https://www.movie-map.com"
               target="_blank"
@@ -359,9 +360,9 @@ export function ConnectionsPage() {
             >
               movie-map.com
             </a>
-            , with posters, live layout, and pan/zoom.
+            {t.connections.withPostersLayout}
           </p>
-          <MovieMap />
+          <MovieMap locale={locale} />
         </section>
       )}
 
@@ -380,9 +381,10 @@ interface CoStarCardProps {
   readonly movie: FilmographyMovie;
   readonly people: readonly FollowedPerson[];
   readonly onOpen: () => void;
+  readonly t: ReturnType<typeof getDictionary>;
 }
 
-function CoStarCard({ movie, people, onOpen }: CoStarCardProps) {
+function CoStarCard({ movie, people, onOpen, t }: CoStarCardProps) {
   // A signed-out click just opens the dialog, which has its own sign-in
   // prompt — no room for an inline hint in this grid.
   const { watched, inWatchlist, ready, toggleWatched, toggleWatchlist } =
@@ -395,7 +397,7 @@ function CoStarCard({ movie, people, onOpen }: CoStarCardProps) {
           type="button"
           onClick={onOpen}
           className="focus-ring block w-full"
-          aria-label={`View details for ${movie.title}`}
+          aria-label={t.connections.viewDetailsFor(movie.title)}
         >
           {movie.posterPath ? (
             <img
@@ -407,7 +409,7 @@ function CoStarCard({ movie, people, onOpen }: CoStarCardProps) {
             />
           ) : (
             <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-              No poster
+              {t.connections.noPoster}
             </div>
           )}
         </button>
@@ -422,7 +424,7 @@ function CoStarCard({ movie, people, onOpen }: CoStarCardProps) {
       </div>
       <p className="truncate text-sm font-medium">{movie.title}</p>
       <p className="text-xs text-muted-foreground">
-        {movie.releaseYear ?? "Unknown"}
+        {movie.releaseYear ?? t.connections.unknown}
       </p>
       <p className="truncate text-xs text-muted-foreground">
         {people.map((p) => p.name).join(", ")}
