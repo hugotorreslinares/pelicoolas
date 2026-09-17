@@ -6,6 +6,7 @@ import {
   NetworkIcon,
   LayoutGridIcon,
   ListIcon,
+  Share2Icon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,8 @@ import { HomeHeroSlider } from "./HomeHeroSlider";
 import { TrendingSlider } from "./TrendingSlider";
 import { ShareBadgeButton } from "./ShareBadgeButton";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { announce } from "@/lib/a11y";
+import { shareProfile } from "@/lib/shareProfile";
 import {
   getLegacyWatchedIds,
   migrateWatchedToSeen,
@@ -352,6 +355,17 @@ export function Dashboard({
   // async auth check resolved.
   const heading = t.dashboard.heading;
 
+  async function handleShareProfile() {
+    if (!user) return;
+    const result = await shareProfile(
+      user.uid,
+      t.growth.shareTitle,
+      t.growth.shareText,
+    );
+    if (result === "copied") announce(t.growth.linkCopied);
+    if (result === "failed") announce(t.growth.couldntShare);
+  }
+
   // Shown in every state (signed out, no follows yet, full dashboard) —
   // recommend/watchlist/watched need a signed-in user, so this can't live
   // only in the signed-out WelcomeHero branch the way it used to.
@@ -424,11 +438,23 @@ export function Dashboard({
       <HomeHeroSlider people={heroPeople} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">{heading}</h1>
-        {engagement.wrapped && (
-          <Button size="sm" variant="outline" render={<a href="/wrapped" />}>
-            {t.dashboard.yourYearInFilm}
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {user && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void handleShareProfile()}
+            >
+              <Share2Icon data-icon="inline-start" />
+              {t.growth.shareMyProfile}
+            </Button>
+          )}
+          {engagement.wrapped && (
+            <Button size="sm" variant="outline" render={<a href="/wrapped" />}>
+              {t.dashboard.yourYearInFilm}
+            </Button>
+          )}
+        </div>
       </div>
 
       {badges.length > 0 && (

@@ -428,6 +428,19 @@ export const en = {
     shareBadgeTooltip: "Share badge",
     badgeAlt: (label: string) => `"${label}" badge`,
   },
+  growth: {
+    shareMyProfile: "Share my profile",
+    shareTitle: "My Pelicoolas profile",
+    shareText:
+      "Check out what I've watched on Pelicoolas — follow me to compare our taste in movies.",
+    linkCopied: "Link copied",
+    couldntShare: "Couldn't share your profile. Please try again.",
+    invitePromptTitle: "Enjoying Pelicoolas?",
+    invitePromptBody:
+      "Invite a friend to follow you — you'll see how your taste in movies compares.",
+    invitePromptCta: "Invite a friend",
+    invitePromptDismiss: "Not now",
+  },
 };
 
 export type Dictionary = typeof en;

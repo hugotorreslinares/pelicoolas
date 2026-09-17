@@ -14,6 +14,7 @@ import {
   ListIcon,
 } from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
+import { InviteFriendPrompt } from "@/components/social/InviteFriendPrompt";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   setSeenGenres,
@@ -472,6 +473,14 @@ export function WatchedPage({ locale }: WatchedPageProps) {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">{t.watched.heading}</h1>
+
+      {user && (
+        <InviteFriendPrompt
+          locale={locale}
+          uid={user.uid}
+          watchedCount={movies.length}
+        />
+      )}
 
       <div className="flex flex-wrap items-center justify-end gap-2">
         <div className="flex gap-1 rounded-full border p-1">

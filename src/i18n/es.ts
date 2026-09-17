@@ -406,4 +406,17 @@ export const es: Dictionary = {
     shareBadgeTooltip: "Compartir insignia",
     badgeAlt: (label) => `Insignia "${label}"`,
   },
+  growth: {
+    shareMyProfile: "Compartir mi perfil",
+    shareTitle: "Mi perfil de Pelicoolas",
+    shareText:
+      "Mirá lo que vi en Pelicoolas — seguime para comparar nuestros gustos de cine.",
+    linkCopied: "Link copiado",
+    couldntShare: "No se pudo compartir tu perfil. Intentá de nuevo.",
+    invitePromptTitle: "¿Te está gustando Pelicoolas?",
+    invitePromptBody:
+      "Invitá a un amigo a seguirte — vas a ver qué tan parecidos son sus gustos de cine a los tuyos.",
+    invitePromptCta: "Invitar a un amigo",
+    invitePromptDismiss: "Ahora no",
+  },
 };
