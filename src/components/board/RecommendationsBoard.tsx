@@ -18,6 +18,7 @@ import {
   subscribeToRecommendations,
 } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { RecommendedMovie } from "@/types/filmography";
 
 const POSTER_WIDTHS = [185, 342, 500];
@@ -25,13 +26,18 @@ const POSTER_SIZES = "(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
 
 interface RecommendationsBoardProps {
   readonly userId: string;
+  readonly locale: Locale;
 }
 
 // Public by design (no sign-in required to view — see firestore.rules) so
 // it can be shared on social media. The owner, viewing their own board
 // while signed in, additionally gets a share link and remove controls;
 // anyone else just sees the movies and a nudge to make their own board.
-export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
+export function RecommendationsBoard({
+  userId,
+  locale,
+}: RecommendationsBoardProps) {
+  const t = getDictionary(locale);
   const { user } = useAuth();
   const [movies, setMovies] = useState<readonly RecommendedMovie[] | null>(
     null,
@@ -52,7 +58,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
 
   async function handleRemove(movie: RecommendedMovie) {
     setRemovingIds((prev) => new Set(prev).add(movie.tmdbId));
-    announce(`Removed ${movie.title}`);
+    announce(t.board.removed(movie.title));
     try {
       await removeFromRecommendations(userId, movie.tmdbId, movie.mediaType);
     } catch {
@@ -61,7 +67,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
         next.delete(movie.tmdbId);
         return next;
       });
-      toast.error(`Couldn't remove "${movie.title}". Please try again.`);
+      toast.error(t.board.couldntRemove(movie.title));
     }
   }
 
@@ -69,7 +75,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      announce("Link copied");
+      announce(t.board.linkCopied);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard API unavailable (permissions, older browser) — the URL
@@ -82,17 +88,17 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h1 className="text-xl font-semibold">
-            {isOwner ? "Your recommendations" : "Movie recommendations"}
+            {isOwner
+              ? t.board.yourRecommendations
+              : t.board.movieRecommendations}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {isOwner
-              ? "Anyone with this link can see this board, no account needed."
-              : "Movies worth watching, picked by a Pelicoolas user."}
+            {isOwner ? t.board.ownerSubtitle : t.board.visitorSubtitle}
           </p>
         </div>
         {isOwner && (
           <Button type="button" size="sm" variant="outline" onClick={copyLink}>
-            {copied ? "Copied!" : "Copy link to share"}
+            {copied ? t.board.copied : t.board.copyLinkToShare}
           </Button>
         )}
       </div>
@@ -107,7 +113,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
           <ChevronDownIcon
             className={`size-4 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
           />
-          Recommendations{movies !== null && ` (${movies.length})`}
+          {t.board.recommendations(movies !== null ? movies.length : null)}
         </button>
 
         {open && movies === null && (
@@ -125,9 +131,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
           movies !== null &&
           movies.filter((m) => !removingIds.has(m.tmdbId)).length === 0 && (
             <p className="text-center text-muted-foreground">
-              {isOwner
-                ? "Nothing here yet — open any movie and tap the star to recommend it."
-                : "This board is empty for now."}
+              {isOwner ? t.board.emptyOwner : t.board.emptyVisitor}
             </p>
           )}
 
@@ -144,6 +148,7 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
                     isOwner={isOwner}
                     onOpen={() => setOpenMovie(movie)}
                     onRemove={() => void handleRemove(movie)}
+                    t={t}
                   />
                 ))}
             </div>
@@ -152,11 +157,9 @@ export function RecommendationsBoard({ userId }: RecommendationsBoardProps) {
 
       {!isOwner && (
         <div className="rounded-lg border bg-muted/40 p-4 text-center">
-          <p className="text-sm">
-            Track your own filmographies and build a board like this one.
-          </p>
+          <p className="text-sm">{t.board.trackYourOwn}</p>
           <Button className="mt-2" size="sm" render={<a href="/search" />}>
-            Try Pelicoolas
+            {t.board.tryPelicoolas}
           </Button>
         </div>
       )}
@@ -178,6 +181,7 @@ interface BoardMovieCardProps {
   readonly isOwner: boolean;
   readonly onOpen: () => void;
   readonly onRemove: () => void;
+  readonly t: ReturnType<typeof getDictionary>;
 }
 
 function BoardMovieCard({
@@ -185,6 +189,7 @@ function BoardMovieCard({
   isOwner,
   onOpen,
   onRemove,
+  t,
 }: BoardMovieCardProps) {
   // Public page, works signed-out — a signed-out click just opens the
   // dialog, which has its own sign-in prompt.
@@ -208,7 +213,7 @@ function BoardMovieCard({
           type="button"
           onClick={onOpen}
           className="focus-ring block w-full"
-          aria-label={`View details for ${movie.title}`}
+          aria-label={t.board.viewDetailsFor(movie.title)}
         >
           {movie.posterPath ? (
             <img
@@ -221,7 +226,7 @@ function BoardMovieCard({
             />
           ) : (
             <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
-              No poster
+              {t.board.noPoster}
             </div>
           )}
         </button>
@@ -249,7 +254,7 @@ function BoardMovieCard({
                   type="button"
                   variant="secondary"
                   size="icon"
-                  aria-label={`Remove ${movie.title} from your recommendations`}
+                  aria-label={t.board.removeFrom(movie.title)}
                   className="absolute right-2 bottom-2 size-11 rounded-full shadow"
                   onClick={onRemove}
                 />
@@ -257,14 +262,14 @@ function BoardMovieCard({
             >
               <XIcon />
             </TooltipTrigger>
-            <TooltipContent>Remove from recommendations</TooltipContent>
+            <TooltipContent>{t.board.removeFromRecommendations}</TooltipContent>
           </Tooltip>
         )}
       </div>
 
       <p className="mt-1 truncate font-medium">{movie.title}</p>
       <p className="text-sm text-muted-foreground">
-        {movie.releaseYear ?? "Unknown"}
+        {movie.releaseYear ?? t.board.unknown}
       </p>
     </div>
   );

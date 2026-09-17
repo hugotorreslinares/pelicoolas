@@ -317,4 +317,29 @@ export const es: Dictionary = {
     couldntLoadPhotos: "No se pudieron cargar las fotos. Intentá de nuevo.",
     noPhotosAvailable: "No hay fotos disponibles.",
   },
+  board: {
+    yourRecommendations: "Tus recomendaciones",
+    movieRecommendations: "Recomendaciones de películas",
+    ownerSubtitle:
+      "Cualquiera con este link puede ver este tablón, sin necesidad de cuenta.",
+    visitorSubtitle:
+      "Películas que vale la pena ver, elegidas por un usuario de Pelicoolas.",
+    copied: "¡Copiado!",
+    copyLinkToShare: "Copiar link para compartir",
+    linkCopied: "Link copiado",
+    removed: (title) => `Quitaste "${title}"`,
+    couldntRemove: (title) => `No se pudo quitar "${title}". Intentá de nuevo.`,
+    recommendations: (count) =>
+      `Recomendaciones${count !== null ? ` (${count})` : ""}`,
+    emptyOwner:
+      "Todavía no hay nada acá — abrí cualquier película y tocá la estrella para recomendarla.",
+    emptyVisitor: "Este tablón está vacío por ahora.",
+    trackYourOwn: "Seguí tus propias filmografías y armá un tablón como este.",
+    tryPelicoolas: "Probar Pelicoolas",
+    viewDetailsFor: (title) => `Ver detalles de ${title}`,
+    noPoster: "Sin póster",
+    unknown: "Desconocido",
+    removeFrom: (title) => `Quitar ${title} de tus recomendaciones`,
+    removeFromRecommendations: "Quitar de recomendaciones",
+  },
 };

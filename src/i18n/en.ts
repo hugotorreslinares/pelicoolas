@@ -338,6 +338,32 @@ export const en = {
     couldntLoadPhotos: "We couldn't load these photos. Please try again.",
     noPhotosAvailable: "No photos available.",
   },
+  board: {
+    yourRecommendations: "Your recommendations",
+    movieRecommendations: "Movie recommendations",
+    ownerSubtitle:
+      "Anyone with this link can see this board, no account needed.",
+    visitorSubtitle: "Movies worth watching, picked by a Pelicoolas user.",
+    copied: "Copied!",
+    copyLinkToShare: "Copy link to share",
+    linkCopied: "Link copied",
+    removed: (title: string) => `Removed ${title}`,
+    couldntRemove: (title: string) =>
+      `Couldn't remove "${title}". Please try again.`,
+    recommendations: (count: number | null) =>
+      `Recommendations${count !== null ? ` (${count})` : ""}`,
+    emptyOwner:
+      "Nothing here yet — open any movie and tap the star to recommend it.",
+    emptyVisitor: "This board is empty for now.",
+    trackYourOwn:
+      "Track your own filmographies and build a board like this one.",
+    tryPelicoolas: "Try Pelicoolas",
+    viewDetailsFor: (title: string) => `View details for ${title}`,
+    noPoster: "No poster",
+    unknown: "Unknown",
+    removeFrom: (title: string) => `Remove ${title} from your recommendations`,
+    removeFromRecommendations: "Remove from recommendations",
+  },
 };
 
 export type Dictionary = typeof en;
