@@ -108,6 +108,7 @@ Reglas de seguridad: `request.auth.uid == userId` en cada nivel — ver [firesto
 - Mobile-first, minimalista — evitar que se sienta como IMDb/catálogo de componentes.
 - Modales (`Dialog` de base-ui): cierre con click fuera, Escape, o botón X de 44px (mobile-friendly).
 - Estado: `useState`/`useEffect` + listeners de Firestore (`onSnapshot`). Sin Redux/Zustand — el estado es pequeño.
+- **Filtros de página (Watched, Watchlist, Filmografía de persona): siempre inline en el contenido, nunca portados al sidebar.** Watched/Watchlist/Filmography.tsx tenían un `id="page-filters-slot"` en el sidebar desktop (`Layout.astro`) donde se portaba (`createPortal`) el género/orden/etc en desktop, quedando solo inline en mobile (`md:hidden`). Reportado como confuso — en el sidebar los filtros se leen como navegación, no como controles de la página que se está viendo. Se eliminó el slot y el portal; los filtros ahora siempre están en el body de la página, en todos los tamaños. "Mis filmografías" (`Dashboard.tsx`) nunca usó este patrón — su ordenamiento ya vivía inline, no tocar.
 
 ## Deploy (Vercel) — gotchas
 

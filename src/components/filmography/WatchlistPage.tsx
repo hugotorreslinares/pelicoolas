@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -99,12 +98,6 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
   const [watchedFilter, setWatchedFilter] = useState<WatchedFilter>("all");
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovie, setOpenMovie] = useState<WatchlistMovie | null>(null);
-  // See WatchedPage: portal the filter controls to the desktop sidebar's
-  // slot, one React state, no cross-island sync needed.
-  const [filtersSlot, setFiltersSlot] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setFiltersSlot(document.getElementById("page-filters-slot"));
-  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -376,21 +369,11 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
         </span>
       </Button>
 
-      {filtersSlot &&
-        createPortal(
-          <div className="flex flex-col gap-3">
-            {watchedFilterGroup}
-            {sortSelect}
-            {genreChips}
-          </div>,
-          filtersSlot,
-        )}
-
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="md:hidden">{watchedFilterGroup}</div>
+        {watchedFilterGroup}
 
         <div className="flex items-center gap-2">
-          <div className="md:hidden">{sortSelect}</div>
+          {sortSelect}
 
           <div className="flex gap-1 rounded-full border p-1">
             <Tooltip>
@@ -429,7 +412,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
         </div>
       </div>
 
-      <div className="md:hidden">{genreChips}</div>
+      {genreChips}
 
       {sorted.length === 0 ? (
         <p className="py-8 text-center text-muted-foreground">
