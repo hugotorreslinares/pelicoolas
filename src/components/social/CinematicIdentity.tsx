@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { FilmIcon, BookmarkIcon, HeartIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfileLists } from "@/lib/hooks/useProfileLists";
 import { subscribeToRecommendations } from "@/lib/firebase/firestore";
@@ -59,41 +60,88 @@ export function CinematicIdentity({
 
   return (
     <div className="card-elevated space-y-4 rounded-lg border p-4">
-      <div>
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          {name}'s cinematic identity
-        </p>
-        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <span>🎬 {lists.seen.length} watched</span>
-          <span>🔖 {lists.watchlist.length} watchlist</span>
-          <span>❤️ {recommendations.length} favorites</span>
+      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        {name}'s cinematic identity
+      </p>
+
+      <div className="grid grid-cols-3 gap-2">
+        <div className="flex items-center gap-2 rounded-lg border p-2.5">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+            <FilmIcon className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-lg leading-tight font-bold">
+              {lists.seen.length}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">watched</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border p-2.5">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+            <BookmarkIcon className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-lg leading-tight font-bold">
+              {lists.watchlist.length}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">watchlist</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border p-2.5">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-destructive/15 text-destructive">
+            <HeartIcon className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-lg leading-tight font-bold">
+              {recommendations.length}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">favorites</p>
+          </div>
         </div>
       </div>
 
       {dna.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-sm font-medium">Movie DNA</p>
-          {dna.map((g) => (
-            <div key={g.genreId} className="flex items-center gap-2">
-              <span className="w-24 shrink-0 truncate text-xs text-muted-foreground">
-                {genreName(g.genreId) ?? "Other"}
-              </span>
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{
-                    width: `${maxCount === 0 ? 0 : (g.count / maxCount) * 100}%`,
-                  }}
-                />
+        <div className="space-y-2">
+          <div>
+            <p className="text-sm font-medium">Movie DNA</p>
+            <p className="text-xs text-muted-foreground">
+              Based on your {lists.seen.length + lists.watchlist.length} movies
+            </p>
+          </div>
+          {dna.map((g) => {
+            const pct =
+              maxCount === 0 ? 0 : Math.round((g.count / maxCount) * 100);
+            return (
+              <div key={g.genreId} className="flex items-center gap-2">
+                <span className="w-20 shrink-0 truncate text-xs text-muted-foreground">
+                  {genreName(g.genreId) ?? "Other"}
+                </span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <span className="w-9 shrink-0 text-right text-xs text-muted-foreground">
+                  {pct}%
+                </span>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {recommendations.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-sm font-medium">Favorites</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Favorites</p>
+            <a
+              href={`/board/${userId}`}
+              className="focus-ring text-xs font-medium text-primary hover:underline"
+            >
+              See all
+            </a>
+          </div>
           <div className="grid grid-cols-4 gap-2">
             {recommendations.slice(0, FAVORITES_LIMIT).map((m) => (
               <button
