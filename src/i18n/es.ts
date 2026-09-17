@@ -290,4 +290,31 @@ export const es: Dictionary = {
     joined: "Se unió ✓",
     sent: "Enviada",
   },
+  followedPerson: {
+    yearsOld: (age) => `${age} años`,
+    filmographyComplete: "Filmografía completa",
+    complete: "Completa",
+    moviesToComplete: (remaining) =>
+      `${remaining} películas para completar esta filmografía`,
+    toGo: (remaining) => `${remaining} restantes`,
+    remaining: (watched, total, remaining) =>
+      `${watched} / ${total} · ${remaining} por ver`,
+  },
+  personHeader: {
+    viewPhotosOf: (name) => `Ver fotos de ${name}`,
+    female: "Femenino",
+    male: "Masculino",
+    nonBinary: "No binario",
+    gender: "Género",
+    birthdayDeathday: "Nacimiento — Fallecimiento",
+    birthday: "Nacimiento",
+    yearsOldRange: (start, end, age) => `${start} — ${end} (${age} años)`,
+    yearsOldSingle: (date, age) => `${date} (${age} años)`,
+    placeOfBirth: "Lugar de nacimiento",
+    knownFor: "Conocido por",
+    knownCredits: "Créditos conocidos",
+    alsoKnownAs: "También conocido como:",
+    couldntLoadPhotos: "No se pudieron cargar las fotos. Intentá de nuevo.",
+    noPhotosAvailable: "No hay fotos disponibles.",
+  },
 };

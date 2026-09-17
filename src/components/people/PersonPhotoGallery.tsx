@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { XIcon } from "lucide-react";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 
 const PHOTO_WIDTHS = [185, 342, 500];
 const PHOTO_SIZES = "(min-width: 640px) 168px, 33vw";
@@ -18,6 +19,7 @@ interface PersonPhotoGalleryProps {
   readonly personName: string;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  readonly locale: Locale;
 }
 
 export function PersonPhotoGallery({
@@ -25,7 +27,9 @@ export function PersonPhotoGallery({
   personName,
   open,
   onOpenChange,
+  locale,
 }: PersonPhotoGalleryProps) {
+  const t = getDictionary(locale);
   const [images, setImages] = useState<readonly string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,9 +43,7 @@ export function PersonPhotoGallery({
         return r.json();
       })
       .then((data: { images: readonly string[] }) => setImages(data.images))
-      .catch(() =>
-        setError("We couldn't load these photos. Please try again."),
-      );
+      .catch(() => setError(t.personHeader.couldntLoadPhotos));
   }, [open, personId]);
 
   return (
@@ -77,7 +79,7 @@ export function PersonPhotoGallery({
 
         {!error && images !== null && images.length === 0 && (
           <p className="py-6 text-center text-muted-foreground">
-            No photos available.
+            {t.personHeader.noPhotosAvailable}
           </p>
         )}
 

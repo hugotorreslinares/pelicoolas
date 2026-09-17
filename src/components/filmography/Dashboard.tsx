@@ -536,6 +536,7 @@ export function Dashboard({
               totalCount={statsById[person.tmdbId]?.totalCount ?? null}
               age={statsById[person.tmdbId]?.age ?? null}
               layout={!limit ? viewMode : "grid"}
+              locale={locale}
             />
           ),
         )}

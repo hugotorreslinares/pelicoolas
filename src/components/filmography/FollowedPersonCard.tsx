@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import engagement from "@/config/engagement.json";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FollowedPerson } from "@/types/filmography";
 
 const ALMOST_THERE_MAX_REMAINING = 3;
@@ -16,6 +17,7 @@ interface FollowedPersonCardProps {
   readonly totalCount: number | null;
   readonly age: number | null;
   readonly layout?: "grid" | "list";
+  readonly locale: Locale;
 }
 
 export function FollowedPersonCard({
@@ -24,7 +26,9 @@ export function FollowedPersonCard({
   totalCount,
   age,
   layout = "grid",
+  locale,
 }: FollowedPersonCardProps) {
+  const t = getDictionary(locale);
   const percent = totalCount
     ? Math.round((watchedCount / totalCount) * 100)
     : 0;
@@ -62,7 +66,7 @@ export function FollowedPersonCard({
           {age !== null && (
             <span
               className="absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full border-2 border-card bg-secondary text-[9px] font-semibold text-secondary-foreground"
-              title={`${age} years old`}
+              title={t.followedPerson.yearsOld(age)}
             >
               {age}
             </span>
@@ -84,15 +88,15 @@ export function FollowedPersonCard({
         {isComplete && (
           <Badge
             variant="secondary"
-            title="Filmography complete"
+            title={t.followedPerson.filmographyComplete}
             className="shrink-0"
           >
             <TrophyIcon data-icon="inline-start" />
           </Badge>
         )}
-        {!isComplete && isAlmostThere && (
+        {!isComplete && isAlmostThere && remaining !== null && (
           <Badge
-            title={`${remaining} movies to complete this filmography`}
+            title={t.followedPerson.moviesToComplete(remaining)}
             className="shrink-0"
           >
             <FlameIcon data-icon="inline-start" />
@@ -129,7 +133,7 @@ export function FollowedPersonCard({
             {age !== null && (
               <span
                 className="absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border-2 border-card bg-secondary text-[10px] font-semibold text-secondary-foreground"
-                title={`${age} years old`}
+                title={t.followedPerson.yearsOld(age)}
               >
                 {age}
               </span>
@@ -139,15 +143,18 @@ export function FollowedPersonCard({
             <CardTitle className="truncate">{person.name}</CardTitle>
           </div>
           {isComplete && (
-            <Badge variant="secondary" title="Filmography complete">
+            <Badge
+              variant="secondary"
+              title={t.followedPerson.filmographyComplete}
+            >
               <TrophyIcon data-icon="inline-start" />
-              Complete
+              {t.followedPerson.complete}
             </Badge>
           )}
-          {!isComplete && isAlmostThere && (
-            <Badge title={`${remaining} movies to complete this filmography`}>
+          {!isComplete && isAlmostThere && remaining !== null && (
+            <Badge title={t.followedPerson.moviesToComplete(remaining)}>
               <FlameIcon data-icon="inline-start" />
-              {remaining} to go
+              {t.followedPerson.toGo(remaining)}
             </Badge>
           )}
         </CardHeader>
@@ -158,8 +165,11 @@ export function FollowedPersonCard({
             <>
               <Progress value={percent} />
               <p className="text-sm text-muted-foreground">
-                {watchedCount} / {totalCount} · {totalCount - watchedCount}{" "}
-                remaining
+                {t.followedPerson.remaining(
+                  watchedCount,
+                  totalCount,
+                  totalCount - watchedCount,
+                )}
               </p>
             </>
           )}

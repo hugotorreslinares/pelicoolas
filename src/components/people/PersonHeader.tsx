@@ -12,12 +12,14 @@ import { PersonPhotoGallery } from "./PersonPhotoGallery";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import { calculateAge } from "@/lib/age";
 import { cn } from "@/lib/utils";
+import { getDictionary, type Locale } from "@/i18n";
 import type { PersonProfile } from "@/types/person";
 
 interface PersonHeaderProps {
   readonly profile: PersonProfile;
   readonly department: string;
   readonly movieCount: number;
+  readonly locale: Locale;
 }
 
 function formatDate(iso: string): string {
@@ -56,22 +58,31 @@ export function PersonHeader({
   profile,
   department,
   movieCount,
+  locale,
 }: PersonHeaderProps) {
+  const t = getDictionary(locale);
   const [galleryOpen, setGalleryOpen] = useState(false);
 
   const genderLabel =
     profile.gender === "female"
-      ? "Female"
+      ? t.personHeader.female
       : profile.gender === "male"
-        ? "Male"
+        ? t.personHeader.male
         : profile.gender === "non-binary"
-          ? "Non-binary"
+          ? t.personHeader.nonBinary
           : null;
 
   const birthdayLine = profile.birthday
     ? profile.deathday
-      ? `${formatDate(profile.birthday)} — ${formatDate(profile.deathday)} (${calculateAge(profile.birthday, profile.deathday)} years old)`
-      : `${formatDate(profile.birthday)} (${calculateAge(profile.birthday)} years old)`
+      ? t.personHeader.yearsOldRange(
+          formatDate(profile.birthday),
+          formatDate(profile.deathday),
+          calculateAge(profile.birthday, profile.deathday),
+        )
+      : t.personHeader.yearsOldSingle(
+          formatDate(profile.birthday),
+          calculateAge(profile.birthday),
+        )
     : null;
 
   return (
@@ -79,7 +90,7 @@ export function PersonHeader({
       <button
         type="button"
         onClick={() => setGalleryOpen(true)}
-        aria-label={`View photos of ${profile.name}`}
+        aria-label={t.personHeader.viewPhotosOf(profile.name)}
         className="focus-ring mx-auto shrink-0 rounded-2xl sm:mx-0"
       >
         <Avatar className="size-32 rounded-2xl after:rounded-2xl">
@@ -121,39 +132,49 @@ export function PersonHeader({
 
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 sm:justify-start">
           {genderLabel && (
-            <InfoItem icon={UserIcon} label="Gender" value={genderLabel} />
+            <InfoItem
+              icon={UserIcon}
+              label={t.personHeader.gender}
+              value={genderLabel}
+            />
           )}
           {birthdayLine && (
             <InfoItem
               icon={CalendarIcon}
-              label={profile.deathday ? "Birthday — Deathday" : "Birthday"}
+              label={
+                profile.deathday
+                  ? t.personHeader.birthdayDeathday
+                  : t.personHeader.birthday
+              }
               value={birthdayLine}
             />
           )}
           {profile.placeOfBirth && (
             <InfoItem
               icon={MapPinIcon}
-              label="Place of Birth"
+              label={t.personHeader.placeOfBirth}
               value={profile.placeOfBirth}
             />
           )}
           {profile.knownForDepartment && (
             <InfoItem
               icon={StarIcon}
-              label="Known For"
+              label={t.personHeader.knownFor}
               value={profile.knownForDepartment}
             />
           )}
           <InfoItem
             icon={FilmIcon}
-            label="Known Credits"
+            label={t.personHeader.knownCredits}
             value={String(movieCount)}
           />
         </div>
 
         {profile.alsoKnownAs.length > 0 && (
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Also known as:</span>{" "}
+            <span className="font-medium text-foreground">
+              {t.personHeader.alsoKnownAs}
+            </span>{" "}
             {profile.alsoKnownAs.join(", ")}
           </p>
         )}
@@ -164,6 +185,7 @@ export function PersonHeader({
         personName={profile.name}
         open={galleryOpen}
         onOpenChange={setGalleryOpen}
+        locale={locale}
       />
     </div>
   );

@@ -310,6 +310,34 @@ export const en = {
     joined: "Joined ✓",
     sent: "Sent",
   },
+  followedPerson: {
+    yearsOld: (age: number) => `${age} years old`,
+    filmographyComplete: "Filmography complete",
+    complete: "Complete",
+    moviesToComplete: (remaining: number) =>
+      `${remaining} movies to complete this filmography`,
+    toGo: (remaining: number) => `${remaining} to go`,
+    remaining: (watched: number, total: number, remaining: number) =>
+      `${watched} / ${total} · ${remaining} remaining`,
+  },
+  personHeader: {
+    viewPhotosOf: (name: string) => `View photos of ${name}`,
+    female: "Female",
+    male: "Male",
+    nonBinary: "Non-binary",
+    gender: "Gender",
+    birthdayDeathday: "Birthday — Deathday",
+    birthday: "Birthday",
+    yearsOldRange: (start: string, end: string, age: number) =>
+      `${start} — ${end} (${age} years old)`,
+    yearsOldSingle: (date: string, age: number) => `${date} (${age} years old)`,
+    placeOfBirth: "Place of Birth",
+    knownFor: "Known For",
+    knownCredits: "Known Credits",
+    alsoKnownAs: "Also known as:",
+    couldntLoadPhotos: "We couldn't load these photos. Please try again.",
+    noPhotosAvailable: "No photos available.",
+  },
 };
 
 export type Dictionary = typeof en;
