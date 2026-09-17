@@ -119,11 +119,13 @@ export function CompatibilitySection({
 
   const { score, commonTitles, commonGenres, commonPeople } = compatibility;
   const name = theirDisplayName ?? "this user";
-  // Distinct from "Movies & shows in common" (which also counts a title
-  // either of you has already watched) — specifically both still-want-to-
-  // watch, so it reads as "here's what to plan a watch party around".
+  // The three lists are mutually exclusive by (mine,theirs) list pair — no
+  // title double-counts across them.
   const bothWatchlisted = commonTitles.filter(
     (t) => t.mine === "watchlist" && t.theirs === "watchlist",
+  );
+  const bothWatched = commonTitles.filter(
+    (t) => t.mine === "seen" && t.theirs === "seen",
   );
 
   return (
@@ -143,8 +145,11 @@ export function CompatibilitySection({
         <TitlePosterGrid titles={bothWatchlisted} onOpenMovie={onOpenMovie} />
       </Collapsible>
 
-      <Collapsible title="Movies & shows in common" count={commonTitles.length}>
-        <TitlePosterGrid titles={commonTitles} onOpenMovie={onOpenMovie} />
+      <Collapsible
+        title="Movies & shows you've both watched"
+        count={bothWatched.length}
+      >
+        <TitlePosterGrid titles={bothWatched} onOpenMovie={onOpenMovie} />
       </Collapsible>
 
       <Collapsible title="Genres in common" count={commonGenres.length}>
