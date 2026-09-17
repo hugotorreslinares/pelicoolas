@@ -274,6 +274,25 @@ describe("firestore.rules — followedPeople + nested watchedMovies", () => {
     });
     await assertSucceeds(deleteDoc(doc(db, "users/alice/followedPeople/31")));
   });
+
+  // Same follower-read grant as watchlist/seen — needed for the
+  // friend-compatibility feature (actors/directors in common).
+  it("lets an approved follower read followedPeople, but not anyone else", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/followedPeople/31"), {
+        name: "Tom Hanks",
+        tmdbId: 31,
+      });
+      await setDoc(doc(ctx.firestore(), "users/alice/followers/bob"), {
+        followerId: "bob",
+      });
+    });
+    const bobDb = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(bobDb, "users/alice/followedPeople/31")));
+
+    const carolDb = testEnv.authenticatedContext("carol").firestore();
+    await assertFails(getDoc(doc(carolDb, "users/alice/followedPeople/31")));
+  });
 });
 
 describe("firestore.rules — watchlist", () => {

@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { FollowRequestsInbox } from "./FollowRequestsInbox";
+import { CompatibilitySection } from "./CompatibilitySection";
 import {
   ChevronDownIcon,
   LockIcon,
@@ -201,6 +202,14 @@ export function UserProfile({ userId }: UserProfileProps) {
 
       {canSeePrivateLists ? (
         <>
+          {!isOwner && user && (
+            <CompatibilitySection
+              myUid={user.uid}
+              theirUid={userId}
+              theirDisplayName={profile.displayName}
+              onOpenMovie={setOpenMovie}
+            />
+          )}
           <ProfileSection
             title="Watched"
             userId={userId}
