@@ -3,13 +3,16 @@ import {
   BookmarkIcon,
   ChevronRightIcon,
   FilmIcon,
+  ShuffleIcon,
   TagIcon,
   UsersIcon,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfileLists } from "@/lib/hooks/useProfileLists";
 import { computeCompatibility } from "@/lib/compatibility";
+import { pickForUs } from "@/lib/watchPick";
 import { genreName } from "@/lib/tmdb/genres";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
 
@@ -163,7 +166,7 @@ export function CompatibilitySection({
     return computeCompatibility(mine, theirs);
   }, [mine, theirs]);
 
-  if (!compatibility) {
+  if (!mine || !theirs || !compatibility) {
     return (
       <div className="space-y-2">
         <Skeleton className="h-6 w-40" />
@@ -183,6 +186,22 @@ export function CompatibilitySection({
     (t) => t.mine === "seen" && t.theirs === "seen",
   );
 
+  function handlePick() {
+    const pick = pickForUs(mine!, theirs!);
+    if (!pick) return;
+    onOpenMovie(pick.item);
+  }
+
+  const pickPreview = pickForUs(mine, theirs);
+  const pickReasonLabel: Record<
+    NonNullable<ReturnType<typeof pickForUs>>["reason"],
+    string
+  > = {
+    genre: "Picked from a genre you both love",
+    person: "Picked via someone you both follow",
+    random: "Picked from your shared watchlist",
+  };
+
   return (
     <div className="card-elevated space-y-4 rounded-lg border p-4">
       <div className="flex items-center gap-4">
@@ -194,6 +213,22 @@ export function CompatibilitySection({
           </p>
         </div>
       </div>
+
+      {pickPreview && (
+        <Button
+          size="lg"
+          className="h-auto w-full flex-col items-start gap-0.5 py-3 sm:w-auto sm:flex-row sm:items-center sm:gap-2"
+          onClick={handlePick}
+        >
+          <span className="flex items-center gap-2">
+            <ShuffleIcon />
+            Pick something for us
+          </span>
+          <span className="text-xs font-normal opacity-80">
+            {pickReasonLabel[pickPreview.reason]}
+          </span>
+        </Button>
+      )}
 
       <div>
         <p className="mb-1 text-sm font-semibold">In Common</p>
