@@ -9,7 +9,10 @@ import { CompatibilitySection } from "./CompatibilitySection";
 import { CinematicIdentity } from "./CinematicIdentity";
 import { PeopleLikeYou } from "./PeopleLikeYou";
 import {
+  BookmarkIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
+  CheckCircleIcon,
   LockIcon,
   UserCheckIcon,
   UserPlusIcon,
@@ -223,18 +226,27 @@ export function UserProfile({ userId }: UserProfileProps) {
               onOpenMovie={setOpenMovie}
             />
           )}
-          <ProfileSection
-            title="Watched"
-            userId={userId}
-            subscribeFn={subscribeToSeenMoviesFull}
-            onOpen={setOpenMovie}
-          />
-          <ProfileSection
-            title="Watchlist"
-            userId={userId}
-            subscribeFn={subscribeToWatchlist}
-            onOpen={setOpenMovie}
-          />
+          <div>
+            <p className="mb-1 text-sm font-semibold">
+              {profile.displayName ?? "Their"}'s Lists
+            </p>
+            <div className="rounded-lg border px-3">
+              <ProfileSection
+                title="Watched"
+                icon={CheckCircleIcon}
+                userId={userId}
+                subscribeFn={subscribeToSeenMoviesFull}
+                onOpen={setOpenMovie}
+              />
+              <ProfileSection
+                title="Watchlist"
+                icon={BookmarkIcon}
+                userId={userId}
+                subscribeFn={subscribeToWatchlist}
+                onOpen={setOpenMovie}
+              />
+            </div>
+          </div>
         </>
       ) : (
         <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
@@ -278,6 +290,10 @@ interface ProfileSectionProps<M extends ProfileMovie> {
    *  (e.g. Watched). Favorites stays open — it's usually short and is the
    *  whole point of a shared profile. */
   readonly defaultOpen?: boolean;
+  /** Row style (icon left, chevron-right, bordered divider) for grouping
+   *  under a card heading (e.g. "X's Lists") instead of the plain
+   *  chevron-down label used standalone (e.g. Favorites). */
+  readonly icon?: typeof BookmarkIcon;
 }
 
 function ProfileSection<M extends ProfileMovie>({
@@ -286,6 +302,7 @@ function ProfileSection<M extends ProfileMovie>({
   subscribeFn,
   onOpen,
   defaultOpen = false,
+  icon: Icon,
 }: ProfileSectionProps<M>) {
   const [open, setOpen] = useState(defaultOpen);
   const [movies, setMovies] = useState<readonly M[] | null>(null);
@@ -296,18 +313,37 @@ function ProfileSection<M extends ProfileMovie>({
   }, [subscribeFn, userId, open]);
 
   return (
-    <div className="space-y-2">
+    <div className={Icon ? "border-b last:border-b-0" : "space-y-2"}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="focus-ring flex w-full items-center gap-1.5 text-left text-sm font-semibold text-muted-foreground"
+        className={
+          Icon
+            ? "focus-ring flex w-full items-center gap-3 py-3 text-left"
+            : "focus-ring flex w-full items-center gap-1.5 text-left text-sm font-semibold text-muted-foreground"
+        }
         aria-expanded={open}
       >
-        <ChevronDownIcon
-          className={`size-4 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
-        />
-        {title}
-        {movies !== null && ` (${movies.length})`}
+        {Icon ? (
+          <>
+            <Icon className="size-5 shrink-0 text-primary" />
+            <span className="flex-1 text-sm text-muted-foreground">
+              {title}
+              {movies !== null && ` (${movies.length})`}
+            </span>
+            <ChevronRightIcon
+              className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
+            />
+          </>
+        ) : (
+          <>
+            <ChevronDownIcon
+              className={`size-4 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
+            />
+            {title}
+            {movies !== null && ` (${movies.length})`}
+          </>
+        )}
       </button>
 
       {open && movies === null && (

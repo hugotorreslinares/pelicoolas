@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react";
-import { ChevronDownIcon } from "lucide-react";
+import {
+  BookmarkIcon,
+  ChevronRightIcon,
+  FilmIcon,
+  TagIcon,
+  UsersIcon,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfileLists } from "@/lib/hooks/useProfileLists";
@@ -15,6 +21,51 @@ interface CompatibilitySectionProps {
     tmdbId: number;
     mediaType?: "movie" | "tv";
   }) => void;
+}
+
+const RING_SIZE = 72;
+const RING_STROKE = 6;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+function ScoreRing({ score }: { readonly score: number }) {
+  const offset = RING_CIRCUMFERENCE * (1 - score / 100);
+  return (
+    <div
+      className="relative shrink-0"
+      style={{ width: RING_SIZE, height: RING_SIZE }}
+    >
+      <svg
+        width={RING_SIZE}
+        height={RING_SIZE}
+        viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+        className="-rotate-90"
+      >
+        <circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RING_RADIUS}
+          fill="none"
+          strokeWidth={RING_STROKE}
+          className="stroke-muted"
+        />
+        <circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RING_RADIUS}
+          fill="none"
+          strokeWidth={RING_STROKE}
+          strokeLinecap="round"
+          strokeDasharray={RING_CIRCUMFERENCE}
+          strokeDashoffset={offset}
+          className="stroke-primary transition-[stroke-dashoffset] duration-500"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xl font-bold">{score}%</span>
+      </div>
+    </div>
+  );
 }
 
 function TitlePosterGrid({
@@ -61,31 +112,35 @@ function TitlePosterGrid({
   );
 }
 
-function Collapsible({
-  title,
+function CommonRow({
+  icon: Icon,
   count,
+  label,
   children,
 }: {
-  readonly title: string;
+  readonly icon: typeof BookmarkIcon;
   readonly count: number;
+  readonly label: string;
   readonly children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="space-y-2">
+    <div className="border-b last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="focus-ring flex w-full items-center gap-1.5 text-left text-sm font-semibold text-muted-foreground"
+        className="focus-ring flex w-full items-center gap-3 py-3 text-left disabled:opacity-40"
         aria-expanded={open}
         disabled={count === 0}
       >
-        <ChevronDownIcon
-          className={`size-4 shrink-0 transition-transform ${open ? "" : "-rotate-90"} ${count === 0 ? "opacity-30" : ""}`}
+        <Icon className="size-5 shrink-0 text-primary" />
+        <span className="w-6 shrink-0 text-lg font-bold">{count}</span>
+        <span className="flex-1 text-sm text-muted-foreground">{label}</span>
+        <ChevronRightIcon
+          className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
         />
-        {title} ({count})
       </button>
-      {open && count > 0 && children}
+      {open && count > 0 && <div className="pb-3">{children}</div>}
     </div>
   );
 }
@@ -130,73 +185,94 @@ export function CompatibilitySection({
 
   return (
     <div className="card-elevated space-y-4 rounded-lg border p-4">
-      <div className="flex items-center gap-3">
-        <div className="text-2xl font-bold">{score}%</div>
-        <p className="text-sm text-muted-foreground">
-          taste match with {name} — a rough estimate based on movies, genres,
-          and people you both follow, not a recommendation.
-        </p>
+      <div className="flex items-center gap-4">
+        <ScoreRing score={score} />
+        <div>
+          <p className="font-semibold">Taste Match</p>
+          <p className="text-sm text-muted-foreground">
+            Based on movies, genres and people you both follow
+          </p>
+        </div>
       </div>
 
-      <Collapsible
-        title="On both your watchlists"
-        count={bothWatchlisted.length}
-      >
-        <TitlePosterGrid titles={bothWatchlisted} onOpenMovie={onOpenMovie} />
-      </Collapsible>
+      <div>
+        <p className="mb-1 text-sm font-semibold">In Common</p>
+        <div className="rounded-lg border px-3">
+          <CommonRow
+            icon={BookmarkIcon}
+            count={bothWatchlisted.length}
+            label="On both watchlists"
+          >
+            <TitlePosterGrid
+              titles={bothWatchlisted}
+              onOpenMovie={onOpenMovie}
+            />
+          </CommonRow>
 
-      <Collapsible
-        title="Movies & shows you've both watched"
-        count={bothWatched.length}
-      >
-        <TitlePosterGrid titles={bothWatched} onOpenMovie={onOpenMovie} />
-      </Collapsible>
+          <CommonRow
+            icon={FilmIcon}
+            count={bothWatched.length}
+            label="Movies & shows both watched"
+          >
+            <TitlePosterGrid titles={bothWatched} onOpenMovie={onOpenMovie} />
+          </CommonRow>
 
-      <Collapsible title="Genres in common" count={commonGenres.length}>
-        <div className="flex flex-wrap gap-2">
-          {commonGenres.map((g) => (
-            <span
-              key={g.genreId}
-              className="rounded-full border px-3 py-1 text-sm"
-            >
-              {genreName(g.genreId) ?? "Other"}
-            </span>
-          ))}
+          <CommonRow
+            icon={TagIcon}
+            count={commonGenres.length}
+            label="Genres in common"
+          >
+            <div className="flex flex-wrap gap-2">
+              {commonGenres.map((g) => (
+                <span
+                  key={g.genreId}
+                  className="rounded-full border px-3 py-1 text-sm"
+                >
+                  {genreName(g.genreId) ?? "Other"}
+                </span>
+              ))}
+            </div>
+          </CommonRow>
+
+          <CommonRow
+            icon={UsersIcon}
+            count={commonPeople.length}
+            label="Actors & directors both follow"
+          >
+            <div className="space-y-2">
+              {commonPeople.map((p) => (
+                <a
+                  key={p.tmdbId}
+                  href={`/person/${p.tmdbId}`}
+                  className="focus-ring flex items-center gap-2"
+                >
+                  <Avatar className="size-9">
+                    <AvatarImage
+                      src={
+                        p.profilePath
+                          ? tmdbImageUrl(p.profilePath, 92)
+                          : undefined
+                      }
+                      alt=""
+                    />
+                    <AvatarFallback>{p.name.slice(0, 1)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{p.name}</p>
+                    {p.knownForDepartment && (
+                      <p className="text-xs text-muted-foreground">
+                        {p.knownForDepartment}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </CommonRow>
         </div>
-      </Collapsible>
+      </div>
 
-      <Collapsible
-        title="Actors & directors you both follow"
-        count={commonPeople.length}
-      >
-        <div className="space-y-2">
-          {commonPeople.map((p) => (
-            <a
-              key={p.tmdbId}
-              href={`/person/${p.tmdbId}`}
-              className="focus-ring flex items-center gap-2"
-            >
-              <Avatar className="size-9">
-                <AvatarImage
-                  src={
-                    p.profilePath ? tmdbImageUrl(p.profilePath, 92) : undefined
-                  }
-                  alt=""
-                />
-                <AvatarFallback>{p.name.slice(0, 1)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium">{p.name}</p>
-                {p.knownForDepartment && (
-                  <p className="text-xs text-muted-foreground">
-                    {p.knownForDepartment}
-                  </p>
-                )}
-              </div>
-            </a>
-          ))}
-        </div>
-      </Collapsible>
+      <p className="sr-only">Compatibility with {name}</p>
     </div>
   );
 }
