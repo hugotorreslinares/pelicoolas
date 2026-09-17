@@ -30,7 +30,7 @@ const description = name
 <Layout
   title={title}
   description={description}
-  image={profile?.photoURL ?? undefined}
+  image={`/api/og/profile/${userId}.png`}
   noindex
 >
   <UserProfile locale={locale} userId={userId} client:load />
