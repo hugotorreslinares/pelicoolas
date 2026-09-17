@@ -439,7 +439,7 @@ export function Dashboard({
                 <TrophyIcon data-icon="inline-start" />
                 {badge.label}
               </Badge>
-              <ShareBadgeButton badge={badge} />
+              <ShareBadgeButton badge={badge} locale={locale} />
             </div>
           ))}
         </div>

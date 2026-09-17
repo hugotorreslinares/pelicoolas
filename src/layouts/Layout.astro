@@ -315,7 +315,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
           <slot />
         </main>
         <OnboardingCarousel locale={locale} client:idle />
-        <UsernamePrompt client:idle />
+        <UsernamePrompt locale={locale} client:idle />
         <Toaster client:idle />
         <footer
           class="mx-auto max-w-6xl space-y-2 border-t p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"

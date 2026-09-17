@@ -13,12 +13,18 @@ import {
   isValidUsername,
   subscribeToPublicProfile,
 } from "@/lib/firebase/firestore";
+import { getDictionary, type Locale } from "@/i18n";
+
+interface UsernamePromptProps {
+  readonly locale: Locale;
+}
 
 // Blocks (no close button, no Escape/backdrop dismiss) until the signed-in
 // user has a username — covers both new sign-ups and existing accounts that
 // predate this field, in one gate. Closes itself the moment the profile
 // doc reflects a claimed username (realtime, no page reload needed).
-export function UsernamePrompt() {
+export function UsernamePrompt({ locale }: UsernamePromptProps) {
+  const t = getDictionary(locale);
   const { user } = useAuth();
   const [hasUsername, setHasUsername] = useState(true);
   const [value, setValue] = useState("");
@@ -36,7 +42,7 @@ export function UsernamePrompt() {
     if (!user) return;
     const trimmed = value.trim();
     if (!isValidUsername(trimmed)) {
-      setError("3-20 characters: letters, numbers, underscore.");
+      setError(t.usernamePrompt.invalidUsername);
       return;
     }
     setSubmitting(true);
@@ -44,7 +50,7 @@ export function UsernamePrompt() {
     try {
       await claimUsername(user.uid, trimmed);
     } catch {
-      setError("That username is taken. Try another.");
+      setError(t.usernamePrompt.usernameTaken);
     } finally {
       setSubmitting(false);
     }
@@ -57,11 +63,9 @@ export function UsernamePrompt() {
       <DialogContent showCloseButton={false} className="max-w-sm gap-4 p-6">
         <div className="space-y-2">
           <DialogTitle className="font-heading text-lg font-semibold">
-            Pick a username
+            {t.usernamePrompt.pickUsername}
           </DialogTitle>
-          <DialogDescription>
-            So friends can find you and send you a follow request.
-          </DialogDescription>
+          <DialogDescription>{t.usernamePrompt.description}</DialogDescription>
         </div>
         <form
           onSubmit={(e) => {
@@ -73,14 +77,14 @@ export function UsernamePrompt() {
           <Input
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="username"
-            aria-label="Username"
+            placeholder={t.usernamePrompt.placeholder}
+            aria-label={t.usernamePrompt.ariaLabel}
             aria-invalid={error != null}
             maxLength={20}
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? "Checking…" : "Continue"}
+            {submitting ? t.usernamePrompt.checking : t.usernamePrompt.continue}
           </Button>
         </form>
       </DialogContent>

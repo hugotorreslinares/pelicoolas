@@ -406,6 +406,28 @@ export const en = {
     viewDetailsFor: (title: string) => `View details for ${title}`,
     viewDetails: "View details",
   },
+  usernamePrompt: {
+    invalidUsername: "3-20 characters: letters, numbers, underscore.",
+    usernameTaken: "That username is taken. Try another.",
+    pickUsername: "Pick a username",
+    description: "So friends can find you and send you a follow request.",
+    placeholder: "username",
+    ariaLabel: "Username",
+    checking: "Checking…",
+    continue: "Continue",
+  },
+  badge: {
+    couldntRender: "Couldn't render this badge. Please try again.",
+    shared: (label: string) => `Shared "${label}" badge`,
+    couldntShare: "Couldn't share this badge. Please try again.",
+    downloaded: (label: string) => `Downloaded "${label}" badge`,
+    download: "Download",
+    sharing: "Sharing…",
+    share: "Share",
+    shareBadge: (label: string) => `Share "${label}" badge`,
+    shareBadgeTooltip: "Share badge",
+    badgeAlt: (label: string) => `"${label}" badge`,
+  },
 };
 
 export type Dictionary = typeof en;

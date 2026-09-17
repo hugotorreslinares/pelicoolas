@@ -20,13 +20,16 @@ import {
   renderBadgeImage,
   shareBadgeImage,
 } from "@/lib/shareBadgeImage";
+import { getDictionary, type Locale } from "@/i18n";
 import type { Badge } from "@/types/badges";
 
 interface ShareBadgeButtonProps {
   readonly badge: Badge;
+  readonly locale: Locale;
 }
 
-export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
+export function ShareBadgeButton({ badge, locale }: ShareBadgeButtonProps) {
+  const t = getDictionary(locale);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<{
     readonly blob: Blob;
@@ -48,7 +51,7 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
       const blob = await renderBadgeImage(badge);
       setPreview({ blob, url: URL.createObjectURL(blob) });
     } catch {
-      announce("Couldn't render this badge. Please try again.");
+      announce(t.badge.couldntRender);
     } finally {
       setLoading(false);
     }
@@ -59,13 +62,13 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
     setSharing(true);
     try {
       await shareBadgeImage(preview.blob, badge);
-      announce(`Shared "${badge.label}" badge`);
+      announce(t.badge.shared(badge.label));
       setPreview(null);
     } catch (e) {
       // AbortError is the user dismissing the native share sheet — not a
       // failure worth surfacing.
       if (e instanceof Error && e.name !== "AbortError") {
-        announce("Couldn't share this badge. Please try again.");
+        announce(t.badge.couldntShare);
       }
     } finally {
       setSharing(false);
@@ -75,7 +78,7 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
   function handleDownload() {
     if (!preview) return;
     downloadBadgeImage(preview.blob, badge);
-    announce(`Downloaded "${badge.label}" badge`);
+    announce(t.badge.downloaded(badge.label));
     setPreview(null);
   }
 
@@ -92,7 +95,7 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
           {preview && (
             <img
               src={preview.url}
-              alt={`"${badge.label}" badge`}
+              alt={t.badge.badgeAlt(badge.label)}
               className="aspect-square w-full rounded-lg"
             />
           )}
@@ -102,11 +105,11 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
               onClick={handleDownload}
               disabled={sharing}
             >
-              <DownloadIcon /> Download
+              <DownloadIcon /> {t.badge.download}
             </Button>
             {preview && canShareBadgeImage(preview.blob, badge) && (
               <Button disabled={sharing} onClick={() => void handleShare()}>
-                {sharing ? "Sharing…" : "Share"}
+                {sharing ? t.badge.sharing : t.badge.share}
               </Button>
             )}
           </DialogFooter>
@@ -119,7 +122,7 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label={`Share "${badge.label}" badge`}
+              aria-label={t.badge.shareBadge(badge.label)}
               disabled={loading}
               onClick={(e) => {
                 e.stopPropagation();
@@ -130,7 +133,7 @@ export function ShareBadgeButton({ badge }: ShareBadgeButtonProps) {
         >
           {loading ? <Loader2Icon className="animate-spin" /> : <Share2Icon />}
         </TooltipTrigger>
-        <TooltipContent>Share badge</TooltipContent>
+        <TooltipContent>{t.badge.shareBadgeTooltip}</TooltipContent>
       </Tooltip>
     </>
   );
