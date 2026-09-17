@@ -13,6 +13,7 @@ import {
 import { mapWithConcurrency } from "@/lib/concurrency";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
 import { relativeTime } from "@/lib/relativeTime";
+import type { Locale } from "@/i18n";
 import type { Following } from "@/types/user";
 import type { FriendActivity } from "@/types/friends";
 
@@ -124,7 +125,11 @@ function FriendCard({
   );
 }
 
-export function FriendsPage() {
+interface FriendsPageProps {
+  readonly locale: Locale;
+}
+
+export function FriendsPage({ locale }: FriendsPageProps) {
   const { user, loading: authLoading } = useAuth();
   const [following, setFollowing] = useState<readonly Following[] | null>(null);
   const [activityByUid, setActivityByUid] = useState<
@@ -188,7 +193,7 @@ export function FriendsPage() {
     return (
       <div className="space-y-4">
         <h1 className="text-xl font-semibold">Friends</h1>
-        <FriendSearch />
+        <FriendSearch locale={locale} />
         <FollowRequestsInbox userId={user.uid} />
         <div className="space-y-3 text-center">
           <p className="text-muted-foreground">
@@ -204,7 +209,7 @@ export function FriendsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Friends</h1>
-      <FriendSearch />
+      <FriendSearch locale={locale} />
       <FollowRequestsInbox userId={user.uid} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {following.map((friend) => (

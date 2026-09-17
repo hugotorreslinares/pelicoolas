@@ -4,6 +4,10 @@ import { SearchTabs } from "@/components/search/SearchTabs";
 import { getTrendingMovies } from "@/lib/tmdb/movies";
 import { getTrendingTV } from "@/lib/tmdb/tv";
 import { TmdbError } from "@/lib/tmdb/client";
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 
 // Best-effort, same pattern as the home dashboard: if TMDB is down, the
 // search page still renders fine without the trending fallback content.
@@ -25,10 +29,11 @@ try {
 >
   <div class="space-y-6 py-8 text-center">
     <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
-      Search actors, directors, movies & TV shows
+      {t.search.pageHeading}
     </h1>
     <SearchTabs
       client:load
+      locale={locale}
       trendingMovies={trendingMovies}
       trendingTV={trendingTV}
     />

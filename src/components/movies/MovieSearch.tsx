@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MovieResultRow } from "./MovieResultRow";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { TrendingSlider } from "@/components/filmography/TrendingSlider";
+import { getDictionary, type Locale } from "@/i18n";
 import type { TrendingMovie } from "@/types/movie";
 
 const DEBOUNCE_MS = 350;
@@ -11,6 +12,7 @@ const DEBOUNCE_MS = 350;
 type MediaType = "movie" | "tv";
 
 interface MovieSearchProps {
+  readonly locale: Locale;
   readonly mediaType?: MediaType;
   readonly trendingMovies?: readonly TrendingMovie[];
 }
@@ -21,9 +23,11 @@ const SEARCH_ENDPOINT: Record<MediaType, string> = {
 };
 
 export function MovieSearch({
+  locale,
   mediaType = "movie",
   trendingMovies = [],
 }: MovieSearchProps) {
+  const t = getDictionary(locale);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly TrendingMovie[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,8 +59,8 @@ export function MovieSearch({
       } catch {
         setError(
           mediaType === "tv"
-            ? "We couldn't load shows. Please try again."
-            : "We couldn't load movies. Please try again.",
+            ? t.search.couldntLoadShows
+            : t.search.couldntLoadMovies,
         );
       } finally {
         setLoading(false);
@@ -71,8 +75,8 @@ export function MovieSearch({
       <Input
         placeholder={
           mediaType === "tv"
-            ? "Search TV show title..."
-            : "Search movie title..."
+            ? t.search.searchTVTitle
+            : t.search.searchMovieTitle
         }
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -89,9 +93,7 @@ export function MovieSearch({
 
       {!loading && !error && query.trim() && results.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          {mediaType === "tv"
-            ? "No shows found. Try another title."
-            : "No movies found. Try another title."}
+          {mediaType === "tv" ? t.search.noShowsFound : t.search.noMoviesFound}
         </p>
       )}
 
@@ -111,7 +113,7 @@ export function MovieSearch({
         <TrendingSlider
           items={trendingMovies}
           mediaType={mediaType}
-          heading="Trending this week"
+          heading={t.search.trendingThisWeek}
         />
       )}
 

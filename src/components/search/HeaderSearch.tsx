@@ -8,6 +8,7 @@ import { MovieResultRow } from "@/components/movies/MovieResultRow";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { addRecentSearch } from "@/lib/recentSearches";
 import { cn } from "@/lib/utils";
+import { getDictionary, type Locale } from "@/i18n";
 import type { PersonSearchResult } from "@/types/person";
 import type { TrendingMovie } from "@/types/movie";
 
@@ -16,6 +17,7 @@ const DEBOUNCE_MS = 350;
 type ResultTab = "people" | "movies" | "tv";
 
 interface HeaderSearchProps {
+  readonly locale: Locale;
   /** Matches the other nav items' active/inactive pill styling. */
   readonly className?: string;
 }
@@ -24,7 +26,8 @@ interface HeaderSearchProps {
 // movies in parallel from a single query, shown in tabs so results never
 // mix. /search (PersonSearch/MovieSearch/SearchTabs) stays as its own page
 // for recent searches and as a plain fallback; this is the fast path.
-export function HeaderSearch({ className }: HeaderSearchProps) {
+export function HeaderSearch({ locale, className }: HeaderSearchProps) {
+  const t = getDictionary(locale);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<ResultTab>("people");
@@ -97,7 +100,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
         setTV(tvData.results);
         setError(null);
       } catch {
-        setError("Something went wrong. Please try again.");
+        setError(t.search.somethingWentWrong);
       } finally {
         setLoading(false);
       }
@@ -128,8 +131,8 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label="Search"
-        title="Search"
+        aria-label={t.search.searchAria}
+        title={t.search.searchAria}
         className={cn(
           "focus-ring flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
           className,
@@ -143,7 +146,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
           <div className="flex items-center gap-2">
             <Input
               ref={inputRef}
-              placeholder="Search actors, directors, movies..."
+              placeholder={t.search.searchPlaceholderAll}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -152,7 +155,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
               variant="ghost"
               size="icon"
               className="size-11 shrink-0"
-              aria-label="Close search"
+              aria-label={t.search.closeSearch}
               onClick={close}
             >
               <XIcon />
@@ -167,7 +170,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
                 variant={tab === "people" ? "default" : "outline"}
                 onClick={() => setTab("people")}
               >
-                People{!loading && ` (${people.length})`}
+                {t.search.people(people.length, loading)}
               </Button>
               <Button
                 type="button"
@@ -175,7 +178,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
                 variant={tab === "movies" ? "default" : "outline"}
                 onClick={() => setTab("movies")}
               >
-                Movies{!loading && ` (${movies.length})`}
+                {t.search.moviesTab(movies.length, loading)}
               </Button>
               <Button
                 type="button"
@@ -183,7 +186,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
                 variant={tab === "tv" ? "default" : "outline"}
                 onClick={() => setTab("tv")}
               >
-                TV{!loading && ` (${tv.length})`}
+                {t.search.tvTab(tv.length, loading)}
               </Button>
             </div>
           )}
@@ -204,7 +207,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
               <>
                 {people.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No people found.
+                    {t.search.noPeopleFoundShort}
                   </p>
                 )}
                 {people.map((person) => (
@@ -221,7 +224,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
               <>
                 {movies.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No movies found.
+                    {t.search.noMoviesFoundShort}
                   </p>
                 )}
                 {movies.map((movie) => (
@@ -238,7 +241,7 @@ export function HeaderSearch({ className }: HeaderSearchProps) {
               <>
                 {tv.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No TV shows found.
+                    {t.search.noShowsFoundShort}
                   </p>
                 )}
                 {tv.map((show) => (

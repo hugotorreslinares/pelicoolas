@@ -6,6 +6,7 @@ import { PersonCard } from "@/components/people/PersonCard";
 import { MovieResultRow } from "@/components/movies/MovieResultRow";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { addRecentSearch } from "@/lib/recentSearches";
+import { getDictionary, type Locale } from "@/i18n";
 import type { PersonSearchResult } from "@/types/person";
 import type { TrendingMovie } from "@/types/movie";
 
@@ -13,13 +14,18 @@ const DEBOUNCE_MS = 350;
 
 type ResultTab = "people" | "movies" | "tv";
 
+interface SidebarSearchProps {
+  readonly locale: Locale;
+}
+
 // Desktop sidebar's search — same three endpoints as HeaderSearch (the
 // mobile header's popup version), but rendered inline in normal document
 // flow instead of an absolutely-positioned floating panel: the sidebar
 // itself scrolls (overflow-y-auto, see Layout.astro), which clips any
 // absolute-positioned child that would overflow it, so a floating dropdown
 // here gets cut off. Results just push the nav below it down instead.
-export function SidebarSearch() {
+export function SidebarSearch({ locale }: SidebarSearchProps) {
+  const t = getDictionary(locale);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<ResultTab>("people");
   const [people, setPeople] = useState<readonly PersonSearchResult[]>([]);
@@ -64,7 +70,7 @@ export function SidebarSearch() {
         setTV(tvData.results);
         setError(null);
       } catch {
-        setError("Something went wrong. Please try again.");
+        setError(t.search.somethingWentWrong);
       } finally {
         setLoading(false);
       }
@@ -83,10 +89,10 @@ export function SidebarSearch() {
   return (
     <div className="space-y-2">
       <Input
-        placeholder="Search actors, movies, TV..."
+        placeholder={t.search.searchPlaceholderAll}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        aria-label="Search actors, directors, movies, TV shows"
+        aria-label={t.search.searchAriaAll}
       />
 
       {trimmed && (
@@ -98,7 +104,7 @@ export function SidebarSearch() {
               variant={tab === "people" ? "default" : "outline"}
               onClick={() => setTab("people")}
             >
-              People{!loading && ` (${people.length})`}
+              {t.search.people(people.length, loading)}
             </Button>
             <Button
               type="button"
@@ -106,7 +112,7 @@ export function SidebarSearch() {
               variant={tab === "movies" ? "default" : "outline"}
               onClick={() => setTab("movies")}
             >
-              Movies{!loading && ` (${movies.length})`}
+              {t.search.moviesTab(movies.length, loading)}
             </Button>
             <Button
               type="button"
@@ -114,7 +120,7 @@ export function SidebarSearch() {
               variant={tab === "tv" ? "default" : "outline"}
               onClick={() => setTab("tv")}
             >
-              TV{!loading && ` (${tv.length})`}
+              {t.search.tvTab(tv.length, loading)}
             </Button>
           </div>
 
@@ -134,7 +140,7 @@ export function SidebarSearch() {
               <>
                 {people.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No people found.
+                    {t.search.noPeopleFoundShort}
                   </p>
                 )}
                 {people.map((person) => (
@@ -151,7 +157,7 @@ export function SidebarSearch() {
               <>
                 {movies.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No movies found.
+                    {t.search.noMoviesFoundShort}
                   </p>
                 )}
                 {movies.map((movie) => (
@@ -168,7 +174,7 @@ export function SidebarSearch() {
               <>
                 {tv.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No TV shows found.
+                    {t.search.noShowsFoundShort}
                   </p>
                 )}
                 {tv.map((show) => (

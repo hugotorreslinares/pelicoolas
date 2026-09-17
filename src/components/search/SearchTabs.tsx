@@ -2,19 +2,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PersonSearch } from "@/components/people/PersonSearch";
 import { MovieSearch } from "@/components/movies/MovieSearch";
+import { getDictionary, type Locale } from "@/i18n";
 import type { TrendingMovie } from "@/types/movie";
 
 type SearchMode = "people" | "movies" | "tv";
 
 interface SearchTabsProps {
+  readonly locale: Locale;
   readonly trendingMovies?: readonly TrendingMovie[];
   readonly trendingTV?: readonly TrendingMovie[];
 }
 
 export function SearchTabs({
+  locale,
   trendingMovies = [],
   trendingTV = [],
 }: SearchTabsProps) {
+  const t = getDictionary(locale);
   const [mode, setMode] = useState<SearchMode>("people");
 
   return (
@@ -26,7 +30,7 @@ export function SearchTabs({
           variant={mode === "people" ? "default" : "outline"}
           onClick={() => setMode("people")}
         >
-          Actors & directors
+          {t.search.actorsDirectors}
         </Button>
         <Button
           type="button"
@@ -34,7 +38,7 @@ export function SearchTabs({
           variant={mode === "movies" ? "default" : "outline"}
           onClick={() => setMode("movies")}
         >
-          Movies
+          {t.search.movies}
         </Button>
         <Button
           type="button"
@@ -42,16 +46,26 @@ export function SearchTabs({
           variant={mode === "tv" ? "default" : "outline"}
           onClick={() => setMode("tv")}
         >
-          TV shows
+          {t.search.tvShows}
         </Button>
       </div>
 
-      {mode === "people" && <PersonSearch trendingMovies={trendingMovies} />}
+      {mode === "people" && (
+        <PersonSearch locale={locale} trendingMovies={trendingMovies} />
+      )}
       {mode === "movies" && (
-        <MovieSearch mediaType="movie" trendingMovies={trendingMovies} />
+        <MovieSearch
+          locale={locale}
+          mediaType="movie"
+          trendingMovies={trendingMovies}
+        />
       )}
       {mode === "tv" && (
-        <MovieSearch mediaType="tv" trendingMovies={trendingTV} />
+        <MovieSearch
+          locale={locale}
+          mediaType="tv"
+          trendingMovies={trendingTV}
+        />
       )}
     </div>
   );

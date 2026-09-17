@@ -16,22 +16,26 @@ import {
   getRecentSearches,
   removeRecentSearch,
 } from "@/lib/recentSearches";
+import { getDictionary, type Locale } from "@/i18n";
 import type { PersonSearchResult } from "@/types/person";
 import type { TrendingMovie } from "@/types/movie";
 
 const DEBOUNCE_MS = 350;
 
 interface PersonSearchProps {
+  readonly locale: Locale;
   readonly className?: string;
   readonly showRecent?: boolean;
   readonly trendingMovies?: readonly TrendingMovie[];
 }
 
 export function PersonSearch({
+  locale,
   className = "mx-auto w-full max-w-xl space-y-4",
   showRecent: showRecentProp = true,
   trendingMovies = [],
 }: PersonSearchProps) {
+  const t = getDictionary(locale);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly PersonSearchResult[]>([]);
   const [recent, setRecent] = useState<readonly PersonSearchResult[]>([]);
@@ -63,7 +67,7 @@ export function PersonSearch({
         setResults(data.results);
         setError(null);
       } catch {
-        setError("We couldn't load this filmography. Please try again.");
+        setError(t.search.couldntLoadPerson);
       } finally {
         setLoading(false);
       }
@@ -80,7 +84,7 @@ export function PersonSearch({
   function removeRecent(person: PersonSearchResult) {
     removeRecentSearch(person.id);
     setRecent((prev) => prev.filter((p) => p.id !== person.id));
-    announce(`Removed ${person.name} from recent searches`);
+    announce(t.search.removedFromRecent(person.name));
   }
 
   const showRecent = showRecentProp && !query.trim() && recent.length > 0;
@@ -88,7 +92,7 @@ export function PersonSearch({
   return (
     <div className={className}>
       <Input
-        placeholder="Search actor or director..."
+        placeholder={t.search.searchPlaceholderPerson}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -104,7 +108,7 @@ export function PersonSearch({
 
       {!loading && !error && query.trim() && results.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          No people found. Try another name.
+          {t.search.noPeopleFound}
         </p>
       )}
 
@@ -123,7 +127,7 @@ export function PersonSearch({
       {showRecent && (
         <div className="text-left">
           <p className="mb-2 text-sm font-medium text-muted-foreground">
-            Recent searches
+            {t.search.recentSearches}
           </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {recent.map((person) => (
@@ -140,7 +144,7 @@ export function PersonSearch({
                         type="button"
                         variant="secondary"
                         size="icon"
-                        aria-label={`Remove ${person.name} from recent searches`}
+                        aria-label={t.search.removeFromRecent(person.name)}
                         // Full 44px here would swallow a big chunk of a
                         // 2-column mobile card — 36px is the compromise for
                         // a tightly packed grid (still well above the old
@@ -155,7 +159,9 @@ export function PersonSearch({
                   >
                     <XIcon className="size-4" />
                   </TooltipTrigger>
-                  <TooltipContent>Remove from recent searches</TooltipContent>
+                  <TooltipContent>
+                    {t.search.removeFromRecentTooltip}
+                  </TooltipContent>
                 </Tooltip>
               </div>
             ))}
@@ -167,7 +173,7 @@ export function PersonSearch({
         <TrendingSlider
           items={trendingMovies}
           mediaType="movie"
-          heading="Trending this week"
+          heading={t.search.trendingThisWeek}
         />
       )}
     </div>

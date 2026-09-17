@@ -9,6 +9,7 @@ import {
   searchUsersByUsername,
   sendFollowRequest,
 } from "@/lib/firebase/firestore";
+import { getDictionary, type Locale } from "@/i18n";
 import type { PublicProfile } from "@/types/user";
 
 const DEBOUNCE_MS = 300;
@@ -17,10 +18,14 @@ function ResultRow({
   result,
   onInvite,
   sent,
+  sentLabel,
+  inviteLabel,
 }: {
   readonly result: PublicProfile;
   readonly onInvite: () => void;
   readonly sent: boolean;
+  readonly sentLabel: string;
+  readonly inviteLabel: string;
 }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border p-2">
@@ -39,15 +44,20 @@ function ResultRow({
         )}
       </div>
       <Button size="sm" disabled={sent} onClick={onInvite}>
-        {sent ? "Sent" : "Invite"}
+        {sent ? sentLabel : inviteLabel}
       </Button>
     </div>
   );
 }
 
+interface FriendSearchProps {
+  readonly locale: Locale;
+}
+
 // Search by username (prefix-only, see searchUsersByUsername) and send a
 // friend invite — accepting it makes the follow mutual (approveFollowRequest).
-export function FriendSearch() {
+export function FriendSearch({ locale }: FriendSearchProps) {
+  const t = getDictionary(locale);
   const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly PublicProfile[]>([]);
@@ -79,14 +89,14 @@ export function FriendSearch() {
         displayName: user.displayName,
         photoURL: user.photoURL,
       });
-      announce(`Invite sent to @${target.username}`);
+      announce(t.search.inviteSentTo(target.username ?? ""));
     } catch {
       setSentTo((prev) => {
         const next = new Set(prev);
         next.delete(target.uid);
         return next;
       });
-      toast.error(`Couldn't send the invite. Please try again.`);
+      toast.error(t.search.couldntSendInvite);
     }
   }
 
@@ -97,12 +107,12 @@ export function FriendSearch() {
       <Input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Find friends by username…"
-        aria-label="Search users by username"
+        placeholder={t.search.searchUsersPlaceholder}
+        aria-label={t.search.searchUsersAria}
       />
       {loading && <p className="text-sm text-muted-foreground">Searching…</p>}
       {!loading && query.trim() && results.length === 0 && (
-        <p className="text-sm text-muted-foreground">No users found.</p>
+        <p className="text-sm text-muted-foreground">{t.search.noUsersFound}</p>
       )}
       {results.length > 0 && (
         <div className="space-y-2">
@@ -111,6 +121,8 @@ export function FriendSearch() {
               key={result.uid}
               result={result}
               sent={sentTo.has(result.uid)}
+              sentLabel={t.search.sent}
+              inviteLabel={t.search.invite}
               onInvite={() => void handleInvite(result)}
             />
           ))}
