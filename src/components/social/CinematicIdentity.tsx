@@ -6,11 +6,13 @@ import { subscribeToRecommendations } from "@/lib/firebase/firestore";
 import { computeGenreDNA } from "@/lib/compatibility";
 import { genreName } from "@/lib/tmdb/genres";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { RecommendedMovie } from "@/types/filmography";
 
 const FAVORITES_LIMIT = 4;
 
 interface CinematicIdentityProps {
+  readonly locale: Locale;
   readonly userId: string;
   readonly displayName: string | null;
   readonly onOpenMovie: (movie: {
@@ -25,10 +27,12 @@ interface CinematicIdentityProps {
 // (same gate as CompatibilitySection), since watched/watchlist counts feed
 // straight into it.
 export function CinematicIdentity({
+  locale,
   userId,
   displayName,
   onOpenMovie,
 }: CinematicIdentityProps) {
+  const t = getDictionary(locale);
   const lists = useProfileLists(userId);
   const [recommendations, setRecommendations] = useState<
     readonly RecommendedMovie[] | null
@@ -51,7 +55,7 @@ export function CinematicIdentity({
     );
   }
 
-  const name = displayName ?? "This user";
+  const name = displayName ?? t.identity.thisUser;
   const hasAnything =
     lists.seen.length > 0 ||
     lists.watchlist.length > 0 ||
@@ -61,7 +65,7 @@ export function CinematicIdentity({
   return (
     <div className="card-elevated space-y-4 rounded-lg border p-4">
       <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-        {name}'s cinematic identity
+        {t.identity.cinematicIdentity(name)}
       </p>
 
       <div className="grid grid-cols-3 gap-2">
@@ -73,7 +77,9 @@ export function CinematicIdentity({
             <p className="text-lg leading-tight font-bold">
               {lists.seen.length}
             </p>
-            <p className="truncate text-xs text-muted-foreground">watched</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {t.identity.watched}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2 rounded-lg border p-2.5">
@@ -84,7 +90,9 @@ export function CinematicIdentity({
             <p className="text-lg leading-tight font-bold">
               {lists.watchlist.length}
             </p>
-            <p className="truncate text-xs text-muted-foreground">watchlist</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {t.identity.watchlist}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2 rounded-lg border p-2.5">
@@ -95,7 +103,9 @@ export function CinematicIdentity({
             <p className="text-lg leading-tight font-bold">
               {recommendations.length}
             </p>
-            <p className="truncate text-xs text-muted-foreground">favorites</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {t.identity.favorites}
+            </p>
           </div>
         </div>
       </div>
@@ -103,9 +113,11 @@ export function CinematicIdentity({
       {dna.length > 0 && (
         <div className="space-y-2">
           <div>
-            <p className="text-sm font-medium">Movie DNA</p>
+            <p className="text-sm font-medium">{t.identity.movieDNA}</p>
             <p className="text-xs text-muted-foreground">
-              Based on your {lists.seen.length + lists.watchlist.length} movies
+              {t.identity.basedOnMovies(
+                lists.seen.length + lists.watchlist.length,
+              )}
             </p>
           </div>
           {dna.map((g) => {
@@ -114,7 +126,7 @@ export function CinematicIdentity({
             return (
               <div key={g.genreId} className="flex items-center gap-2">
                 <span className="w-20 shrink-0 truncate text-xs text-muted-foreground">
-                  {genreName(g.genreId) ?? "Other"}
+                  {genreName(g.genreId) ?? t.identity.otherGenre}
                 </span>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                   <div
@@ -134,12 +146,12 @@ export function CinematicIdentity({
       {recommendations.length > 0 && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Favorites</p>
+            <p className="text-sm font-medium">{t.identity.favorites}</p>
             <a
               href={`/board/${userId}`}
               className="focus-ring text-xs font-medium text-primary hover:underline"
             >
-              See all
+              {t.identity.seeAll}
             </a>
           </div>
           <div className="grid grid-cols-4 gap-2">
@@ -160,7 +172,7 @@ export function CinematicIdentity({
                   />
                 ) : (
                   <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-                    No image
+                    {t.common.noImage}
                   </div>
                 )}
               </button>

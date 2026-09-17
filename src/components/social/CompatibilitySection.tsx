@@ -15,8 +15,10 @@ import { computeCompatibility } from "@/lib/compatibility";
 import { pickForUs } from "@/lib/watchPick";
 import { genreName } from "@/lib/tmdb/genres";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 
 interface CompatibilitySectionProps {
+  readonly locale: Locale;
   readonly myUid: string;
   readonly theirUid: string;
   readonly theirDisplayName: string | null;
@@ -74,6 +76,7 @@ function ScoreRing({ score }: { readonly score: number }) {
 function TitlePosterGrid({
   titles,
   onOpenMovie,
+  noImageLabel,
 }: {
   readonly titles: readonly {
     tmdbId: number;
@@ -85,30 +88,31 @@ function TitlePosterGrid({
     tmdbId: number;
     mediaType?: "movie" | "tv";
   }) => void;
+  readonly noImageLabel: string;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
-      {titles.map((t) => (
+      {titles.map((item) => (
         <button
-          key={`${t.mediaType}-${t.tmdbId}`}
+          key={`${item.mediaType}-${item.tmdbId}`}
           type="button"
-          onClick={() => onOpenMovie(t)}
+          onClick={() => onOpenMovie(item)}
           className="focus-ring card-elevated text-left"
-          aria-label={`View details for ${t.title}`}
+          aria-label={`View details for ${item.title}`}
         >
-          {t.posterPath ? (
+          {item.posterPath ? (
             <img
-              src={tmdbImageUrl(t.posterPath, 185)}
+              src={tmdbImageUrl(item.posterPath, 185)}
               alt=""
               loading="lazy"
               className="aspect-[2/3] w-full rounded-lg border object-cover"
             />
           ) : (
             <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-              No image
+              {noImageLabel}
             </div>
           )}
-          <p className="mt-1 truncate text-xs font-medium">{t.title}</p>
+          <p className="mt-1 truncate text-xs font-medium">{item.title}</p>
         </button>
       ))}
     </div>
@@ -153,11 +157,13 @@ function CommonRow({
 // this reads six lists total (the viewer's own three plus the target's),
 // all already covered by existing firestore.rules follower-read grants.
 export function CompatibilitySection({
+  locale,
   myUid,
   theirUid,
   theirDisplayName,
   onOpenMovie,
 }: CompatibilitySectionProps) {
+  const t = getDictionary(locale);
   const mine = useProfileLists(myUid);
   const theirs = useProfileLists(theirUid);
 
@@ -176,14 +182,14 @@ export function CompatibilitySection({
   }
 
   const { score, commonTitles, commonGenres, commonPeople } = compatibility;
-  const name = theirDisplayName ?? "this user";
+  const name = theirDisplayName ?? t.compatibility.thisUser;
   // The three lists are mutually exclusive by (mine,theirs) list pair — no
   // title double-counts across them.
   const bothWatchlisted = commonTitles.filter(
-    (t) => t.mine === "watchlist" && t.theirs === "watchlist",
+    (ct) => ct.mine === "watchlist" && ct.theirs === "watchlist",
   );
   const bothWatched = commonTitles.filter(
-    (t) => t.mine === "seen" && t.theirs === "seen",
+    (ct) => ct.mine === "seen" && ct.theirs === "seen",
   );
 
   function handlePick() {
@@ -197,9 +203,9 @@ export function CompatibilitySection({
     NonNullable<ReturnType<typeof pickForUs>>["reason"],
     string
   > = {
-    genre: "Picked from a genre you both love",
-    person: "Picked via someone you both follow",
-    random: "Picked from your shared watchlist",
+    genre: t.compatibility.pickReasonGenre,
+    person: t.compatibility.pickReasonPerson,
+    random: t.compatibility.pickReasonRandom,
   };
 
   return (
@@ -207,9 +213,9 @@ export function CompatibilitySection({
       <div className="flex items-center gap-4">
         <ScoreRing score={score} />
         <div>
-          <p className="font-semibold">Taste Match</p>
+          <p className="font-semibold">{t.compatibility.tasteMatch}</p>
           <p className="text-sm text-muted-foreground">
-            Based on movies, genres and people you both follow
+            {t.compatibility.basedOn}
           </p>
         </div>
       </div>
@@ -222,7 +228,7 @@ export function CompatibilitySection({
         >
           <span className="flex items-center gap-2">
             <ShuffleIcon />
-            Pick something for us
+            {t.compatibility.pickForUs}
           </span>
           <span className="text-xs font-normal opacity-80">
             {pickReasonLabel[pickPreview.reason]}
@@ -231,31 +237,36 @@ export function CompatibilitySection({
       )}
 
       <div>
-        <p className="mb-1 text-sm font-semibold">In Common</p>
+        <p className="mb-1 text-sm font-semibold">{t.compatibility.inCommon}</p>
         <div className="rounded-lg border px-3">
           <CommonRow
             icon={BookmarkIcon}
             count={bothWatchlisted.length}
-            label="On both watchlists"
+            label={t.compatibility.onBothWatchlists}
           >
             <TitlePosterGrid
               titles={bothWatchlisted}
               onOpenMovie={onOpenMovie}
+              noImageLabel={t.common.noImage}
             />
           </CommonRow>
 
           <CommonRow
             icon={FilmIcon}
             count={bothWatched.length}
-            label="Movies & shows both watched"
+            label={t.compatibility.bothWatched}
           >
-            <TitlePosterGrid titles={bothWatched} onOpenMovie={onOpenMovie} />
+            <TitlePosterGrid
+              titles={bothWatched}
+              onOpenMovie={onOpenMovie}
+              noImageLabel={t.common.noImage}
+            />
           </CommonRow>
 
           <CommonRow
             icon={TagIcon}
             count={commonGenres.length}
-            label="Genres in common"
+            label={t.compatibility.genresInCommon}
           >
             <div className="flex flex-wrap gap-2">
               {commonGenres.map((g) => (
@@ -263,7 +274,7 @@ export function CompatibilitySection({
                   key={g.genreId}
                   className="rounded-full border px-3 py-1 text-sm"
                 >
-                  {genreName(g.genreId) ?? "Other"}
+                  {genreName(g.genreId) ?? t.compatibility.otherGenre}
                 </span>
               ))}
             </div>
@@ -272,7 +283,7 @@ export function CompatibilitySection({
           <CommonRow
             icon={UsersIcon}
             count={commonPeople.length}
-            label="Actors & directors both follow"
+            label={t.compatibility.peopleInCommon}
           >
             <div className="space-y-2">
               {commonPeople.map((p) => (
@@ -307,7 +318,7 @@ export function CompatibilitySection({
         </div>
       </div>
 
-      <p className="sr-only">Compatibility with {name}</p>
+      <p className="sr-only">{t.compatibility.compatibilityWith(name)}</p>
     </div>
   );
 }

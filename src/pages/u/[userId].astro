@@ -5,6 +5,7 @@ import { UserProfile } from "@/components/social/UserProfile";
 
 const { userId } = Astro.params;
 if (!userId) return Astro.redirect("/");
+const locale = Astro.locals.locale;
 ---
 
 <Layout
@@ -12,5 +13,5 @@ if (!userId) return Astro.redirect("/");
   description="Follow a Pelicoolas user to see what they've watched, their watchlist, and their favorites."
   noindex
 >
-  <UserProfile userId={userId} client:load />
+  <UserProfile locale={locale} userId={userId} client:load />
 </Layout>

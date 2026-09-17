@@ -33,13 +33,16 @@ import {
   unfollow,
 } from "@/lib/firebase/firestore";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { PublicProfile } from "@/types/user";
 
 interface UserProfileProps {
+  readonly locale: Locale;
   readonly userId: string;
 }
 
-export function UserProfile({ userId }: UserProfileProps) {
+export function UserProfile({ locale, userId }: UserProfileProps) {
+  const t = getDictionary(locale);
   const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<PublicProfile | null | undefined>(
     undefined,
@@ -59,7 +62,7 @@ export function UserProfile({ userId }: UserProfileProps) {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      announce("Link copied");
+      announce(t.profile.linkCopied);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard API unavailable — the URL is already in the address bar.
@@ -108,7 +111,7 @@ export function UserProfile({ userId }: UserProfileProps) {
   async function handleFollow() {
     if (!user) return;
     await sendFollowRequest(userId, user);
-    announce("Follow request sent");
+    announce(t.profile.followRequestSent);
   }
 
   async function handleCancel() {
@@ -119,7 +122,7 @@ export function UserProfile({ userId }: UserProfileProps) {
   async function handleUnfollow() {
     if (!user) return;
     await unfollow(user.uid, userId);
-    announce(`Unfollowed ${profile?.displayName ?? "this user"}`);
+    announce(t.profile.unfollowed(profile?.displayName ?? t.profile.thisUser));
   }
 
   if (authLoading || profile === undefined) {
@@ -137,7 +140,7 @@ export function UserProfile({ userId }: UserProfileProps) {
   if (profile === null) {
     return (
       <p className="text-center text-muted-foreground">
-        This user doesn't exist or hasn't signed in yet.
+        {t.profile.doesntExist}
       </p>
     );
   }
@@ -158,13 +161,13 @@ export function UserProfile({ userId }: UserProfileProps) {
         </Avatar>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-semibold">
-            {profile.displayName ?? "Pelicoolas user"}
+            {profile.displayName ?? t.profile.pelicoolasUser}
           </h1>
         </div>
 
         {isOwner && (
           <Button size="sm" variant="outline" onClick={() => void copyLink()}>
-            {copied ? "Copied!" : "Copy link to share"}
+            {copied ? t.profile.copied : t.profile.copyLinkToShare}
           </Button>
         )}
         {!isOwner && !user && <LoginButton size="sm" />}
@@ -175,7 +178,7 @@ export function UserProfile({ userId }: UserProfileProps) {
             onClick={() => void handleUnfollow()}
           >
             <UserCheckIcon data-icon="inline-start" />
-            Following
+            {t.profile.following}
           </Button>
         )}
         {!isOwner && user && !isFollowing && pendingRequest && (
@@ -184,13 +187,13 @@ export function UserProfile({ userId }: UserProfileProps) {
             variant="outline"
             onClick={() => void handleCancel()}
           >
-            Requested
+            {t.profile.requested}
           </Button>
         )}
         {!isOwner && user && !isFollowing && !pendingRequest && (
           <Button size="sm" onClick={() => void handleFollow()}>
             <UserPlusIcon data-icon="inline-start" />
-            Request to follow
+            {t.profile.requestToFollow}
           </Button>
         )}
       </div>
@@ -200,16 +203,19 @@ export function UserProfile({ userId }: UserProfileProps) {
       {isOwner && (
         <>
           <CinematicIdentity
+            locale={locale}
             userId={userId}
             displayName={profile.displayName}
             onOpenMovie={setOpenMovie}
           />
-          <PeopleLikeYou myUid={userId} />
+          <PeopleLikeYou locale={locale} myUid={userId} />
         </>
       )}
 
       <ProfileSection
-        title="Favorites"
+        title={t.profile.favorites}
+        emptyLabel={t.common.nothingHereYet}
+        noPosterLabel={t.common.noImage}
         userId={userId}
         subscribeFn={subscribeToRecommendations}
         onOpen={setOpenMovie}
@@ -220,6 +226,7 @@ export function UserProfile({ userId }: UserProfileProps) {
         <>
           {!isOwner && user && (
             <CompatibilitySection
+              locale={locale}
               myUid={user.uid}
               theirUid={userId}
               theirDisplayName={profile.displayName}
@@ -228,18 +235,24 @@ export function UserProfile({ userId }: UserProfileProps) {
           )}
           <div>
             <p className="mb-1 text-sm font-semibold">
-              {profile.displayName ?? "Their"}'s Lists
+              {t.profile.theirLists(
+                profile.displayName ?? t.profile.theirDefault,
+              )}
             </p>
             <div className="rounded-lg border px-3">
               <ProfileSection
-                title="Watched"
+                title={t.profile.watched}
+                emptyLabel={t.common.nothingHereYet}
+                noPosterLabel={t.common.noImage}
                 icon={CheckCircleIcon}
                 userId={userId}
                 subscribeFn={subscribeToSeenMoviesFull}
                 onOpen={setOpenMovie}
               />
               <ProfileSection
-                title="Watchlist"
+                title={t.profile.watchlist}
+                emptyLabel={t.common.nothingHereYet}
+                noPosterLabel={t.common.noImage}
                 icon={BookmarkIcon}
                 userId={userId}
                 subscribeFn={subscribeToWatchlist}
@@ -252,8 +265,9 @@ export function UserProfile({ userId }: UserProfileProps) {
         <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
           <LockIcon className="size-4 shrink-0" />
           <span>
-            {profile.displayName ?? "This user"}'s watched movies and watchlist
-            are only visible to approved followers.
+            {t.profile.privateListsLocked(
+              profile.displayName ?? t.profile.thisUser,
+            )}
           </span>
         </div>
       )}
@@ -294,6 +308,8 @@ interface ProfileSectionProps<M extends ProfileMovie> {
    *  under a card heading (e.g. "X's Lists") instead of the plain
    *  chevron-down label used standalone (e.g. Favorites). */
   readonly icon?: typeof BookmarkIcon;
+  readonly emptyLabel: string;
+  readonly noPosterLabel: string;
 }
 
 function ProfileSection<M extends ProfileMovie>({
@@ -303,6 +319,8 @@ function ProfileSection<M extends ProfileMovie>({
   onOpen,
   defaultOpen = false,
   icon: Icon,
+  emptyLabel,
+  noPosterLabel,
 }: ProfileSectionProps<M>) {
   const [open, setOpen] = useState(defaultOpen);
   const [movies, setMovies] = useState<readonly M[] | null>(null);
@@ -355,7 +373,7 @@ function ProfileSection<M extends ProfileMovie>({
       )}
 
       {open && movies !== null && movies.length === 0 && (
-        <p className="text-sm text-muted-foreground">Nothing here yet.</p>
+        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
       )}
 
       {open && movies !== null && movies.length > 0 && (
@@ -377,7 +395,7 @@ function ProfileSection<M extends ProfileMovie>({
                 />
               ) : (
                 <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-                  No poster
+                  {noPosterLabel}
                 </div>
               )}
               <p className="mt-1 truncate text-xs font-medium">{movie.title}</p>

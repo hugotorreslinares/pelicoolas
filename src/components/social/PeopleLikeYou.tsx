@@ -7,6 +7,7 @@ import {
   computeCompatibility,
   type CompatibilityInput,
 } from "@/lib/compatibility";
+import { getDictionary, type Locale } from "@/i18n";
 import type { Following } from "@/types/user";
 
 const RESULT_LIMIT = 5;
@@ -38,13 +39,15 @@ function FriendScoreProbe({
 }
 
 interface PeopleLikeYouProps {
+  readonly locale: Locale;
   readonly myUid: string;
 }
 
 // Ranks the current user's mutual friends by taste-compatibility score
 // (see compatibility.ts) — only meaningful on your own profile, since it's
 // always "compatibility with me".
-export function PeopleLikeYou({ myUid }: PeopleLikeYouProps) {
+export function PeopleLikeYou({ locale, myUid }: PeopleLikeYouProps) {
+  const t = getDictionary(locale);
   const myLists = useProfileLists(myUid);
   const [following, setFollowing] = useState<readonly Following[] | null>(null);
   const [scores, setScores] = useState<Readonly<Record<string, number>>>({});
@@ -83,7 +86,7 @@ export function PeopleLikeYou({ myUid }: PeopleLikeYouProps) {
         />
       ))}
 
-      <p className="text-sm font-medium">People like you</p>
+      <p className="text-sm font-medium">{t.peopleLikeYou.heading}</p>
       {ranked.length === 0 ? (
         <Skeleton className="h-14 w-full rounded-lg" />
       ) : (
@@ -101,7 +104,7 @@ export function PeopleLikeYou({ myUid }: PeopleLikeYouProps) {
                 </AvatarFallback>
               </Avatar>
               <p className="flex-1 truncate text-sm font-medium">
-                {f.targetName ?? "Pelicoolas user"}
+                {f.targetName ?? t.peopleLikeYou.pelicoolasUser}
               </p>
               <span className="text-sm font-semibold text-primary">
                 {scores[f.targetId]}%
