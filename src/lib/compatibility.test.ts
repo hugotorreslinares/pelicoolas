@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { computeCompatibility, type CompatibilityInput } from "./compatibility";
+import {
+  computeCompatibility,
+  computeGenreDNA,
+  type CompatibilityInput,
+} from "./compatibility";
 import type {
   SeenMovie,
   WatchlistMovie,
@@ -145,5 +149,40 @@ describe("computeCompatibility", () => {
 
   it("handles two completely empty profiles without dividing by zero", () => {
     expect(computeCompatibility(empty, empty).score).toBe(0);
+  });
+});
+
+describe("computeGenreDNA", () => {
+  it("ranks genres by how often they show up, deduping a title across lists", () => {
+    const input: CompatibilityInput = {
+      watchlist: [
+        watchlistMovie({ tmdbId: 1, title: "A", genreIds: [28, 12] }),
+      ],
+      // Same title (1) also on seen — counts once, not twice.
+      seen: [
+        seenMovie({ tmdbId: 1, title: "A", genreIds: [28, 12] }),
+        seenMovie({ tmdbId: 2, title: "B", genreIds: [28] }),
+      ],
+      followedPeople: [],
+    };
+    expect(computeGenreDNA(input)).toEqual([
+      { genreId: 28, count: 2 },
+      { genreId: 12, count: 1 },
+    ]);
+  });
+
+  it("caps at the given limit", () => {
+    const input: CompatibilityInput = {
+      watchlist: [
+        watchlistMovie({ tmdbId: 1, title: "A", genreIds: [1, 2, 3, 4] }),
+      ],
+      seen: [],
+      followedPeople: [],
+    };
+    expect(computeGenreDNA(input, 2)).toHaveLength(2);
+  });
+
+  it("returns nothing for an empty profile", () => {
+    expect(computeGenreDNA(empty)).toEqual([]);
   });
 });

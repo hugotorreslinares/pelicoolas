@@ -96,6 +96,29 @@ function indexTitles(
   return byKey;
 }
 
+export interface GenreDNAEntry {
+  readonly genreId: number;
+  readonly count: number;
+}
+
+// One person's own genre distribution (no comparison) — the "movie DNA"
+// bars on a profile. Same union-of-watchlist+seen basis as
+// computeCompatibility, just for a single side.
+export function computeGenreDNA(
+  input: CompatibilityInput,
+  limit = 5,
+): readonly GenreDNAEntry[] {
+  const titles = indexTitles(input.watchlist, input.seen);
+  const counts = new Map<number, number>();
+  for (const [, t] of titles) {
+    for (const g of t.genreIds) counts.set(g, (counts.get(g) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([genreId, count]) => ({ genreId, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
 export function computeCompatibility(
   mine: CompatibilityInput,
   theirs: CompatibilityInput,

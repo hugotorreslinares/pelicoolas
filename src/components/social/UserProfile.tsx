@@ -6,6 +6,8 @@ import { LoginButton } from "@/components/auth/LoginButton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { FollowRequestsInbox } from "./FollowRequestsInbox";
 import { CompatibilitySection } from "./CompatibilitySection";
+import { CinematicIdentity } from "./CinematicIdentity";
+import { PeopleLikeYou } from "./PeopleLikeYou";
 import {
   ChevronDownIcon,
   LockIcon,
@@ -191,6 +193,17 @@ export function UserProfile({ userId }: UserProfileProps) {
       </div>
 
       {isOwner && <FollowRequestsInbox userId={userId} />}
+
+      {isOwner && (
+        <>
+          <CinematicIdentity
+            userId={userId}
+            displayName={profile.displayName}
+            onOpenMovie={setOpenMovie}
+          />
+          <PeopleLikeYou myUid={userId} />
+        </>
+      )}
 
       <ProfileSection
         title="Favorites"

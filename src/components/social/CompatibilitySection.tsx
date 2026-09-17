@@ -1,23 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  subscribeToFollowedPeople,
-  subscribeToSeenMoviesFull,
-  subscribeToWatchlist,
-} from "@/lib/firebase/firestore";
-import {
-  computeCompatibility,
-  type CompatibilityInput,
-} from "@/lib/compatibility";
+import { useProfileLists } from "@/lib/hooks/useProfileLists";
+import { computeCompatibility } from "@/lib/compatibility";
 import { genreName } from "@/lib/tmdb/genres";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
-import type {
-  FollowedPerson,
-  SeenMovie,
-  WatchlistMovie,
-} from "@/types/filmography";
 
 interface CompatibilitySectionProps {
   readonly myUid: string;
@@ -27,28 +15,6 @@ interface CompatibilitySectionProps {
     tmdbId: number;
     mediaType?: "movie" | "tv";
   }) => void;
-}
-
-function useProfileLists(userId: string): CompatibilityInput | null {
-  const [watchlist, setWatchlist] = useState<readonly WatchlistMovie[] | null>(
-    null,
-  );
-  const [seen, setSeen] = useState<readonly SeenMovie[] | null>(null);
-  const [followedPeople, setFollowedPeople] = useState<
-    readonly FollowedPerson[] | null
-  >(null);
-
-  useEffect(() => subscribeToWatchlist(userId, setWatchlist), [userId]);
-  useEffect(() => subscribeToSeenMoviesFull(userId, setSeen), [userId]);
-  useEffect(
-    () => subscribeToFollowedPeople(userId, setFollowedPeople),
-    [userId],
-  );
-
-  if (watchlist === null || seen === null || followedPeople === null) {
-    return null;
-  }
-  return { watchlist, seen, followedPeople };
 }
 
 function Collapsible({
