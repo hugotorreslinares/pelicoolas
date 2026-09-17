@@ -48,12 +48,13 @@ export default defineConfig({
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     },
     ssr: {
-      // @vercel/og's Node build does a dynamic `require("fs")` (via
-      // harfbuzzjs' wasm loader) that breaks when esbuild inlines it into
-      // the ESM serverless bundle ("Dynamic require of 'fs' is not
-      // supported"). Keeping it external makes Vercel's build trace it via
-      // node_modules instead, where the same require works fine under Node.
-      external: ["@vercel/og"],
+      // satori's wasm-based fallback and @resvg/resvg-js' native addon both
+      // do dynamic `require()` calls that break once esbuild inlines them
+      // into the ESM serverless bundle ("Dynamic require of 'x' is not
+      // supported" — this is what sank the @vercel/og-based version of this
+      // route first). Keeping them external makes Vercel's build trace them
+      // via node_modules instead, where a plain `require()` works under Node.
+      external: ["satori", "@resvg/resvg-js"],
     },
     build: {
       // Firebase alone is ~500kB minified; that's inherent to the SDK, not

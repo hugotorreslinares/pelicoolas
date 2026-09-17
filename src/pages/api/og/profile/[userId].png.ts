@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
-import { ImageResponse } from "@vercel/og";
+import satori from "satori";
+import { Resvg } from "@resvg/resvg-js";
 import { getAdminDb } from "@/lib/firebase/admin";
 import type { PublicProfile } from "@/types/user";
 
@@ -12,10 +13,9 @@ const CACHE_SECONDS = 60 * 60; // 1h — profile stats/photo change rarely enoug
 let interRegular: ArrayBuffer | null = null;
 let interBold: ArrayBuffer | null = null;
 
-// Satori (what ImageResponse renders with) needs an explicit font with the
-// glyphs it draws — the default has no support for Spanish diacritics
-// (ñ, á, é...), which silently render as tofu boxes. Fetched once per
-// serverless instance and reused across requests.
+// satori needs an explicit font with the glyphs it draws — without one,
+// Spanish diacritics (ñ, á, é...) silently render as tofu boxes. Fetched
+// once per serverless instance and reused across requests.
 async function loadFonts() {
   if (!interRegular || !interBold) {
     const css = await fetch(
@@ -35,10 +35,9 @@ async function loadFonts() {
 
 // Plain satori-element tree, not JSX — API routes are .ts (Astro only
 // treats .tsx files as page components, not endpoints), so there's no JSX
-// transform available here. `key` is required for the ImageResponse type
-// even though satori itself ignores it.
+// transform available here.
 function el(type: string, props: Record<string, unknown>, children?: unknown) {
-  return { type, key: null, props: { ...props, children } };
+  return { type, props: { ...props, children } };
 }
 
 export const GET: APIRoute = async ({ params }) => {
@@ -63,6 +62,8 @@ export const GET: APIRoute = async ({ params }) => {
   const initial = name.slice(0, 1).toUpperCase();
   const { interRegular, interBold } = await loadFonts();
 
+  // satori's own <img> support fetches the src at render time — no need to
+  // inline it as a data URI first.
   const avatar = el(
     "div",
     {
@@ -109,8 +110,8 @@ export const GET: APIRoute = async ({ params }) => {
       },
     },
     watchedCount > 0
-      ? `🎬 ${watchedCount} movies watched on Pelicoolas`
-      : "🎬 Pelicoolas",
+      ? `${watchedCount} movies watched on Pelicoolas`
+      : "Pelicoolas",
   );
 
   const root = el(
@@ -133,7 +134,7 @@ export const GET: APIRoute = async ({ params }) => {
     [avatar, nameEl, taglineEl],
   );
 
-  return new ImageResponse(root as never, {
+  const svg = await satori(root as never, {
     width: WIDTH,
     height: HEIGHT,
     fonts: [
@@ -144,7 +145,17 @@ export const GET: APIRoute = async ({ params }) => {
         ? [{ name: "Inter", data: interBold, weight: 700 as const }]
         : []),
     ],
+  });
+
+  const png = new Resvg(svg, {
+    fitTo: { mode: "width", value: WIDTH },
+  })
+    .render()
+    .asPng();
+
+  return new Response(new Uint8Array(png), {
     headers: {
+      "Content-Type": "image/png",
       "Cache-Control": `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate`,
     },
   });
