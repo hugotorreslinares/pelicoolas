@@ -36,6 +36,12 @@ export function localizeBadge(badge: Badge, locale: Locale): Badge {
         label: t.directorsCut,
         description: t.directorsCutDesc,
       };
+    case "challenge":
+      return {
+        ...badge,
+        label: t.halloweenMarathon,
+        description: t.halloweenMarathonDesc,
+      };
     case "decade-span":
       return {
         ...badge,

@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { HalloweenChallenge } from "@/components/challenge/HalloweenChallenge";
+
+const locale = Astro.locals.locale;
+---
+
+<Layout
+  title="Halloween Challenge — Pelicoolas"
+  description="31 horror movies to watch before October 31. Build your list and earn the Halloween Marathon badge."
+  noindex
+>
+  <HalloweenChallenge locale={locale} client:load />
+</Layout>

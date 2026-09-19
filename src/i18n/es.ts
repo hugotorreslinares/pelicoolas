@@ -525,6 +525,36 @@ export const es: Dictionary = {
     fullRetrospective: (name) => `${name}: retrospectiva completa`,
     fullRetrospectiveDesc: (name) =>
       `Viste películas de ${name} de muchas décadas distintas.`,
+    halloweenMarathon: "Maratón de Halloween",
+    halloweenMarathonDesc:
+      "Viste las 31 películas de terror antes del 31 de octubre.",
+  },
+  halloween: {
+    heroTitle: "31 películas de terror antes del 31 de octubre",
+    heroBody:
+      "Arma tu lista de Halloween, mira una al día y gana la insignia Maratón de Halloween.",
+    heroCta: "Armar mi lista",
+    heading: "Reto de Halloween",
+    subtitle: "31 películas de terror para ver antes del 31 de octubre.",
+    daysLeft: (n) => `${n} ${n === 1 ? "día" : "días"} restantes`,
+    signInPrompt: "Inicia sesión para armar tu lista de Halloween.",
+    pickTitle: "Elige tus 31",
+    pickBody:
+      "Escogimos el terror más conocido que aún no has visto. Cambia las que quieras.",
+    selected: (n, total) => `${n}/${total} seleccionadas`,
+    save: "Guardar mi lista",
+    saving: "Guardando…",
+    saved: "Lista guardada",
+    couldntSave: "No se pudo guardar tu lista. Intenta de nuevo.",
+    couldntLoad: "No se pudieron cargar las películas de terror.",
+    retry: "Reintentar",
+    edit: "Editar lista",
+    cancel: "Cancelar",
+    progress: (watched, total) => `${watched}/${total} vistas`,
+    complete: "¡Reto completado! Ganaste la insignia Maratón de Halloween.",
+    tooMany: (total) => `Elige máximo ${total}.`,
+    select: (title) => `Seleccionar ${title}`,
+    deselect: (title) => `Quitar ${title} de la lista`,
   },
   growth: {
     shareMyProfile: "Compartir mi perfil",

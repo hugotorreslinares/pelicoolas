@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { WelcomeHero } from "./WelcomeHero";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { SocialHero } from "./SocialHero";
+import { HalloweenHero } from "./HalloweenHero";
+import { isHalloweenSeason } from "@/lib/halloween";
 import { cn } from "@/lib/utils";
 import { getDictionary, type Locale } from "@/i18n";
 import type { FollowedPerson } from "@/types/filmography";
@@ -22,7 +24,7 @@ interface HomeHeroSliderProps {
 export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
   const t = getDictionary(locale);
   const hasPhotos = people.some((p) => p.profilePath !== null);
-  const slides: readonly ReactNode[] = hasPhotos
+  const baseSlides: readonly ReactNode[] = hasPhotos
     ? [
         <WelcomeHero key="welcome" locale={locale} />,
         <FollowedPeopleHero key="followed" people={people} locale={locale} />,
@@ -32,6 +34,11 @@ export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
         <WelcomeHero key="welcome" locale={locale} />,
         <SocialHero key="social" locale={locale} />,
       ];
+
+  // Seasonal banner goes first so it's what people see on landing.
+  const slides: readonly ReactNode[] = isHalloweenSeason(new Date())
+    ? [<HalloweenHero key="halloween" locale={locale} />, ...baseSlides]
+    : baseSlides;
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<Record<number, HTMLDivElement | null>>({});

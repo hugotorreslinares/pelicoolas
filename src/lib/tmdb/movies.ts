@@ -169,6 +169,31 @@ export async function getTrendingMovies(): Promise<readonly TrendingMovie[]> {
   return data.results.slice(0, TRENDING_LIMIT).map(toTrendingMovie);
 }
 
+const HORROR_GENRE_ID = "27";
+const HORROR_PAGES = [1, 2, 3];
+
+// Well-known, well-rated horror: vote_count floor keeps obscure titles with a
+// handful of perfect scores out. Ranked by popularity of votes, so index 0 is
+// the most-watched — callers preserve order.
+export async function getHorrorCandidates(): Promise<readonly TrendingMovie[]> {
+  const pages = await Promise.all(
+    HORROR_PAGES.map((page) =>
+      tmdbFetch("/discover/movie", tmdbTrendingMoviesResponseSchema, {
+        with_genres: HORROR_GENRE_ID,
+        sort_by: "vote_count.desc",
+        "vote_average.gte": "6.3",
+        include_adult: "false",
+        page: String(page),
+      }),
+    ),
+  );
+  const byId = new Map<number, TrendingMovie>();
+  for (const m of pages.flatMap((p) => p.results.map(toTrendingMovie))) {
+    if (!byId.has(m.tmdbMovieId)) byId.set(m.tmdbMovieId, m);
+  }
+  return [...byId.values()];
+}
+
 const SIMILAR_LIMIT = 12;
 
 // TMDB's own ordering is the ranking signal here — index 0 is "most

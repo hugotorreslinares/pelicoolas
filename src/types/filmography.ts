@@ -39,6 +39,8 @@ export interface WatchlistMovie {
   readonly sourcePersonId?: number;
   readonly sourcePersonName?: string;
   readonly addedAt: string;
+  /** Set while the movie belongs to a themed challenge (see lib/halloween.ts); the entry stays in the watchlist either way. */
+  readonly challenge?: string;
   /** Absent on watchlist entries added before this field existed. */
   readonly genreIds?: readonly number[];
   /** Absent on watchlist entries added before this field existed. */

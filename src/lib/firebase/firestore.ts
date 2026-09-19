@@ -1,6 +1,7 @@
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -23,7 +24,7 @@ import type {
   WatchlistMovie,
 } from "@/types/filmography";
 import type { FriendActivity } from "@/types/friends";
-import type { FilmographyMovie } from "@/types/movie";
+import type { FilmographyMovie, TrendingMovie } from "@/types/movie";
 import type {
   Follower,
   Following,
@@ -803,4 +804,44 @@ export function subscribeToInvites(
       callback(snapshot.docs.map((d) => d.data() as Invite));
     },
   );
+}
+
+/**
+ * Replaces which watchlist movies carry `challengeId`. Selected movies already
+ * in the watchlist just get tagged (their addedAt is preserved); new ones are
+ * added; previously-tagged movies no longer selected lose the tag but stay in
+ * the watchlist. One atomic batch.
+ */
+export async function setChallengeMovies(
+  userId: string,
+  challengeId: string,
+  selected: readonly TrendingMovie[],
+  watchlistIds: ReadonlySet<number>,
+  previouslyTaggedIds: readonly number[],
+): Promise<void> {
+  const batch = writeBatch(requireDb());
+  const selectedIds = new Set(selected.map((m) => m.tmdbMovieId));
+  for (const m of selected) {
+    const ref = watchlistMovieRef(userId, m.tmdbMovieId);
+    if (watchlistIds.has(m.tmdbMovieId)) {
+      batch.update(ref, { challenge: challengeId });
+    } else {
+      batch.set(ref, {
+        tmdbId: m.tmdbMovieId,
+        title: m.title,
+        posterPath: m.posterPath,
+        releaseYear: m.releaseYear,
+        voteAverage: m.voteAverage,
+        genreIds: m.genreIds,
+        challenge: challengeId,
+        addedAt: serverTimestamp(),
+      });
+    }
+  }
+  for (const id of previouslyTaggedIds) {
+    if (!selectedIds.has(id)) {
+      batch.update(watchlistMovieRef(userId, id), { challenge: deleteField() });
+    }
+  }
+  await batch.commit();
 }

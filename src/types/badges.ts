@@ -4,7 +4,8 @@ export type BadgeType =
   | "watchlist-milestone"
   | "actor-milestone"
   | "director-milestone"
-  | "decade-span";
+  | "decade-span"
+  | "challenge";
 
 export interface Badge {
   readonly id: string;
