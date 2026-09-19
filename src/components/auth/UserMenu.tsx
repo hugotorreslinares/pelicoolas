@@ -151,6 +151,9 @@ export function UserMenu({ locale }: UserMenuProps) {
             {t.account.myProfile}
             {pendingRequests > 0 && ` (${pendingRequests})`}
           </DropdownMenuItem>
+          <DropdownMenuItem render={<a href="/people" />}>
+            {t.people.discover}
+          </DropdownMenuItem>
           <DropdownMenuItem render={<a href={`/board/${user.uid}`} />}>
             {t.account.myBoard}
           </DropdownMenuItem>

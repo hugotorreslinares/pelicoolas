@@ -555,10 +555,15 @@ export async function searchUsersByUsername(
 export function subscribeToPublicProfile(
   userId: string,
   callback: (profile: PublicProfile | null) => void,
+  onError?: () => void,
 ): () => void {
-  return onSnapshot(publicProfileRef(userId), (snapshot) => {
-    callback(snapshot.exists() ? (snapshot.data() as PublicProfile) : null);
-  });
+  return onSnapshot(
+    publicProfileRef(userId),
+    (snapshot) => {
+      callback(snapshot.exists() ? (snapshot.data() as PublicProfile) : null);
+    },
+    onError,
+  );
 }
 
 // Public by design (the `users` doc itself is public-read, see
@@ -718,12 +723,14 @@ export async function unfollow(myUid: string, targetId: string): Promise<void> {
 export function subscribeToFollowingList(
   userId: string,
   callback: (following: readonly Following[]) => void,
+  onError?: () => void,
 ): () => void {
   return onSnapshot(
     collection(requireDb(), "users", userId, "following"),
     (snapshot) => {
       callback(snapshot.docs.map((d) => d.data() as Following));
     },
+    onError,
   );
 }
 
@@ -773,12 +780,14 @@ export async function fetchLatestActivity(
 export function subscribeToFollowersList(
   userId: string,
   callback: (followers: readonly Follower[]) => void,
+  onError?: () => void,
 ): () => void {
   return onSnapshot(
     collection(requireDb(), "users", userId, "followers"),
     (snapshot) => {
       callback(snapshot.docs.map((d) => d.data() as Follower));
     },
+    onError,
   );
 }
 

@@ -2,37 +2,23 @@ import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LoginButton } from "@/components/auth/LoginButton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
+import { FollowButton } from "./FollowButton";
 import { FollowRequestsInbox } from "./FollowRequestsInbox";
 import { CompatibilitySection } from "./CompatibilitySection";
 import { CinematicIdentity } from "./CinematicIdentity";
 import { PeopleLikeYou } from "./PeopleLikeYou";
-import {
-  BookmarkIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  CheckCircleIcon,
-  LockIcon,
-  UserCheckIcon,
-  UserPlusIcon,
-} from "lucide-react";
+import { UserMovieSection } from "./UserMovieSection";
+import { BookmarkIcon, CheckCircleIcon, LockIcon } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
-  cancelFollowRequest,
-  completeFollowMirror,
-  sendFollowRequest,
-  subscribeToFollowRequestStatus,
-  subscribeToIsFollower,
   subscribeToIsFollowing,
   subscribeToPublicProfile,
   subscribeToRecommendations,
   subscribeToSeenMoviesFull,
   subscribeToWatchlist,
-  unfollow,
 } from "@/lib/firebase/firestore";
-import { tmdbImageUrl } from "@/lib/tmdb/image";
 import { getDictionary, type Locale } from "@/i18n";
 import type { PublicProfile } from "@/types/user";
 
@@ -41,14 +27,13 @@ interface UserProfileProps {
   readonly userId: string;
 }
 
+type LoadState = "loading" | "error" | "not-found" | "ready";
+
 export function UserProfile({ locale, userId }: UserProfileProps) {
   const t = getDictionary(locale);
   const { user, loading: authLoading } = useAuth();
-  const [profile, setProfile] = useState<PublicProfile | null | undefined>(
-    undefined,
-  );
-  const [pendingRequest, setPendingRequest] = useState(false);
-  const [isFollower, setIsFollower] = useState(false);
+  const [state, setState] = useState<LoadState>("loading");
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [openMovie, setOpenMovie] = useState<{
     readonly tmdbId: number;
@@ -69,24 +54,21 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
     }
   }
 
-  useEffect(() => subscribeToPublicProfile(userId, setProfile), [userId]);
-
   useEffect(() => {
-    if (!user || isOwner) {
-      setPendingRequest(false);
-      return;
-    }
-    return subscribeToFollowRequestStatus(userId, user.uid, setPendingRequest);
-  }, [user, userId, isOwner]);
+    setState("loading");
+    return subscribeToPublicProfile(
+      userId,
+      (result) => {
+        setProfile(result);
+        setState(result ? "ready" : "not-found");
+      },
+      () => setState("error"),
+    );
+  }, [userId]);
 
-  useEffect(() => {
-    if (!user || isOwner) {
-      setIsFollower(false);
-      return;
-    }
-    return subscribeToIsFollower(userId, user.uid, setIsFollower);
-  }, [user, userId, isOwner]);
-
+  // Owner sees their own lists regardless — not() needs its own listener
+  // when not owner, but FollowButton already opens one; this mirrors it
+  // to gate the private sections without a second follow-status query.
   useEffect(() => {
     if (!user || isOwner) {
       setIsFollowing(false);
@@ -95,37 +77,7 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
     return subscribeToIsFollowing(user.uid, userId, setIsFollowing);
   }, [user, userId, isOwner]);
 
-  // Once the target has approved me (isFollower) but my own `following`
-  // mirror doc doesn't exist yet, write it — this is what actually lets my
-  // own client (and anything reading my `following` list) know the follow
-  // completed. See design.md for why this can't just happen server-side.
-  useEffect(() => {
-    if (!user || isOwner || !isFollower || isFollowing || !profile) return;
-    void completeFollowMirror(user.uid, {
-      uid: userId,
-      displayName: profile.displayName,
-      photoURL: profile.photoURL,
-    });
-  }, [user, isOwner, isFollower, isFollowing, profile, userId]);
-
-  async function handleFollow() {
-    if (!user) return;
-    await sendFollowRequest(userId, user);
-    announce(t.profile.followRequestSent);
-  }
-
-  async function handleCancel() {
-    if (!user) return;
-    await cancelFollowRequest(userId, user.uid);
-  }
-
-  async function handleUnfollow() {
-    if (!user) return;
-    await unfollow(user.uid, userId);
-    announce(t.profile.unfollowed(profile?.displayName ?? t.profile.thisUser));
-  }
-
-  if (authLoading || profile === undefined) {
+  if (authLoading || state === "loading") {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
@@ -137,7 +89,18 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
     );
   }
 
-  if (profile === null) {
+  if (state === "error") {
+    return (
+      <div className="space-y-3 text-center">
+        <p className="text-muted-foreground">{t.profile.couldntLoad}</p>
+        <Button size="sm" variant="outline" onClick={() => setState("loading")}>
+          {t.profile.retry}
+        </Button>
+      </div>
+    );
+  }
+
+  if (state === "not-found" || !profile) {
     return (
       <p className="text-center text-muted-foreground">
         {t.profile.doesntExist}
@@ -165,36 +128,21 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
           </h1>
         </div>
 
-        {isOwner && (
+        {isOwner ? (
           <Button size="sm" variant="outline" onClick={() => void copyLink()}>
             {copied ? t.profile.copied : t.profile.copyLinkToShare}
           </Button>
-        )}
-        {!isOwner && !user && <LoginButton size="sm" />}
-        {!isOwner && user && isFollowing && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void handleUnfollow()}
-          >
-            <UserCheckIcon data-icon="inline-start" />
-            {t.profile.following}
-          </Button>
-        )}
-        {!isOwner && user && !isFollowing && pendingRequest && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void handleCancel()}
-          >
-            {t.profile.requested}
-          </Button>
-        )}
-        {!isOwner && user && !isFollowing && !pendingRequest && (
-          <Button size="sm" onClick={() => void handleFollow()}>
-            <UserPlusIcon data-icon="inline-start" />
-            {t.profile.requestToFollow}
-          </Button>
+        ) : (
+          <FollowButton
+            locale={locale}
+            target={{
+              uid: userId,
+              displayName: profile.displayName,
+              photoURL: profile.photoURL,
+              username: profile.username,
+            }}
+            onFollowingChange={setIsFollowing}
+          />
         )}
       </div>
 
@@ -212,9 +160,9 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
         </>
       )}
 
-      <ProfileSection
+      <UserMovieSection
         title={t.profile.favorites}
-        emptyLabel={t.common.nothingHereYet}
+        emptyLabel={t.profile.emptyFavorites}
         noPosterLabel={t.common.noImage}
         userId={userId}
         subscribeFn={subscribeToRecommendations}
@@ -240,18 +188,18 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
               )}
             </p>
             <div className="rounded-lg border px-3">
-              <ProfileSection
+              <UserMovieSection
                 title={t.profile.watched}
-                emptyLabel={t.common.nothingHereYet}
+                emptyLabel={t.profile.emptyWatched}
                 noPosterLabel={t.common.noImage}
                 icon={CheckCircleIcon}
                 userId={userId}
                 subscribeFn={subscribeToSeenMoviesFull}
                 onOpen={setOpenMovie}
               />
-              <ProfileSection
+              <UserMovieSection
                 title={t.profile.watchlist}
-                emptyLabel={t.common.nothingHereYet}
+                emptyLabel={t.profile.emptyWatchlist}
                 noPosterLabel={t.common.noImage}
                 icon={BookmarkIcon}
                 userId={userId}
@@ -279,129 +227,6 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
           open={openMovie !== null}
           onOpenChange={(open) => !open && setOpenMovie(null)}
         />
-      )}
-    </div>
-  );
-}
-
-interface ProfileMovie {
-  readonly tmdbId: number;
-  readonly title: string;
-  readonly posterPath: string | null;
-  readonly mediaType?: "movie" | "tv";
-}
-
-interface ProfileSectionProps<M extends ProfileMovie> {
-  readonly title: string;
-  readonly userId: string;
-  readonly subscribeFn: (
-    userId: string,
-    callback: (movies: readonly M[]) => void,
-  ) => () => void;
-  readonly onOpen: (movie: ProfileMovie) => void;
-  /** Closed sections don't subscribe at all until opened — keeps the
-   *  page's initial load cheap when a list is big and not the main draw
-   *  (e.g. Watched). Favorites stays open — it's usually short and is the
-   *  whole point of a shared profile. */
-  readonly defaultOpen?: boolean;
-  /** Row style (icon left, chevron-right, bordered divider) for grouping
-   *  under a card heading (e.g. "X's Lists") instead of the plain
-   *  chevron-down label used standalone (e.g. Favorites). */
-  readonly icon?: typeof BookmarkIcon;
-  readonly emptyLabel: string;
-  readonly noPosterLabel: string;
-}
-
-function ProfileSection<M extends ProfileMovie>({
-  title,
-  userId,
-  subscribeFn,
-  onOpen,
-  defaultOpen = false,
-  icon: Icon,
-  emptyLabel,
-  noPosterLabel,
-}: ProfileSectionProps<M>) {
-  const [open, setOpen] = useState(defaultOpen);
-  const [movies, setMovies] = useState<readonly M[] | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    return subscribeFn(userId, setMovies);
-  }, [subscribeFn, userId, open]);
-
-  return (
-    <div className={Icon ? "border-b last:border-b-0" : "space-y-2"}>
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className={
-          Icon
-            ? "focus-ring flex w-full items-center gap-3 py-3 text-left"
-            : "focus-ring flex w-full items-center gap-1.5 text-left text-sm font-semibold text-muted-foreground"
-        }
-        aria-expanded={open}
-      >
-        {Icon ? (
-          <>
-            <Icon className="size-5 shrink-0 text-primary" />
-            <span className="flex-1 text-sm text-muted-foreground">
-              {title}
-              {movies !== null && ` (${movies.length})`}
-            </span>
-            <ChevronRightIcon
-              className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
-            />
-          </>
-        ) : (
-          <>
-            <ChevronDownIcon
-              className={`size-4 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
-            />
-            {title}
-            {movies !== null && ` (${movies.length})`}
-          </>
-        )}
-      </button>
-
-      {open && movies === null && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[2/3] w-full rounded-lg" />
-          ))}
-        </div>
-      )}
-
-      {open && movies !== null && movies.length === 0 && (
-        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
-      )}
-
-      {open && movies !== null && movies.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
-          {movies.map((movie) => (
-            <button
-              key={movie.tmdbId}
-              type="button"
-              onClick={() => onOpen(movie)}
-              className="focus-ring card-elevated text-left"
-              aria-label={`View details for ${movie.title}`}
-            >
-              {movie.posterPath ? (
-                <img
-                  src={tmdbImageUrl(movie.posterPath, 185)}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-[2/3] w-full rounded-lg border object-cover"
-                />
-              ) : (
-                <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-                  {noPosterLabel}
-                </div>
-              )}
-              <p className="mt-1 truncate text-xs font-medium">{movie.title}</p>
-            </button>
-          ))}
-        </div>
       )}
     </div>
   );

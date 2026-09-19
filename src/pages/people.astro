@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { PeoplePage } from "@/components/social/PeoplePage";
+
+const locale = Astro.locals.locale;
+---
+
+<Layout
+  title="People — Pelicoolas"
+  description="Discover people on Pelicoolas, see who you follow, and who follows you."
+  noindex
+>
+  <PeoplePage locale={locale} client:load />
+</Layout>
