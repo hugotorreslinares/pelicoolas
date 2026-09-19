@@ -339,7 +339,11 @@ export function ConnectionsPage({ locale }: ConnectionsPageProps) {
                         {t.connections.movies(movies.length)}
                       </span>
                     </a>
-                    <PosterCarousel movies={movies} onSelect={setOpenMovieId} />
+                    <PosterCarousel
+                      locale={locale}
+                      movies={movies}
+                      onSelect={setOpenMovieId}
+                    />
                   </div>
                 ))}
               </div>

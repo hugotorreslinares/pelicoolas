@@ -171,6 +171,7 @@ export function PersonSearch({
 
       {!query.trim() && trendingMovies.length > 0 && (
         <TrendingSlider
+          locale={locale}
           items={trendingMovies}
           mediaType="movie"
           heading={t.search.trendingThisWeek}

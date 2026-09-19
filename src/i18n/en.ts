@@ -454,6 +454,37 @@ export const en = {
     searching: "Searching…",
     couldntSearch: "Couldn't search users. Please try again.",
   },
+  cards: {
+    viewDetailsFor: (title: string) => `View details for ${title}`,
+    noPoster: "No poster",
+    releaseUnknown: "Release date: Unknown",
+    goToFilmography: (name: string) => `Go to ${name}'s filmography`,
+    goToSlide: (index: number, total: number) =>
+      `Go to slide ${index} of ${total}`,
+    scrollLeft: "Scroll left",
+    scrollRight: "Scroll right",
+  },
+  heroes: {
+    welcomeBody:
+      "Follow your favorite actors and directors, track what you've already watched, and never miss what they release next.",
+    searchActorsDirectors: "Search actors & directors",
+    findFriendsTitle: "Find your friends",
+    findFriendsBody:
+      "Search by username, send a follow request, and see what they're watching, adding, and recommending.",
+    findFriendsCta: "Find friends",
+    newOnPelicoolas: "New on Pelicoolas",
+  },
+  friendsPage: {
+    heading: "Friends",
+    signInPrompt: "Sign in to see what the people you follow are watching.",
+    notFollowingYet:
+      "You're not following anyone yet. Search for a friend's username above, or ask them for their profile link.",
+    myProfile: "My profile",
+    noActivity: "No activity yet.",
+    watched: "Watched",
+    addedToWatchlist: "Added to watchlist",
+    recommended: "Recommended",
+  },
   growth: {
     shareMyProfile: "Share my profile",
     shareTitle: "My Pelicoolas profile",

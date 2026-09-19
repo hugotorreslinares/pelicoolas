@@ -434,6 +434,36 @@ export const es: Dictionary = {
     searching: "Buscando…",
     couldntSearch: "No se pudo buscar usuarios. Intentá de nuevo.",
   },
+  cards: {
+    viewDetailsFor: (title) => `Ver detalles de ${title}`,
+    noPoster: "Sin póster",
+    releaseUnknown: "Fecha de estreno: desconocida",
+    goToFilmography: (name) => `Ir a la filmografía de ${name}`,
+    goToSlide: (index, total) => `Ir a la diapositiva ${index} de ${total}`,
+    scrollLeft: "Desplazar a la izquierda",
+    scrollRight: "Desplazar a la derecha",
+  },
+  heroes: {
+    welcomeBody:
+      "Seguí a tus actores y directores favoritos, llevá el registro de lo que ya viste, y no te pierdas lo próximo que estrenen.",
+    searchActorsDirectors: "Buscar actores y directores",
+    findFriendsTitle: "Encontrá a tus amigos",
+    findFriendsBody:
+      "Buscá por username, enviá una solicitud de seguimiento y mirá qué están viendo, agregando y recomendando.",
+    findFriendsCta: "Buscar amigos",
+    newOnPelicoolas: "Nuevos en Pelicoolas",
+  },
+  friendsPage: {
+    heading: "Amigos",
+    signInPrompt: "Iniciá sesión para ver qué está viendo la gente que seguís.",
+    notFollowingYet:
+      "Todavía no seguís a nadie. Buscá el username de un amigo arriba, o pedile su link de perfil.",
+    myProfile: "Mi perfil",
+    noActivity: "Todavía no hay actividad.",
+    watched: "Vio",
+    addedToWatchlist: "Agregó al watchlist",
+    recommended: "Recomendó",
+  },
   growth: {
     shareMyProfile: "Compartir mi perfil",
     shareTitle: "Mi perfil de Pelicoolas",

@@ -3,17 +3,20 @@ import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { MovieActions } from "@/components/movies/MovieActions";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { TrendingMovie } from "@/types/movie";
 
 const POSTER_WIDTHS = [185, 342, 500];
 
 interface TrendingSliderProps {
+  readonly locale: Locale;
   readonly items: readonly TrendingMovie[];
   readonly mediaType: "movie" | "tv";
   readonly heading: string;
 }
 
 export function TrendingSlider({
+  locale,
   items,
   mediaType,
   heading,
@@ -28,6 +31,7 @@ export function TrendingSlider({
       <div className="flex gap-3 overflow-x-auto pb-1">
         {items.map((item, index) => (
           <TrendingCard
+            locale={locale}
             key={item.tmdbMovieId}
             item={item}
             eager={index === 0}
@@ -49,12 +53,14 @@ export function TrendingSlider({
 }
 
 interface TrendingCardProps {
+  readonly locale: Locale;
   readonly item: TrendingMovie;
   readonly eager: boolean;
   readonly onOpen: () => void;
 }
 
-function TrendingCard({ item, eager, onOpen }: TrendingCardProps) {
+function TrendingCard({ locale, item, eager, onOpen }: TrendingCardProps) {
+  const t = getDictionary(locale);
   // A signed-out click just opens the dialog, which has its own sign-in
   // prompt — no room for an inline hint in a dense slider.
   const { watched, inWatchlist, ready, toggleWatched, toggleWatchlist } =
@@ -67,7 +73,7 @@ function TrendingCard({ item, eager, onOpen }: TrendingCardProps) {
           type="button"
           onClick={onOpen}
           className="focus-ring block w-full"
-          aria-label={`View details for ${item.title}`}
+          aria-label={t.cards.viewDetailsFor(item.title)}
         >
           {item.posterPath ? (
             <img
@@ -83,7 +89,7 @@ function TrendingCard({ item, eager, onOpen }: TrendingCardProps) {
             />
           ) : (
             <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-xs text-muted-foreground">
-              No poster
+              {t.cards.noPoster}
             </div>
           )}
         </button>

@@ -101,6 +101,7 @@ export function MovieSearch({
         <div className="space-y-2 text-left">
           {results.map((movie) => (
             <MovieResultRow
+              locale={locale}
               key={movie.tmdbMovieId}
               movie={movie}
               onClick={() => setOpenMovie(movie)}
@@ -111,6 +112,7 @@ export function MovieSearch({
 
       {!query.trim() && trendingMovies.length > 0 && (
         <TrendingSlider
+          locale={locale}
           items={trendingMovies}
           mediaType={mediaType}
           heading={t.search.trendingThisWeek}

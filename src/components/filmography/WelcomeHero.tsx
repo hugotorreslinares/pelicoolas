@@ -1,10 +1,16 @@
 import { Button } from "@/components/ui/button";
+import { getDictionary, type Locale } from "@/i18n";
+
+interface WelcomeHeroProps {
+  readonly locale: Locale;
+}
 
 // Shared "what is this app" moment — the anonymous home, and the slide-1
 // welcome shown to a signed-in user with nobody followed yet (see
 // HomeHeroSlider). Same content either way: neither visitor has anything
 // else on screen to explain what to do next.
-export function WelcomeHero() {
+export function WelcomeHero({ locale }: WelcomeHeroProps) {
+  const t = getDictionary(locale);
   return (
     <div className="space-y-4 py-6 text-center">
       <img
@@ -18,10 +24,11 @@ export function WelcomeHero() {
         Pelicoolas
       </h1>
       <p className="mx-auto max-w-md text-muted-foreground">
-        Follow your favorite actors and directors, track what you've already
-        watched, and never miss what they release next.
+        {t.heroes.welcomeBody}
       </p>
-      <Button render={<a href="/search" />}>Search actors & directors</Button>
+      <Button render={<a href="/search" />}>
+        {t.heroes.searchActorsDirectors}
+      </Button>
     </div>
   );
 }

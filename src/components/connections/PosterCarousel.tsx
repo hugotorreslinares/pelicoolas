@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FilmographyMovie } from "@/types/movie";
 
 interface PosterCarouselProps {
+  readonly locale: Locale;
   readonly movies: readonly FilmographyMovie[];
   readonly onSelect: (movieId: number) => void;
 }
@@ -14,7 +16,12 @@ interface PosterCarouselProps {
 // swipe/scroll. This adds snap-to-poster scrolling, arrow buttons that page
 // by a screenful, and edge fades that only show when there's actually more
 // content in that direction.
-export function PosterCarousel({ movies, onSelect }: PosterCarouselProps) {
+export function PosterCarousel({
+  locale,
+  movies,
+  onSelect,
+}: PosterCarouselProps) {
+  const t = getDictionary(locale);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
@@ -45,7 +52,7 @@ export function PosterCarousel({ movies, onSelect }: PosterCarouselProps) {
             type="button"
             variant="secondary"
             size="icon"
-            aria-label="Scroll left"
+            aria-label={t.cards.scrollLeft}
             onClick={() => page(-1)}
             className="absolute top-1/2 left-0 z-20 size-8 -translate-y-1/2 rounded-full shadow"
           >
@@ -76,7 +83,7 @@ export function PosterCarousel({ movies, onSelect }: PosterCarouselProps) {
               />
             ) : (
               <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg bg-muted text-xs text-muted-foreground">
-                No poster
+                {t.cards.noPoster}
               </div>
             )}
             <p className="mt-1 truncate text-xs font-medium">{movie.title}</p>
@@ -91,7 +98,7 @@ export function PosterCarousel({ movies, onSelect }: PosterCarouselProps) {
             type="button"
             variant="secondary"
             size="icon"
-            aria-label="Scroll right"
+            aria-label={t.cards.scrollRight}
             onClick={() => page(1)}
             className="absolute top-1/2 right-0 z-20 size-8 -translate-y-1/2 rounded-full shadow"
           >

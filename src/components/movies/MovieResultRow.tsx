@@ -3,16 +3,23 @@ import { MovieActions } from "./MovieActions";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { TrendingMovie } from "@/types/movie";
 
 interface MovieResultRowProps {
+  readonly locale: Locale;
   readonly movie: TrendingMovie;
   readonly onClick: () => void;
 }
 
 // Shared by MovieSearch and HeaderSearch — same poster+title+year+watched/
 // watchlist actions row, just a different container around it.
-export function MovieResultRow({ movie, onClick }: MovieResultRowProps) {
+export function MovieResultRow({
+  locale,
+  movie,
+  onClick,
+}: MovieResultRowProps) {
+  const t = getDictionary(locale);
   const [showSignInHint, setShowSignInHint] = useState(false);
   const { watched, inWatchlist, ready, toggleWatched, toggleWatchlist } =
     useMovieActionState(movie, () => setShowSignInHint(true));
@@ -40,7 +47,7 @@ export function MovieResultRow({ movie, onClick }: MovieResultRowProps) {
         <div>
           <p className="font-medium">{movie.title}</p>
           <p className="text-sm text-muted-foreground">
-            {movie.releaseYear ?? "Release date: Unknown"}
+            {movie.releaseYear ?? t.cards.releaseUnknown}
           </p>
         </div>
       </button>

@@ -229,6 +229,7 @@ export function HeaderSearch({ locale, className }: HeaderSearchProps) {
                 )}
                 {movies.map((movie) => (
                   <MovieResultRow
+                    locale={locale}
                     key={movie.tmdbMovieId}
                     movie={movie}
                     onClick={() => setOpenMovie(movie)}
@@ -246,6 +247,7 @@ export function HeaderSearch({ locale, className }: HeaderSearchProps) {
                 )}
                 {tv.map((show) => (
                   <MovieResultRow
+                    locale={locale}
                     key={show.tmdbMovieId}
                     movie={show}
                     onClick={() => setOpenMovie(show)}

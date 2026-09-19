@@ -3,9 +3,11 @@ import { WelcomeHero } from "./WelcomeHero";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { SocialHero } from "./SocialHero";
 import { cn } from "@/lib/utils";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FollowedPerson } from "@/types/filmography";
 
 interface HomeHeroSliderProps {
+  readonly locale: Locale;
   readonly people: readonly FollowedPerson[];
 }
 
@@ -17,15 +19,19 @@ interface HomeHeroSliderProps {
 // carousel alongside a social slide (SocialHero) that's always present —
 // an already-active user is exactly who has friends to go find, so it
 // isn't gated on any state the way the welcome/photo-wall slides are.
-export function HomeHeroSlider({ people }: HomeHeroSliderProps) {
+export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
+  const t = getDictionary(locale);
   const hasPhotos = people.some((p) => p.profilePath !== null);
   const slides: readonly ReactNode[] = hasPhotos
     ? [
-        <WelcomeHero key="welcome" />,
-        <FollowedPeopleHero key="followed" people={people} />,
-        <SocialHero key="social" />,
+        <WelcomeHero key="welcome" locale={locale} />,
+        <FollowedPeopleHero key="followed" people={people} locale={locale} />,
+        <SocialHero key="social" locale={locale} />,
       ]
-    : [<WelcomeHero key="welcome" />, <SocialHero key="social" />];
+    : [
+        <WelcomeHero key="welcome" locale={locale} />,
+        <SocialHero key="social" locale={locale} />,
+      ];
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -80,7 +86,7 @@ export function HomeHeroSlider({ people }: HomeHeroSliderProps) {
           <button
             key={index}
             type="button"
-            aria-label={`Go to slide ${index + 1} of ${slides.length}`}
+            aria-label={t.cards.goToSlide(index + 1, slides.length)}
             aria-current={activeIndex === index}
             onClick={() => goTo(index)}
             className={cn(

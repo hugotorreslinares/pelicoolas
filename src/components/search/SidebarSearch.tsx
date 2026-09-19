@@ -162,6 +162,7 @@ export function SidebarSearch({ locale }: SidebarSearchProps) {
                 )}
                 {movies.map((movie) => (
                   <MovieResultRow
+                    locale={locale}
                     key={movie.tmdbMovieId}
                     movie={movie}
                     onClick={() => setOpenMovie(movie)}
@@ -179,6 +180,7 @@ export function SidebarSearch({ locale }: SidebarSearchProps) {
                 )}
                 {tv.map((show) => (
                   <MovieResultRow
+                    locale={locale}
                     key={show.tmdbMovieId}
                     movie={show}
                     onClick={() => setOpenMovie(show)}

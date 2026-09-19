@@ -339,6 +339,7 @@ export function Filmography({
             <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
               {yearMovies.map((movie) => (
                 <MovieItem
+                  locale={locale}
                   key={movie.tmdbMovieId}
                   movie={movie}
                   watched={watched.has(movie.tmdbMovieId)}

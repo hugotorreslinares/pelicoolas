@@ -3,14 +3,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { fetchRecentUsers } from "@/lib/firebase/firestore";
+import { getDictionary, type Locale } from "@/i18n";
 import type { PublicProfile } from "@/types/user";
 
 const COUNT = 15;
 
+interface RecentUsersSliderProps {
+  readonly locale: Locale;
+}
+
 // Public by design (users/{userId} is public-read, same precedent as the
 // recommendations board) — lets a signed-out visitor see who's on the app
 // too, not just existing followers of someone they already know.
-export function RecentUsersSlider() {
+export function RecentUsersSlider({ locale }: RecentUsersSliderProps) {
+  const t = getDictionary(locale);
   const { user } = useAuth();
   const [users, setUsers] = useState<readonly PublicProfile[] | null>(null);
 
@@ -28,7 +34,7 @@ export function RecentUsersSlider() {
     return (
       <div className="space-y-2 text-left">
         <p className="text-sm font-medium text-muted-foreground">
-          New on Pelicoolas
+          {t.heroes.newOnPelicoolas}
         </p>
         <div className="flex gap-4 overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -48,7 +54,7 @@ export function RecentUsersSlider() {
   return (
     <div className="space-y-2 text-left">
       <p className="text-sm font-medium text-muted-foreground">
-        New on Pelicoolas
+        {t.heroes.newOnPelicoolas}
       </p>
       <div className="flex gap-4 overflow-x-auto pb-1">
         {visible.map((profile) => (
@@ -67,7 +73,7 @@ export function RecentUsersSlider() {
               </AvatarFallback>
             </Avatar>
             <p className="mt-1 truncate text-xs font-medium">
-              {profile.displayName ?? "Pelicoolas user"}
+              {profile.displayName ?? t.profile.pelicoolasUser}
             </p>
           </a>
         ))}

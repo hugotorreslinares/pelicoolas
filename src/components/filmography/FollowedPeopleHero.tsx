@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { tmdbDensitySrcSet, tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FollowedPerson } from "@/types/filmography";
 
 const MAX_PHOTOS = 40;
@@ -9,6 +10,7 @@ const MAX_PHOTOS = 40;
 const OFFSETS = [0, 28, -10, 22, 4, 30, -6, 18];
 
 interface FollowedPeopleHeroProps {
+  readonly locale: Locale;
   readonly people: readonly FollowedPerson[];
 }
 
@@ -23,7 +25,11 @@ function preloadImage(src: string): Promise<void> {
   });
 }
 
-export function FollowedPeopleHero({ people }: FollowedPeopleHeroProps) {
+export function FollowedPeopleHero({
+  people,
+  locale,
+}: FollowedPeopleHeroProps) {
+  const t = getDictionary(locale);
   const containerRef = useRef<HTMLDivElement>(null);
   const [imagesReady, setImagesReady] = useState(false);
   const photoPeople = people
@@ -231,7 +237,7 @@ export function FollowedPeopleHero({ people }: FollowedPeopleHeroProps) {
           data-card
           onClick={() => (window.location.href = `/person/${person.tmdbId}`)}
           className="focus-ring w-20 shrink-0 sm:w-28"
-          aria-label={`Go to ${person.name}'s filmography`}
+          aria-label={t.cards.goToFilmography(person.name)}
         >
           <div
             data-push

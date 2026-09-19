@@ -13,7 +13,7 @@ import {
 import { mapWithConcurrency } from "@/lib/concurrency";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
 import { relativeTime } from "@/lib/relativeTime";
-import type { Locale } from "@/i18n";
+import { getDictionary, type Locale } from "@/i18n";
 import type { Following } from "@/types/user";
 import type { FriendActivity } from "@/types/friends";
 
@@ -21,7 +21,9 @@ function ActivityRow({
   icon: Icon,
   label,
   movie,
+  locale,
 }: {
+  readonly locale: Locale;
   readonly icon: typeof EyeIcon;
   readonly label: string;
   readonly movie: { title: string; posterPath: string | null } & (
@@ -45,7 +47,7 @@ function ActivityRow({
       <div className="min-w-0">
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <Icon className="size-3" />
-          {label} · {relativeTime(at)}
+          {label} · {relativeTime(at, locale)}
         </p>
         <p className="truncate text-sm font-medium">{movie.title}</p>
       </div>
@@ -56,10 +58,13 @@ function ActivityRow({
 function FriendCard({
   friend,
   activity,
+  locale,
 }: {
+  readonly locale: Locale;
   readonly friend: Following;
   readonly activity: FriendActivity | undefined;
 }) {
+  const t = getDictionary(locale);
   const hasAnyActivity =
     activity &&
     (activity.lastWatched ||
@@ -82,7 +87,7 @@ function FriendCard({
           </AvatarFallback>
         </Avatar>
         <p className="truncate font-medium">
-          {friend.targetName ?? "Pelicoolas user"}
+          {friend.targetName ?? t.profile.pelicoolasUser}
         </p>
       </div>
 
@@ -93,7 +98,9 @@ function FriendCard({
       )}
 
       {activity && !hasAnyActivity && (
-        <p className="text-sm text-muted-foreground">No activity yet.</p>
+        <p className="text-sm text-muted-foreground">
+          {t.friendsPage.noActivity}
+        </p>
       )}
 
       {activity && (
@@ -101,21 +108,24 @@ function FriendCard({
           {activity.lastWatched && (
             <ActivityRow
               icon={EyeIcon}
-              label="Watched"
+              label={t.friendsPage.watched}
+              locale={locale}
               movie={activity.lastWatched}
             />
           )}
           {activity.lastWatchlisted && (
             <ActivityRow
               icon={BookmarkIcon}
-              label="Added to watchlist"
+              label={t.friendsPage.addedToWatchlist}
+              locale={locale}
               movie={activity.lastWatchlisted}
             />
           )}
           {activity.lastRecommended && (
             <ActivityRow
               icon={StarIcon}
-              label="Recommended"
+              label={t.friendsPage.recommended}
+              locale={locale}
               movie={activity.lastRecommended}
             />
           )}
@@ -130,6 +140,7 @@ interface FriendsPageProps {
 }
 
 export function FriendsPage({ locale }: FriendsPageProps) {
+  const t = getDictionary(locale);
   const { user, loading: authLoading } = useAuth();
   const [following, setFollowing] = useState<readonly Following[] | null>(null);
   const [activityByUid, setActivityByUid] = useState<
@@ -161,7 +172,7 @@ export function FriendsPage({ locale }: FriendsPageProps) {
   if (authLoading) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="sr-only">Friends</h1>
+        <h1 className="sr-only">{t.friendsPage.heading}</h1>
         <Skeleton className="mx-auto h-7 w-32" />
       </div>
     );
@@ -170,10 +181,8 @@ export function FriendsPage({ locale }: FriendsPageProps) {
   if (!user) {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">Friends</h1>
-        <p className="text-muted-foreground">
-          Sign in to see what the people you follow are watching.
-        </p>
+        <h1 className="text-xl font-semibold">{t.friendsPage.heading}</h1>
+        <p className="text-muted-foreground">{t.friendsPage.signInPrompt}</p>
       </div>
     );
   }
@@ -181,7 +190,7 @@ export function FriendsPage({ locale }: FriendsPageProps) {
   if (following === null) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <h1 className="sr-only">Friends</h1>
+        <h1 className="sr-only">{t.friendsPage.heading}</h1>
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-40 w-full rounded-lg" />
         ))}
@@ -192,15 +201,16 @@ export function FriendsPage({ locale }: FriendsPageProps) {
   if (following.length === 0) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl font-semibold">Friends</h1>
+        <h1 className="text-xl font-semibold">{t.friendsPage.heading}</h1>
         <FriendSearch locale={locale} />
         <FollowRequestsInbox userId={user.uid} locale={locale} />
         <div className="space-y-3 text-center">
           <p className="text-muted-foreground">
-            You're not following anyone yet. Search for a friend's username
-            above, or ask them for their profile link.
+            {t.friendsPage.notFollowingYet}
           </p>
-          <Button render={<a href={`/u/${user.uid}`} />}>My profile</Button>
+          <Button render={<a href={`/u/${user.uid}`} />}>
+            {t.friendsPage.myProfile}
+          </Button>
         </div>
       </div>
     );
@@ -208,7 +218,7 @@ export function FriendsPage({ locale }: FriendsPageProps) {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Friends</h1>
+      <h1 className="text-xl font-semibold">{t.friendsPage.heading}</h1>
       <FriendSearch locale={locale} />
       <FollowRequestsInbox userId={user.uid} locale={locale} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -217,6 +227,7 @@ export function FriendsPage({ locale }: FriendsPageProps) {
             key={friend.targetId}
             friend={friend}
             activity={activityByUid[friend.targetId]}
+            locale={locale}
           />
         ))}
       </div>

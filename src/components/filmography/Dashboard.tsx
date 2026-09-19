@@ -372,11 +372,13 @@ export function Dashboard({
   const trendingSection = (
     <>
       <TrendingSlider
+        locale={locale}
         items={trendingMovies}
         mediaType="movie"
         heading={t.dashboard.trendingMovies}
       />
       <TrendingSlider
+        locale={locale}
         items={trendingTV}
         mediaType="tv"
         heading={t.dashboard.trendingTV}
@@ -397,7 +399,7 @@ export function Dashboard({
   if (!user) {
     return (
       <div className="space-y-12">
-        <HomeHeroSlider people={[]} />
+        <HomeHeroSlider people={[]} locale={locale} />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {t.dashboard.features.map(({ title, description }, i) => {
@@ -423,7 +425,7 @@ export function Dashboard({
     return (
       <div className="space-y-4">
         <h1 className="sr-only">{heading}</h1>
-        <HomeHeroSlider people={heroPeople} />
+        <HomeHeroSlider people={heroPeople} locale={locale} />
         <div className="space-y-3 text-center">
           <p className="text-muted-foreground">{t.dashboard.findPerson}</p>
           <Button render={<a href="/search" />}>{t.common.search}</Button>
@@ -435,7 +437,7 @@ export function Dashboard({
 
   return (
     <div className="space-y-4">
-      <HomeHeroSlider people={heroPeople} />
+      <HomeHeroSlider people={heroPeople} locale={locale} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">{heading}</h1>
         <div className="flex flex-wrap gap-2">

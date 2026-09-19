@@ -4,12 +4,14 @@ import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { MovieActions } from "@/components/movies/MovieActions";
 import { cn } from "@/lib/utils";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
 import type { FilmographyMovie } from "@/types/movie";
 
 const POSTER_WIDTHS = [185, 342, 500];
 const POSTER_SIZES = "(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
 
 interface MovieItemProps {
+  readonly locale: Locale;
   readonly movie: FilmographyMovie;
   readonly watched: boolean;
   readonly onToggle: (watched: boolean) => void;
@@ -26,6 +28,7 @@ interface MovieItemProps {
 // gallery. A watched movie dims to make progress legible at a glance
 // across the whole grid, not just per-item.
 export function MovieItem({
+  locale,
   movie,
   watched,
   onToggle,
@@ -33,6 +36,7 @@ export function MovieItem({
   onToggleWatchlist,
   statusLoading = false,
 }: MovieItemProps) {
+  const t = getDictionary(locale);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
@@ -42,7 +46,7 @@ export function MovieItem({
           type="button"
           onClick={() => setDetailsOpen(true)}
           className="focus-ring block w-full"
-          aria-label={`View details for ${movie.title}`}
+          aria-label={t.cards.viewDetailsFor(movie.title)}
         >
           {movie.posterPath ? (
             <img
@@ -58,7 +62,7 @@ export function MovieItem({
             />
           ) : (
             <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-xs text-muted-foreground">
-              No poster
+              {t.cards.noPoster}
             </div>
           )}
         </button>
@@ -84,7 +88,7 @@ export function MovieItem({
 
       <p className="mt-1 truncate font-medium">{movie.title}</p>
       <p className="text-sm text-muted-foreground">
-        {movie.releaseYear ?? "Release date: Unknown"}
+        {movie.releaseYear ?? t.cards.releaseUnknown}
       </p>
 
       <MovieDetailsDialog
