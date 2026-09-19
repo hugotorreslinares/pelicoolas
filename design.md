@@ -232,12 +232,12 @@ Reemplazó a un experimento anterior con Three.js (sistema solar de caras orbita
 
 ## SEO
 
-- `astro.config.mjs` define `site: "https://pelicoolas.vercel.app"` — sin eso, `Astro.site` es `undefined` y las URLs de canonical/Open Graph en `Layout.astro` saldrían rotas o relativas. Si el dominio cambia, actualizar acá.
+- `astro.config.mjs` define `site: "https://pelicoolas.com"` — sin eso, `Astro.site` es `undefined` y las URLs de canonical/Open Graph en `Layout.astro` saldrían rotas o relativas. Si el dominio cambia, actualizar acá.
 - `Layout.astro` genera por página (props `description`, `image`, `noindex`, `canonicalPath`): `<meta name="description">`, `<link rel="canonical">`, Open Graph completo (`og:title/description/url/image/type/site_name`) y Twitter Card (`summary`, no `summary_large_image` — la imagen de fallback es el ícono cuadrado de la app, `/pwa-512x512.png`, no un banner 1200×630).
 - **`noindex` en `/`, `/filmographies` y `/watchlist`**: son dashboards que requieren login; para un crawler anónimo (que nunca está logueado) muestran contenido fino y repetido — solo nav + un mensaje de "sign in", nada único. `/filmographies` además renderiza literalmente el mismo componente `<Dashboard>` que `/` — sin `noindex` serían contenido duplicado entre sí; con `canonicalPath="/"` en `/filmographies` queda resuelto igual por si algún buscador los indexa de todas formas. `/search` y `/person/[id]` sí son indexables: contenido real, público, y útil sin necesitar sesión.
 - **`/person/[id]`**: `description` usa la biografía real de TMDB (truncada a 160 caracteres) cuando existe, con fallback genérico si no; `og:image`/`twitter:image` usan la foto real de la persona (`tmdbImageUrl(profile.profilePath, 500)`) en vez del ícono genérico de la app — mucho mejor preview al compartir un link.
 - `public/robots.txt`: permite todo salvo `/api/*` (son endpoints JSON, no contenido).
-- **Deliberadamente sin `sitemap.xml`**: las únicas rutas estáticas indexables son `/search` (`/` está `noindex`); el contenido real vive en `/person/{tmdbId}`, con IDs que vienen de TMDB — no hay forma de enumerarlos de antemano sin consultar toda la API de TMDB, así que un sitemap generado en build time no podría cubrir las páginas que de verdad importan. No vale la pena un sitemap que solo liste una URL.
+- **`/sitemap.xml`** (endpoint SSR, `src/pages/sitemap.xml.ts`, cache 24h): lista solo páginas indexables — `/search`, `/privacy` y ~100 `/person/{id}` sembradas con las personas más populares de TMDB (`/person/popular`, 5 páginas). No puede enumerar todas las personas (los IDs viven en TMDB); el resto se descubre por búsqueda y links internos. Si TMDB falla, responde igual con las rutas estáticas (cache 5 min). Referenciado desde `robots.txt`. Antes se había descartado por listar una sola URL; se agregó para Google Search Console.
 
 ## Accesibilidad
 

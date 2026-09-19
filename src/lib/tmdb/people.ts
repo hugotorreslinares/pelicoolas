@@ -68,3 +68,17 @@ export async function getPersonImages(
   );
   return data.profiles.map((p) => p.file_path);
 }
+
+const POPULAR_PAGES = 5; // 20 per page — enough to seed a sitemap without fanning out
+
+/** TMDB's currently most popular people, most popular first. */
+export async function getPopularPersonIds(): Promise<readonly number[]> {
+  const pages = await Promise.all(
+    Array.from({ length: POPULAR_PAGES }, (_, i) =>
+      tmdbFetch("/person/popular", tmdbSearchPersonResponseSchema, {
+        page: String(i + 1),
+      }),
+    ),
+  );
+  return [...new Set(pages.flatMap((p) => p.results.map((r) => r.id)))];
+}
