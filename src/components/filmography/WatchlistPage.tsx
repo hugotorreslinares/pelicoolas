@@ -34,6 +34,7 @@ import { fetchMovieDetails } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
 import { getDictionary, type Locale } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 import { formatDuration } from "@/lib/format";
 import engagement from "@/config/engagement.json";
 import type { WatchlistMovie } from "@/types/filmography";
@@ -433,7 +434,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
                   movie.tmdbId,
                   movie.mediaType,
                 );
-                announce(`Removed ${movie.title} from watchlist`);
+                announce(t.cards.removedFromWatchlist(movie.title));
               }}
             />
           ))}
@@ -453,7 +454,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
                   movie.tmdbId,
                   movie.mediaType,
                 );
-                announce(`Removed ${movie.title} from watchlist`);
+                announce(t.cards.removedFromWatchlist(movie.title));
               }}
             />
           ))}
@@ -487,6 +488,7 @@ function WatchlistGridCard({
   onToggleWatched,
   onRemove,
 }: CardProps) {
+  const t = getDictionary(useLocale());
   const duration = formatDuration(movie.durationMinutes);
   const genre =
     movie.genreIds?.[0] != null ? genreName(movie.genreIds[0]) : null;
@@ -498,7 +500,7 @@ function WatchlistGridCard({
           type="button"
           onClick={onOpen}
           className="focus-ring block w-full"
-          aria-label={`View details for ${movie.title}`}
+          aria-label={t.cards.viewDetailsFor(movie.title)}
         >
           {movie.posterPath ? (
             <img
@@ -511,7 +513,7 @@ function WatchlistGridCard({
             />
           ) : (
             <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
-              No poster
+              {t.cards.noPoster}
             </div>
           )}
         </button>
@@ -527,7 +529,7 @@ function WatchlistGridCard({
 
       <p className="mt-1 truncate font-medium">{movie.title}</p>
       <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
-        <span>{movie.releaseYear ?? "Unknown"}</span>
+        <span>{movie.releaseYear ?? t.cards.unknownYear}</span>
         {typeof movie.voteAverage === "number" && (
           <span>· {Math.round(movie.voteAverage * 10)}%</span>
         )}
@@ -556,6 +558,7 @@ function WatchlistListRow({
   onToggleWatched,
   onRemove,
 }: CardProps) {
+  const t = getDictionary(useLocale());
   const duration = formatDuration(movie.durationMinutes);
   const genre =
     movie.genreIds?.[0] != null ? genreName(movie.genreIds[0]) : null;
@@ -566,7 +569,7 @@ function WatchlistListRow({
         type="button"
         onClick={onOpen}
         className="focus-ring block shrink-0"
-        aria-label={`View details for ${movie.title}`}
+        aria-label={t.cards.viewDetailsFor(movie.title)}
       >
         {movie.posterPath ? (
           <img
@@ -577,7 +580,7 @@ function WatchlistListRow({
           />
         ) : (
           <div className="flex h-20 w-14 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
-            No poster
+            {t.cards.noPoster}
           </div>
         )}
       </button>
@@ -589,7 +592,7 @@ function WatchlistListRow({
       >
         <p className="truncate font-medium">{movie.title}</p>
         <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
-          <span>{movie.releaseYear ?? "Unknown"}</span>
+          <span>{movie.releaseYear ?? t.cards.unknownYear}</span>
           {typeof movie.voteAverage === "number" && (
             <span>· {Math.round(movie.voteAverage * 10)}%</span>
           )}

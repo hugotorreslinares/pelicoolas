@@ -442,6 +442,9 @@ export const es: Dictionary = {
     goToSlide: (index, total) => `Ir a la diapositiva ${index} de ${total}`,
     scrollLeft: "Desplazar a la izquierda",
     scrollRight: "Desplazar a la derecha",
+    unknownYear: "Desconocido",
+    notInFollowed: "Fuera de una filmografía que sigues",
+    removedFromWatchlist: (title) => `Quitaste ${title} del watchlist`,
   },
   heroes: {
     welcomeBody:
@@ -504,6 +507,24 @@ export const es: Dictionary = {
     unfollowed: (name) => `Dejaste de seguir a ${name}`,
     following: "✓ Siguiendo",
     follow: "+ Seguir",
+  },
+  badges: {
+    personComplete: (name) => `Completaste a ${name}`,
+    personCompleteDesc: (name) =>
+      `Viste todas las películas de la filmografía de ${name}.`,
+    filmographyMilestone: (n) => `${n} filmografías completas`,
+    filmographyMilestoneDesc: (n) =>
+      `Completaste ${n} filmografías que sigues.`,
+    leadingRole: "Papel protagónico",
+    leadingRoleDesc: "Completaste la filmografía de tu primer actor.",
+    directorsCut: "Corte del director",
+    directorsCutDesc: "Completaste la filmografía de tu primer director.",
+    watchlistMilestone: (n) => `Watchlist de ${n}+`,
+    watchlistMilestoneDesc: (n) =>
+      `Mantuviste ${n} o más películas en tu watchlist.`,
+    fullRetrospective: (name) => `${name}: retrospectiva completa`,
+    fullRetrospectiveDesc: (name) =>
+      `Viste películas de ${name} de muchas décadas distintas.`,
   },
   growth: {
     shareMyProfile: "Compartir mi perfil",

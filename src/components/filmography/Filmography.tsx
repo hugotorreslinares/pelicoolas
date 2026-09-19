@@ -334,7 +334,7 @@ export function Filmography({
         {grouped.map(([year, yearMovies]) => (
           <div key={year} className="space-y-2">
             <h2 className="text-sm font-semibold text-muted-foreground">
-              {year}
+              {year === "Unknown" ? t.cards.unknownYear : year}
             </h2>
             <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
               {yearMovies.map((movie) => (

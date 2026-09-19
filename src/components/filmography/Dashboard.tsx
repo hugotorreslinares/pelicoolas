@@ -23,6 +23,7 @@ import { ShareBadgeButton } from "./ShareBadgeButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import { shareProfile } from "@/lib/shareProfile";
+import { localizeBadge } from "@/lib/badgeText";
 import {
   getLegacyWatchedIds,
   migrateWatchedToSeen,
@@ -461,15 +462,18 @@ export function Dashboard({
 
       {badges.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {badges.map((badge) => (
-            <div key={badge.id} className="flex items-center gap-0.5">
-              <Badge variant="secondary" title={badge.description}>
-                <TrophyIcon data-icon="inline-start" />
-                {badge.label}
-              </Badge>
-              <ShareBadgeButton badge={badge} locale={locale} />
-            </div>
-          ))}
+          {badges.map((raw) => {
+            const badge = localizeBadge(raw, locale);
+            return (
+              <div key={badge.id} className="flex items-center gap-0.5">
+                <Badge variant="secondary" title={badge.description}>
+                  <TrophyIcon data-icon="inline-start" />
+                  {badge.label}
+                </Badge>
+                <ShareBadgeButton badge={badge} locale={locale} />
+              </div>
+            );
+          })}
         </div>
       )}
 

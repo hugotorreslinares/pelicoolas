@@ -463,6 +463,9 @@ export const en = {
       `Go to slide ${index} of ${total}`,
     scrollLeft: "Scroll left",
     scrollRight: "Scroll right",
+    unknownYear: "Unknown",
+    notInFollowed: "Not part of a followed filmography",
+    removedFromWatchlist: (title: string) => `Removed ${title} from watchlist`,
   },
   heroes: {
     welcomeBody:
@@ -524,6 +527,24 @@ export const en = {
     unfollowed: (name: string) => `Unfollowed ${name}`,
     following: "✓ Following",
     follow: "+ Follow",
+  },
+  badges: {
+    personComplete: (name: string) => `Completed ${name}`,
+    personCompleteDesc: (name: string) =>
+      `Watched all the movies in ${name}'s filmography.`,
+    filmographyMilestone: (n: number) => `${n} Filmographies Complete`,
+    filmographyMilestoneDesc: (n: number) =>
+      `Completed ${n} followed filmographies.`,
+    leadingRole: "Leading Role",
+    leadingRoleDesc: "Completed your first actor's filmography.",
+    directorsCut: "Director's Cut",
+    directorsCutDesc: "Completed your first director's filmography.",
+    watchlistMilestone: (n: number) => `Watchlist of ${n}+`,
+    watchlistMilestoneDesc: (n: number) =>
+      `Kept ${n} or more movies on your watchlist.`,
+    fullRetrospective: (name: string) => `${name}: Full Retrospective`,
+    fullRetrospectiveDesc: (name: string) =>
+      `Watched ${name}'s movies across many different decades.`,
   },
   growth: {
     shareMyProfile: "Share my profile",

@@ -26,6 +26,7 @@ import { fetchMovieDetails, fetchPersonData } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
 import { getDictionary, type Locale } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 import type { FollowedPerson, SeenMovie } from "@/types/filmography";
 
 const POSTER_WIDTHS = [185, 342, 500];
@@ -110,13 +111,14 @@ function MovieCard({
   readonly movie: SeenMovie;
   readonly onOpen: () => void;
 }) {
+  const t = getDictionary(useLocale());
   return (
     <div>
       <button
         type="button"
         onClick={onOpen}
         className="focus-ring card-elevated block w-full overflow-hidden rounded-lg border text-left"
-        aria-label={`View details for ${movie.title}`}
+        aria-label={t.cards.viewDetailsFor(movie.title)}
       >
         {movie.posterPath ? (
           <img
@@ -129,13 +131,13 @@ function MovieCard({
           />
         ) : (
           <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
-            No poster
+            {t.cards.noPoster}
           </div>
         )}
       </button>
       <p className="mt-1 truncate font-medium">{movie.title}</p>
       <p className="text-sm text-muted-foreground">
-        {movie.releaseYear ?? "Unknown"}
+        {movie.releaseYear ?? t.cards.unknownYear}
       </p>
     </div>
   );
@@ -148,12 +150,13 @@ function MovieListRow({
   readonly movie: SeenMovie;
   readonly onOpen: () => void;
 }) {
+  const t = getDictionary(useLocale());
   return (
     <button
       type="button"
       onClick={onOpen}
       className="focus-ring card-elevated flex w-full items-center gap-3 overflow-hidden rounded-lg border p-2 text-left"
-      aria-label={`View details for ${movie.title}`}
+      aria-label={t.cards.viewDetailsFor(movie.title)}
     >
       {movie.posterPath ? (
         <img
@@ -164,13 +167,13 @@ function MovieListRow({
         />
       ) : (
         <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
-          No poster
+          {t.cards.noPoster}
         </div>
       )}
       <div className="min-w-0">
         <p className="truncate font-medium">{movie.title}</p>
         <p className="text-sm text-muted-foreground">
-          {movie.releaseYear ?? "Unknown"}
+          {movie.releaseYear ?? t.cards.unknownYear}
         </p>
       </div>
     </button>
@@ -562,7 +565,7 @@ export function WatchedPage({ locale }: WatchedPageProps) {
             <GroupSection
               key={year}
               groupKey={`year:${year}`}
-              title={year}
+              title={year === "Unknown" ? t.cards.unknownYear : year}
               count={yearMovies.length}
               collapsed={collapsedGroups.has(`year:${year}`)}
               onToggle={toggleGroup}
@@ -615,6 +618,7 @@ function PersonGroups({
   collapsedGroups,
   onToggleGroup,
 }: PersonGroupsProps) {
+  const t = getDictionary(useLocale());
   const { stillLoading, groups, other } = grouped;
 
   return (
@@ -653,7 +657,7 @@ function PersonGroups({
       {!stillLoading && other.length > 0 && (
         <GroupSection
           groupKey="person:other"
-          title="Not part of a followed filmography"
+          title={t.cards.notInFollowed}
           count={other.length}
           collapsed={collapsedGroups.has("person:other")}
           onToggle={onToggleGroup}
