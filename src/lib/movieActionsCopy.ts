@@ -1,7 +1,17 @@
-export function watchedLabel(watched: boolean): string {
-  return watched ? "Already watched" : "Mark as watched";
+import { DEFAULT_LOCALE, getDictionary, type Locale } from "@/i18n";
+
+export function watchedLabel(
+  watched: boolean,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const t = getDictionary(locale).movie;
+  return watched ? t.alreadyWatched : t.markWatched;
 }
 
-export function watchlistLabel(inWatchlist: boolean): string {
-  return inWatchlist ? "In watchlist" : "Add to watchlist";
+export function watchlistLabel(
+  inWatchlist: boolean,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const t = getDictionary(locale).movie;
+  return inWatchlist ? t.inWatchlist : t.addToWatchlist;
 }

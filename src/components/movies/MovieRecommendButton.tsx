@@ -16,6 +16,8 @@ import {
   removeFromRecommendations,
 } from "@/lib/firebase/firestore";
 import { notifyFollowersOfRecommendation } from "@/lib/firebase/notifications";
+import { getDictionary } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 import type { TrendingMovie } from "@/types/movie";
 
 interface MovieRecommendButtonProps {
@@ -32,6 +34,7 @@ export function MovieRecommendButton({
   movie,
   onRequireSignIn,
 }: MovieRecommendButtonProps) {
+  const t = getDictionary(useLocale()).movie;
   const { user, loading: authLoading } = useAuth();
   const [recommended, setRecommended] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -59,9 +62,7 @@ export function MovieRecommendButton({
     }
     const next = !recommended;
     setRecommended(next);
-    announce(
-      `${next ? "Added" : "Removed"} ${movie.title} ${next ? "to" : "from"} your recommendations board`,
-    );
+    announce(t.boardChanged(movie.title, next));
     try {
       if (next) {
         await addToRecommendations(user.uid, {
@@ -89,7 +90,7 @@ export function MovieRecommendButton({
       }
     } catch {
       setRecommended(!next);
-      toast.error(`Couldn't update "${movie.title}". Please try again.`);
+      toast.error(t.couldntUpdate(movie.title));
     }
   }
 
@@ -107,8 +108,8 @@ export function MovieRecommendButton({
               className="size-11"
               aria-label={
                 recommended
-                  ? `Remove ${movie.title} from your recommendations board`
-                  : `Add ${movie.title} to your recommendations board`
+                  ? t.removeFromBoardAria(movie.title)
+                  : t.addToBoardAria(movie.title)
               }
               onClick={(e) => void toggleRecommended(e)}
             />
@@ -117,7 +118,7 @@ export function MovieRecommendButton({
           <StarIcon className={recommended ? "fill-current" : ""} />
         </TooltipTrigger>
         <TooltipContent>
-          {recommended ? "Remove from recommendations" : "Recommend this movie"}
+          {recommended ? t.removeFromRecommendations : t.recommendThis}
         </TooltipContent>
       </Tooltip>
       {showSignInHint && <LoginButton size="sm" />}

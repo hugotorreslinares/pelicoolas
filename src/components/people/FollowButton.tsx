@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
+import { getDictionary } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 import { LoginButton } from "@/components/auth/LoginButton";
 import {
   followPerson,
@@ -24,6 +26,7 @@ export function FollowButton({
   knownForDepartment,
 }: FollowButtonProps) {
   const { user, loading: authLoading } = useAuth();
+  const t = getDictionary(useLocale());
   const [following, setFollowing] = useState(false);
   const [checked, setChecked] = useState(false);
   const [showSignInHint, setShowSignInHint] = useState(false);
@@ -46,7 +49,7 @@ export function FollowButton({
     }
     const next = !following;
     setFollowing(next);
-    announce(next ? `Now following ${name}` : `Unfollowed ${name}`);
+    announce(next ? t.followPerson.now(name) : t.followPerson.unfollowed(name));
     try {
       if (next) {
         await followPerson(user.uid, {
@@ -60,7 +63,7 @@ export function FollowButton({
       }
     } catch {
       setFollowing(!next);
-      toast.error(`Couldn't update "${name}". Please try again.`);
+      toast.error(t.movie.couldntUpdate(name));
     }
   }
 
@@ -72,7 +75,7 @@ export function FollowButton({
         variant={following ? "secondary" : "default"}
         onClick={() => void toggleFollow()}
       >
-        {following ? "✓ Following" : "+ Follow"}
+        {following ? t.followPerson.following : t.followPerson.follow}
       </Button>
       {showSignInHint && (
         <div className="flex items-center gap-2">

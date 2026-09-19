@@ -1,21 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { signInWithGoogle } from "@/lib/firebase/auth";
 import { getDictionary, type Locale } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 
 interface LoginButtonProps {
-  // Optional, defaulting to "en": most call sites don't yet thread locale
-  // down through their own component tree (tracked as follow-up i18n work,
-  // see TODO.md) — defaulting keeps them compiling and behaving as before
-  // rather than forcing a prop nobody has to pass yet.
+  // Optional: falls back to the locale stamped on <html lang> (useLocale),
+  // so call sites that don't thread a `locale` prop still translate.
   readonly locale?: Locale;
   readonly size?: "default" | "sm";
 }
 
-export function LoginButton({
-  locale = "en",
-  size = "default",
-}: LoginButtonProps) {
-  const t = getDictionary(locale);
+export function LoginButton({ locale, size = "default" }: LoginButtonProps) {
+  const detected = useLocale();
+  const t = getDictionary(locale ?? detected);
   return (
     <Button size={size} onClick={() => void signInWithGoogle()}>
       {t.account.continueWithGoogle}

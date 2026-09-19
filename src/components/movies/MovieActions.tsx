@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { watchedLabel, watchlistLabel } from "@/lib/movieActionsCopy";
+import { useLocale } from "@/lib/hooks/useLocale";
 import type { TrendingMovie } from "@/types/movie";
 
 interface MovieActionsProps {
@@ -42,6 +43,7 @@ export function MovieActions({
   disabled = false,
   className,
 }: MovieActionsProps) {
+  const locale = useLocale();
   const buttonSize = size === "sm" ? "size-9" : "size-11";
   const iconSize = size === "sm" ? "size-4" : "size-5";
 
@@ -54,8 +56,8 @@ export function MovieActions({
       )}
     >
       <ActionButton
-        label={watchedLabel(watched)}
-        ariaLabel={`${watchedLabel(watched)}: ${movie.title}`}
+        label={watchedLabel(watched, locale)}
+        ariaLabel={`${watchedLabel(watched, locale)}: ${movie.title}`}
         active={watched}
         disabled={disabled}
         buttonSize={buttonSize}
@@ -65,8 +67,8 @@ export function MovieActions({
       </ActionButton>
       <div className="w-px shrink-0 bg-border" />
       <ActionButton
-        label={watchlistLabel(inWatchlist)}
-        ariaLabel={`${watchlistLabel(inWatchlist)}: ${movie.title}`}
+        label={watchlistLabel(inWatchlist, locale)}
+        ariaLabel={`${watchlistLabel(inWatchlist, locale)}: ${movie.title}`}
         active={inWatchlist}
         disabled={disabled}
         buttonSize={buttonSize}

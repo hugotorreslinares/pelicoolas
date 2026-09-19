@@ -21,6 +21,8 @@ import { MovieActions } from "@/components/movies/MovieActions";
 import { MovieRecommendButton } from "@/components/movies/MovieRecommendButton";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { LoginButton } from "@/components/auth/LoginButton";
+import { getDictionary, type Dictionary } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 import type {
   CastMember,
   ExternalRatings,
@@ -57,14 +59,15 @@ interface DialogView {
 function toDialogView(
   details: MovieDetails | TVDetails,
   mediaType: MediaType,
+  t: Dictionary["movie"],
 ): DialogView {
   const secondaryFact =
     mediaType === "movie"
       ? (details as MovieDetails).runtimeMinutes
-        ? `${(details as MovieDetails).runtimeMinutes} min`
+        ? t.minutes((details as MovieDetails).runtimeMinutes!)
         : null
       : (details as TVDetails).seasonCount
-        ? `${(details as TVDetails).seasonCount} season${(details as TVDetails).seasonCount === 1 ? "" : "s"}`
+        ? t.seasons((details as TVDetails).seasonCount!)
         : null;
 
   return {
@@ -80,7 +83,7 @@ function toDialogView(
     externalRatings: details.externalRatings,
     watchProviders: details.watchProviders,
     subtitle: [
-      details.releaseYear ?? "Unknown",
+      details.releaseYear ?? t.unknown,
       secondaryFact,
       details.genres.join(", ") || null,
     ]
@@ -145,8 +148,10 @@ function ProviderRow({
 // https://developer.themoviedb.org/docs/watch-providers.
 function WatchProvidersSection({
   providers,
+  t,
 }: {
   readonly providers: WatchProviders;
+  readonly t: Dictionary["movie"];
 }) {
   const stream = [...providers.flatrate, ...providers.free, ...providers.ads];
   const hasAny =
@@ -161,17 +166,14 @@ function WatchProvidersSection({
         rel="noopener noreferrer"
         className="focus-ring text-sm font-medium hover:underline"
       >
-        Where to watch
+        {t.whereToWatch}
       </a>
       <div className="space-y-1.5">
-        <ProviderRow label="Stream" providers={stream} />
-        <ProviderRow label="Rent" providers={providers.rent} />
-        <ProviderRow label="Buy" providers={providers.buy} />
+        <ProviderRow label={t.stream} providers={stream} />
+        <ProviderRow label={t.rent} providers={providers.rent} />
+        <ProviderRow label={t.buy} providers={providers.buy} />
       </div>
-      <p className="text-xs text-muted-foreground">
-        Streaming availability via JustWatch, may not be complete or 100%
-        accurate.
-      </p>
+      <p className="text-xs text-muted-foreground">{t.justWatchNote}</p>
     </div>
   );
 }
@@ -190,6 +192,7 @@ export function MovieDetailsDialog({
   onOpenChange,
   mediaType = "movie",
 }: MovieDetailsDialogProps) {
+  const t = getDictionary(useLocale()).movie;
   const [view, setView] = useState<DialogView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
@@ -217,14 +220,10 @@ export function MovieDetailsDialog({
     fetchDetails
       .then((details) => {
         if (!details) throw new Error("request failed");
-        setView(toDialogView(details, mediaType));
+        setView(toDialogView(details, mediaType, t));
       })
       .catch(() =>
-        setError(
-          mediaType === "tv"
-            ? "We couldn't load this show. Please try again."
-            : "We couldn't load this movie. Please try again.",
-        ),
+        setError(mediaType === "tv" ? t.couldntLoadShow : t.couldntLoadMovie),
       );
   }, [open, movieId, mediaType]);
 
@@ -244,7 +243,7 @@ export function MovieDetailsDialog({
           }
         >
           <XIcon className="size-5" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{t.close}</span>
         </DialogClose>
 
         {error && (
@@ -300,8 +299,7 @@ export function MovieDetailsDialog({
                 <div className="flex items-center gap-2">
                   <LoginButton size="sm" />
                   <span className="text-xs text-muted-foreground">
-                    to track, save, or recommend{" "}
-                    {mediaType === "tv" ? "shows" : "movies"}
+                    {t.signInToTrack(mediaType === "tv")}
                   </span>
                 </div>
               )}
@@ -314,12 +312,12 @@ export function MovieDetailsDialog({
                   render={<a href={`/map?movie=${view.id}`} />}
                 >
                   <NetworkIcon data-icon="inline-start" />
-                  View in Movie Map
+                  {t.viewInMovieMap}
                 </Button>
               )}
             </DialogHeader>
             <DialogDescription className="mt-2">
-              {view.overview || "No overview available."}
+              {view.overview || t.noOverview}
             </DialogDescription>
 
             {view.externalRatings &&
@@ -349,12 +347,12 @@ export function MovieDetailsDialog({
               )}
 
             {view.watchProviders && (
-              <WatchProvidersSection providers={view.watchProviders} />
+              <WatchProvidersSection providers={view.watchProviders} t={t} />
             )}
 
             {view.cast.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium">Cast</p>
+                <p className="text-sm font-medium">{t.cast}</p>
                 <div className="flex gap-3 overflow-x-auto pb-1">
                   {view.cast.map((member) => (
                     <a

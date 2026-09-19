@@ -485,6 +485,46 @@ export const en = {
     addedToWatchlist: "Added to watchlist",
     recommended: "Recommended",
   },
+  movie: {
+    markWatched: "Mark as watched",
+    alreadyWatched: "Already watched",
+    addToWatchlist: "Add to watchlist",
+    inWatchlist: "In watchlist",
+    recommendThis: "Recommend this movie",
+    removeFromRecommendations: "Remove from recommendations",
+    addToBoardAria: (title: string) =>
+      `Add ${title} to your recommendations board`,
+    removeFromBoardAria: (title: string) =>
+      `Remove ${title} from your recommendations board`,
+    boardChanged: (title: string, added: boolean) =>
+      `${added ? "Added" : "Removed"} ${title} ${added ? "to" : "from"} your recommendations board`,
+    couldntUpdate: (title: string) =>
+      `Couldn't update "${title}". Please try again.`,
+    unknown: "Unknown",
+    minutes: (count: number) => `${count} min`,
+    seasons: (count: number) =>
+      `${count} ${count === 1 ? "season" : "seasons"}`,
+    couldntLoadShow: "We couldn't load this show. Please try again.",
+    couldntLoadMovie: "We couldn't load this movie. Please try again.",
+    close: "Close",
+    signInToTrack: (tv: boolean) =>
+      `to track, save, or recommend ${tv ? "shows" : "movies"}`,
+    viewInMovieMap: "View in Movie Map",
+    noOverview: "No overview available.",
+    cast: "Cast",
+    whereToWatch: "Where to watch",
+    stream: "Stream",
+    rent: "Rent",
+    buy: "Buy",
+    justWatchNote:
+      "Streaming availability via JustWatch, may not be complete or 100% accurate.",
+  },
+  followPerson: {
+    now: (name: string) => `Now following ${name}`,
+    unfollowed: (name: string) => `Unfollowed ${name}`,
+    following: "✓ Following",
+    follow: "+ Follow",
+  },
   growth: {
     shareMyProfile: "Share my profile",
     shareTitle: "My Pelicoolas profile",
