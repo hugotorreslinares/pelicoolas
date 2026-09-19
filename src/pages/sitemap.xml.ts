@@ -8,7 +8,7 @@ export const prerender = false;
 // Only indexable pages (no `noindex`): the static public routes plus a seed
 // of TMDB's most popular people, since /person/{id} is the real public
 // content. Every other person is still reachable via search and internal links.
-const STATIC_PATHS = ["/search", "/privacy"];
+const STATIC_PATHS = ["/", "/search", "/privacy"];
 const CACHE_SECONDS = 60 * 60 * 24;
 
 export const GET: APIRoute = async ({ site }) => {
