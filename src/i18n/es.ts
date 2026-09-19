@@ -556,6 +556,8 @@ export const es: Dictionary = {
     select: (title) => `Seleccionar ${title}`,
     deselect: (title) => `Quitar ${title} de la lista`,
     share: "Compartir mi lista",
+    selectForMe: "Elegir por mí",
+    clearAll: "Deseleccionar todas",
     shareTitle: "Mi lista de Halloween",
     shareText: (watched, total, titles) =>
       `Mi reto de Halloween — ${watched}/${total} vistas:\n${titles}\n\nArma la tuya en Pelicoolas:`,

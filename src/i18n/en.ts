@@ -575,6 +575,8 @@ export const en = {
     select: (title: string) => `Select ${title}`,
     deselect: (title: string) => `Remove ${title} from the list`,
     share: "Share my list",
+    selectForMe: "Pick for me",
+    clearAll: "Clear all",
     shareTitle: "My Halloween list",
     shareText: (watched: number, total: number, titles: string) =>
       `My Halloween challenge — ${watched}/${total} watched:\n${titles}\n\nBuild yours on Pelicoolas:`,

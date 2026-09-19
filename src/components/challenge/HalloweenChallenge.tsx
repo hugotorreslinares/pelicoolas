@@ -159,11 +159,16 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
   // The pool to pick from: current list first (so edits keep them), then ranked candidates.
   const pool = useMemo(() => {
     const byId = new Map<number, TrendingMovie>();
-    for (const m of [...challenge, ...(candidates ?? [])]) {
+    // Already-watched candidates are useless for a "watch before Oct 31"
+    // list, so hide them (the user's current list is always kept).
+    const unseen = (candidates ?? []).filter(
+      (m) => !seenIds?.has(m.tmdbMovieId),
+    );
+    for (const m of [...challenge, ...unseen]) {
       if (!byId.has(m.tmdbMovieId)) byId.set(m.tmdbMovieId, m);
     }
     return [...byId.values()];
-  }, [challenge, candidates]);
+  }, [challenge, candidates, seenIds]);
 
   // Seed the selection once the data needed to choose is in.
   const [seeded, setSeeded] = useState(false);
@@ -214,6 +219,18 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
     );
     if (result === "copied") toast.success(t.listCopied);
     if (result === "failed") toast.error(t.couldntShare);
+  }
+
+  // Keeps manual picks and tops up to 31 with the best-ranked unwatched ones.
+  function selectForMe() {
+    setSelection((prev) => {
+      const next = new Set(prev);
+      for (const m of pool) {
+        if (next.size >= HALLOWEEN_SIZE) break;
+        next.add(m.tmdbMovieId);
+      }
+      return next;
+    });
   }
 
   function toggle(id: number) {
@@ -319,7 +336,23 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
           <span className="text-sm font-medium">
             {t.selected(selection.size, HALLOWEEN_SIZE)}
           </span>
-          <div className="ml-auto flex gap-2">
+          <div className="ml-auto flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selection.size >= HALLOWEEN_SIZE}
+              onClick={selectForMe}
+            >
+              {t.selectForMe}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selection.size === 0}
+              onClick={() => setSelection(new Set())}
+            >
+              {t.clearAll}
+            </Button>
             {challenge.length > 0 && (
               <Button
                 size="sm"

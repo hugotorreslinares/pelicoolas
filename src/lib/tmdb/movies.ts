@@ -170,7 +170,7 @@ export async function getTrendingMovies(): Promise<readonly TrendingMovie[]> {
 }
 
 const HORROR_GENRE_ID = "27";
-const HORROR_PAGES = [1, 2, 3];
+const HORROR_PAGES = [1, 2, 3, 4, 5, 6]; // 20 per page — ~120, so plenty remain after hiding what a user already watched
 
 // Well-known, well-rated horror: vote_count floor keeps obscure titles with a
 // handful of perfect scores out. Ranked by popularity of votes, so index 0 is
