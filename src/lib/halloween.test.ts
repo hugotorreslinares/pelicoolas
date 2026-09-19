@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { daysLeft, isHalloweenSeason, pickInitial } from "./halloween";
+import {
+  daysLeft,
+  isHalloweenSeason,
+  pickInitial,
+  pickRandom,
+} from "./halloween";
 import type { TrendingMovie } from "@/types/movie";
 
 const movie = (id: number): TrendingMovie => ({
@@ -34,5 +39,16 @@ describe("pickInitial", () => {
     expect(
       pickInitial(list, new Set([2]), 2).map((m) => m.tmdbMovieId),
     ).toEqual([1, 3]);
+  });
+});
+
+describe("pickRandom", () => {
+  it("returns `size` distinct items and reshuffles with a different rng", () => {
+    const items = Array.from({ length: 10 }, (_, i) => i);
+    const a = pickRandom(items, 4, () => 0);
+    const b = pickRandom(items, 4, () => 0.99);
+    expect(new Set(a).size).toBe(4);
+    expect(a).not.toEqual(b);
+    expect(pickRandom(items, 50)).toHaveLength(10);
   });
 });

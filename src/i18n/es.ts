@@ -557,6 +557,10 @@ export const es: Dictionary = {
     deselect: (title) => `Quitar ${title} de la lista`,
     share: "Compartir mi lista",
     selectForMe: "Elegir por mí",
+    searchPlaceholder: "Busca una película para agregar…",
+    searchAria: "Buscar películas para agregar a tu lista",
+    noResults: "No se encontraron películas.",
+    searchError: "No se pudo buscar ahora. Intenta de nuevo.",
     clearAll: "Deseleccionar todas",
     shareTitle: "Mi lista de Halloween",
     shareText: (watched, total, titles) =>

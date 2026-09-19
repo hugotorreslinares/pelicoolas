@@ -27,3 +27,17 @@ export function pickInitial(
 ): readonly TrendingMovie[] {
   return candidates.filter((m) => !seenIds.has(m.tmdbMovieId)).slice(0, size);
 }
+
+/** `size` random items (Fisher–Yates on a copy); `rng` is injectable for tests. */
+export function pickRandom<T>(
+  items: readonly T[],
+  size: number = HALLOWEEN_SIZE,
+  rng: () => number = Math.random,
+): readonly T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, size);
+}

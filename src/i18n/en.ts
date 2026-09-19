@@ -576,6 +576,10 @@ export const en = {
     deselect: (title: string) => `Remove ${title} from the list`,
     share: "Share my list",
     selectForMe: "Pick for me",
+    searchPlaceholder: "Search a movie to add…",
+    searchAria: "Search movies to add to your list",
+    noResults: "No movies found.",
+    searchError: "Couldn't search right now. Please try again.",
     clearAll: "Clear all",
     shareTitle: "My Halloween list",
     shareText: (watched: number, total: number, titles: string) =>

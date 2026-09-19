@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CheckIcon, Share2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { FilmographyProgress } from "@/components/filmography/FilmographyProgress";
@@ -21,6 +22,7 @@ import {
   HALLOWEEN_SIZE,
   daysLeft,
   pickInitial,
+  pickRandom,
 } from "@/lib/halloween";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { getDictionary, type Locale } from "@/i18n";
@@ -66,6 +68,39 @@ function Poster({
     <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
       {movie.title}
     </div>
+  );
+}
+
+// Selectable poster used by both the ranked grid and the search results.
+function PickCard({
+  movie,
+  on,
+  onToggle,
+  selectLabel,
+  deselectLabel,
+}: {
+  readonly movie: TrendingMovie;
+  readonly on: boolean;
+  readonly onToggle: () => void;
+  readonly selectLabel: string;
+  readonly deselectLabel: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={on}
+      aria-label={on ? deselectLabel : selectLabel}
+      className="focus-ring relative text-left"
+    >
+      <Poster movie={movie} dim={!on} />
+      {on && (
+        <span className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
+          <CheckIcon className="size-4" />
+        </span>
+      )}
+      <p className="mt-1 truncate text-xs font-medium">{movie.title}</p>
+    </button>
   );
 }
 
@@ -120,6 +155,12 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
   const [selection, setSelection] = useState<ReadonlySet<number>>(new Set());
   const [saving, setSaving] = useState(false);
   const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<readonly TrendingMovie[] | null>(null);
+  const [searchError, setSearchError] = useState(false);
+  // Movies found via search — kept in the pool so they stay pickable/visible
+  // after the query is cleared.
+  const [extras, setExtras] = useState<readonly TrendingMovie[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -156,6 +197,33 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
     };
   }, [user, watchlist, building, candidates, candidatesGen]);
 
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setResults(null);
+      setSearchError(false);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetch(`/api/search-movie?q=${encodeURIComponent(q)}`)
+        .then((r) => {
+          if (!r.ok) throw new Error("request failed");
+          return r.json() as Promise<{ results: readonly TrendingMovie[] }>;
+        })
+        .then((d) => {
+          if (cancelled) return;
+          setResults(d.results.slice(0, 12));
+          setSearchError(false);
+        })
+        .catch(() => !cancelled && setSearchError(true));
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
   // The pool to pick from: current list first (so edits keep them), then ranked candidates.
   const pool = useMemo(() => {
     const byId = new Map<number, TrendingMovie>();
@@ -164,11 +232,11 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
     const unseen = (candidates ?? []).filter(
       (m) => !seenIds?.has(m.tmdbMovieId),
     );
-    for (const m of [...challenge, ...unseen]) {
+    for (const m of [...challenge, ...extras, ...unseen]) {
       if (!byId.has(m.tmdbMovieId)) byId.set(m.tmdbMovieId, m);
     }
     return [...byId.values()];
-  }, [challenge, candidates, seenIds]);
+  }, [challenge, extras, candidates, seenIds]);
 
   // Seed the selection once the data needed to choose is in.
   const [seeded, setSeeded] = useState(false);
@@ -221,16 +289,17 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
     if (result === "failed") toast.error(t.couldntShare);
   }
 
-  // Keeps manual picks and tops up to 31 with the best-ranked unwatched ones.
+  // A fresh random 31 from the unwatched pool on every press (replaces the
+  // current selection — that's the point of "pick for me").
   function selectForMe() {
-    setSelection((prev) => {
-      const next = new Set(prev);
-      for (const m of pool) {
-        if (next.size >= HALLOWEEN_SIZE) break;
-        next.add(m.tmdbMovieId);
-      }
-      return next;
-    });
+    setSelection(new Set(pickRandom(pool).map((m) => m.tmdbMovieId)));
+  }
+
+  function toggleSearchResult(m: TrendingMovie) {
+    setExtras((prev) =>
+      prev.some((e) => e.tmdbMovieId === m.tmdbMovieId) ? prev : [m, ...prev],
+    );
+    toggle(m.tmdbMovieId);
   }
 
   function toggle(id: number) {
@@ -332,17 +401,40 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
           <p className="font-medium">{t.pickTitle}</p>
           <p className="text-sm text-muted-foreground">{t.pickBody}</p>
         </div>
+        <div className="space-y-3">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t.searchPlaceholder}
+            aria-label={t.searchAria}
+          />
+          {searchError && (
+            <p className="text-sm text-destructive">{t.searchError}</p>
+          )}
+          {results !== null && results.length === 0 && !searchError && (
+            <p className="text-sm text-muted-foreground">{t.noResults}</p>
+          )}
+          {results !== null && results.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+              {results.map((m) => (
+                <PickCard
+                  key={m.tmdbMovieId}
+                  movie={m}
+                  on={selection.has(m.tmdbMovieId)}
+                  onToggle={() => toggleSearchResult(m)}
+                  selectLabel={t.select(m.title)}
+                  deselectLabel={t.deselect(m.title)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
         <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b bg-background/95 py-2 backdrop-blur">
           <span className="text-sm font-medium">
             {t.selected(selection.size, HALLOWEEN_SIZE)}
           </span>
           <div className="ml-auto flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={selection.size >= HALLOWEEN_SIZE}
-              onClick={selectForMe}
-            >
+            <Button size="sm" variant="outline" onClick={selectForMe}>
               {t.selectForMe}
             </Button>
             <Button
@@ -375,27 +467,16 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
-          {pool.map((m) => {
-            const on = selection.has(m.tmdbMovieId);
-            return (
-              <button
-                key={m.tmdbMovieId}
-                type="button"
-                onClick={() => toggle(m.tmdbMovieId)}
-                aria-pressed={on}
-                aria-label={on ? t.deselect(m.title) : t.select(m.title)}
-                className="focus-ring relative text-left"
-              >
-                <Poster movie={m} dim={!on} />
-                {on && (
-                  <span className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
-                    <CheckIcon className="size-4" />
-                  </span>
-                )}
-                <p className="mt-1 truncate text-xs font-medium">{m.title}</p>
-              </button>
-            );
-          })}
+          {pool.map((m) => (
+            <PickCard
+              key={m.tmdbMovieId}
+              movie={m}
+              on={selection.has(m.tmdbMovieId)}
+              onToggle={() => toggle(m.tmdbMovieId)}
+              selectLabel={t.select(m.title)}
+              deselectLabel={t.deselect(m.title)}
+            />
+          ))}
         </div>
       </div>
     );
