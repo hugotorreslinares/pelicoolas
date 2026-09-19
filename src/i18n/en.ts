@@ -574,6 +574,12 @@ export const en = {
     tooMany: (total: number) => `Pick at most ${total}.`,
     select: (title: string) => `Select ${title}`,
     deselect: (title: string) => `Remove ${title} from the list`,
+    share: "Share my list",
+    shareTitle: "My Halloween list",
+    shareText: (watched: number, total: number, titles: string) =>
+      `My Halloween challenge — ${watched}/${total} watched:\n${titles}\n\nBuild yours on Pelicoolas:`,
+    listCopied: "List copied to clipboard",
+    couldntShare: "Couldn't share your list. Please try again.",
   },
   growth: {
     shareMyProfile: "Share my profile",

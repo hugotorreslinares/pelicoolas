@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, Share2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoginButton } from "@/components/auth/LoginButton";
@@ -15,6 +15,7 @@ import {
   subscribeToWatchlist,
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
+import { shareContent } from "@/lib/shareProfile";
 import {
   HALLOWEEN_CHALLENGE_ID,
   HALLOWEEN_SIZE,
@@ -196,6 +197,25 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
     });
   }, [user, done]);
 
+  async function shareList() {
+    const url = `${window.location.origin}/halloween`;
+    const titles = challenge
+      .map(
+        (m, i) =>
+          `${i + 1}. ${m.title}${seenIds?.has(m.tmdbMovieId) ? " ✓" : ""}`,
+      )
+      .join("\n");
+    const text = t.shareText(watchedCount, challenge.length, titles);
+    const result = await shareContent(
+      url,
+      t.shareTitle,
+      text,
+      `${text} ${url}`,
+    );
+    if (result === "copied") toast.success(t.listCopied);
+    if (result === "failed") toast.error(t.couldntShare);
+  }
+
   function toggle(id: number) {
     setSelection((prev) => {
       const next = new Set(prev);
@@ -363,16 +383,22 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
           {t.complete}
         </p>
       )}
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => {
-          setEditing(true);
-          setSeeded(false);
-        }}
-      >
-        {t.edit}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setEditing(true);
+            setSeeded(false);
+          }}
+        >
+          {t.edit}
+        </Button>
+        <Button size="sm" onClick={() => void shareList()}>
+          <Share2Icon data-icon="inline-start" />
+          {t.share}
+        </Button>
+      </div>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
         {challenge.map((m) => (
           <ProgressCard

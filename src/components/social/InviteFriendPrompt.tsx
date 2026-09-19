@@ -51,7 +51,7 @@ export function InviteFriendPrompt({
     );
     if (result === "copied") announce(t.growth.linkCopied);
     if (result === "failed") announce(t.growth.couldntShare);
-    if (result !== "failed") dismiss();
+    if (result === "shared" || result === "copied") dismiss();
   }
 
   if (

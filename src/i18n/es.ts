@@ -555,6 +555,12 @@ export const es: Dictionary = {
     tooMany: (total) => `Elige máximo ${total}.`,
     select: (title) => `Seleccionar ${title}`,
     deselect: (title) => `Quitar ${title} de la lista`,
+    share: "Compartir mi lista",
+    shareTitle: "Mi lista de Halloween",
+    shareText: (watched, total, titles) =>
+      `Mi reto de Halloween — ${watched}/${total} vistas:\n${titles}\n\nArma la tuya en Pelicoolas:`,
+    listCopied: "Lista copiada al portapapeles",
+    couldntShare: "No se pudo compartir tu lista. Intenta de nuevo.",
   },
   growth: {
     shareMyProfile: "Compartir mi perfil",
