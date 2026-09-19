@@ -233,7 +233,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
           <UserMenu locale={locale} client:idle />
         </div>
       </aside>
-      <div class="flex-1">
+      <div class="flex min-h-screen flex-1 flex-col">
         <header class="border-b md:hidden">
           <div
             class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-2 p-4 sm:px-6 lg:px-8"
@@ -328,14 +328,17 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
             </div>
           </div>
         </header>
-        <main id="main-content" class="mx-auto max-w-6xl p-4 sm:px-6 lg:px-8">
+        <main
+          id="main-content"
+          class="mx-auto w-full max-w-6xl flex-1 p-4 sm:px-6 lg:px-8"
+        >
           <slot />
         </main>
         <OnboardingCarousel locale={locale} client:idle />
         <UsernamePrompt locale={locale} client:idle />
         <Toaster client:idle />
         <footer
-          class="mx-auto max-w-6xl space-y-2 border-t p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"
+          class="mx-auto w-full max-w-6xl space-y-2 border-t p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"
         >
           <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
             <a
