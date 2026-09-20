@@ -31,6 +31,11 @@ export const es: Dictionary = {
     tmdbAttribution:
       "Este producto usa la API de TMDB pero no está avalado ni certificado por TMDB.",
     privacyLink: "Privacidad y datos",
+    tagline: "Sigue tus filmografías y comparte tu gusto con tus amigos.",
+    exploreHeading: "Explorar",
+    communityHeading: "Comunidad",
+    legalHeading: "Legal",
+    halloweenLink: "Reto de Halloween",
     copyright: (year) => `© ${year} Pelicoolas`,
     deployed: (date) => `Desplegado ${date}`,
   },

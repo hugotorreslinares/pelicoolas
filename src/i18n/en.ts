@@ -54,6 +54,11 @@ export const en = {
     tmdbAttribution:
       "This product uses the TMDB API but is not endorsed or certified by TMDB.",
     privacyLink: "Privacy & Data Policy",
+    tagline: "Track your filmographies, share your taste with friends.",
+    exploreHeading: "Explore",
+    communityHeading: "Community",
+    legalHeading: "Legal",
+    halloweenLink: "Halloween challenge",
     copyright: (year: number) => `© ${year} Pelicoolas`,
     deployed: (date: string) => `Deployed ${date}`,
   },
