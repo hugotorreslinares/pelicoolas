@@ -7,8 +7,10 @@ import { RecentUsersSlider } from "@/components/social/RecentUsersSlider";
 import { getTrendingMovies } from "@/lib/tmdb/movies";
 import { getTrendingTV } from "@/lib/tmdb/tv";
 import { TmdbError } from "@/lib/tmdb/client";
+import { SESSION_HINT_COOKIE } from "@/lib/sessionHint";
 
 const locale = Astro.locals.locale;
+const signedInHint = Astro.cookies.get(SESSION_HINT_COOKIE)?.value === "1";
 
 // Best-effort: if TMDB is down, the dashboard still renders fine without
 // the trending rows rather than breaking the whole page over it. Fetched
@@ -43,6 +45,7 @@ if (tvResult.status === "fulfilled") {
       trendingMovies={trendingMovies}
       trendingTV={trendingTV}
       limit={15}
+      signedInHint={signedInHint}
     />
     <RecentUsersSlider locale={locale} client:idle />
   </div>

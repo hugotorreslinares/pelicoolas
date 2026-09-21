@@ -84,9 +84,17 @@ interface DashboardProps {
   readonly trendingTV?: readonly TrendingMovie[];
   /** Caps the followed-people grid (home uses this to stay short; /filmographies shows everyone). */
   readonly limit?: number;
+  /**
+   * Server-side guess (see sessionHint.ts) that this visitor is a signed-in
+   * member. When false, the signed-out home renders immediately instead of a
+   * skeleton while Firebase auth resolves. Defaults to true (skeleton) for
+   * pages that don't compute it.
+   */
+  readonly signedInHint?: boolean;
 }
 
 export function Dashboard({
+  signedInHint = true,
   locale,
   trendingMovies = [],
   trendingTV = [],
@@ -387,7 +395,11 @@ export function Dashboard({
     </>
   );
 
-  if (authLoading || (user && people === null)) {
+  // No session hint: show the signed-out home while auth is still resolving
+  // (it swaps to the dashboard only if the visitor turns out to be signed in).
+  const showSkeleton =
+    (authLoading && signedInHint) || (user !== null && people === null);
+  if (showSkeleton) {
     return (
       <div className="space-y-2">
         <h1 className="sr-only">{heading}</h1>

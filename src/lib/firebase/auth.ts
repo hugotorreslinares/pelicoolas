@@ -7,6 +7,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth } from "./client";
+import { setSessionHint } from "@/lib/sessionHint";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -57,5 +58,8 @@ export function subscribeToAuthState(
     callback(null);
     return () => {};
   }
-  return onAuthStateChanged(auth, callback);
+  return onAuthStateChanged(auth, (user) => {
+    setSessionHint(user !== null);
+    callback(user);
+  });
 }
