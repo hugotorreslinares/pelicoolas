@@ -9,6 +9,7 @@ import {
   connectFirestoreEmulator,
   doc,
   getFirestore,
+  initializeFirestore,
   setDoc,
   type Firestore,
 } from "firebase/firestore";
@@ -32,8 +33,25 @@ export const firebaseApp: FirebaseApp | null = isConfigured
     : initializeApp(firebaseConfig)
   : null;
 export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
+
+// Optional fields (e.g. `mediaType` on movie search results, which are
+// implicitly "movie") are routinely `undefined` in the objects we write.
+// Firestore rejects those by default ("Unsupported field value: undefined"),
+// which surfaced as "Couldn't update" when adding a search result to the
+// watched list/watchlist. Skipping them matches the "absent means movie"
+// convention used across the data model.
+function createFirestore(app: FirebaseApp): Firestore {
+  try {
+    return initializeFirestore(app, { ignoreUndefinedProperties: true });
+  } catch {
+    // Already initialized for this app (HMR / second module instance) —
+    // initializeFirestore can only run once, so reuse that instance.
+    return getFirestore(app);
+  }
+}
+
 export const db: Firestore | null = firebaseApp
-  ? getFirestore(firebaseApp)
+  ? createFirestore(firebaseApp)
   : null;
 
 // Playwright E2E only (see tests-e2e/) — this flag is never set in dev or

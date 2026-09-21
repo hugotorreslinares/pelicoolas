@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
+import { useLocale } from "@/lib/hooks/useLocale";
+import { getDictionary } from "@/i18n";
 import {
   addToWatchlist,
   isInWatchlist,
@@ -33,6 +35,7 @@ export function useMovieActionState(
   onRequireSignIn?: () => void,
 ): MovieActionState {
   const { user, loading: authLoading } = useAuth();
+  const t = getDictionary(useLocale());
   const [watched, setWatched] = useState(false);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -77,7 +80,7 @@ export function useMovieActionState(
       : unmarkMovieSeen(user!.uid, movie.tmdbMovieId, movie.mediaType);
     write.catch(() => {
       setWatched(!next);
-      toast.error(`Couldn't update "${movie.title}". Please try again.`);
+      toast.error(t.movie.couldntUpdate(movie.title));
     });
   }
 
@@ -101,7 +104,7 @@ export function useMovieActionState(
       : removeFromWatchlist(user!.uid, movie.tmdbMovieId, movie.mediaType);
     write.catch(() => {
       setInWatchlist(!next);
-      toast.error(`Couldn't update "${movie.title}". Please try again.`);
+      toast.error(t.movie.couldntUpdate(movie.title));
     });
   }
 
