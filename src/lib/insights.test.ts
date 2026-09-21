@@ -115,4 +115,20 @@ describe("latestRecommendation", () => {
         ?.tmdbId,
     ).toBe(2);
   });
+
+  it("handles Firestore Timestamps and pending (null) timestamps", () => {
+    const ts = (ms: number) => ({ toMillis: () => ms });
+    const rec = (tmdbId: number, addedAt: unknown) =>
+      ({ tmdbId, addedAt }) as unknown as RecommendedMovie;
+    expect(
+      latestRecommendation([rec(1, ts(1000)), rec(2, ts(5000))])?.tmdbId,
+    ).toBe(2);
+    expect(latestRecommendation([rec(1, ts(1000)), rec(3, null)])?.tmdbId).toBe(
+      3,
+    );
+    const i = computeInsights([
+      movie({ watchedAt: ts(Date.UTC(2026, 5, 15, 12)) as unknown as string }),
+    ]);
+    expect(i.busiestMonth?.month).toBe(5);
+  });
 });

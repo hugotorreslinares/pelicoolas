@@ -27,6 +27,22 @@ export interface Insights {
 /** Below this, "favorite year/month" is noise rather than insight. */
 export const MIN_MOVIES_FOR_INSIGHTS = 5;
 
+/**
+ * Firestore returns `serverTimestamp()` fields as Timestamp objects (or null
+ * while a local write is still pending), even though our types say string —
+ * so read them defensively.
+ */
+export function toMillis(value: unknown): number | null {
+  if (value && typeof value === "object" && "toMillis" in value) {
+    return (value as { toMillis: () => number }).toMillis();
+  }
+  if (typeof value === "string") {
+    const ms = Date.parse(value);
+    return Number.isNaN(ms) ? null : ms;
+  }
+  return null;
+}
+
 function mostFrequent<K>(keys: readonly K[]): [K, number] | null {
   const counts = new Map<K, number>();
   for (const key of keys) counts.set(key, (counts.get(key) ?? 0) + 1);
@@ -58,8 +74,8 @@ export function computeInsights(seen: readonly SeenMovie[]): Insights {
 
   const busiestEntry = mostFrequent(
     seen.flatMap((m) => {
-      const month = new Date(m.watchedAt).getMonth();
-      return Number.isNaN(month) ? [] : [month];
+      const ms = toMillis(m.watchedAt);
+      return ms === null ? [] : [new Date(ms).getMonth()];
     }),
   );
 
@@ -124,9 +140,7 @@ export function rankTopPeople(
 export function latestRecommendation(
   recommendations: readonly RecommendedMovie[],
 ): RecommendedMovie | null {
-  return (
-    [...recommendations].sort((a, b) =>
-      b.addedAt.localeCompare(a.addedAt),
-    )[0] ?? null
-  );
+  // A pending server timestamp reads as null — that's the newest write.
+  const at = (m: RecommendedMovie) => toMillis(m.addedAt) ?? Infinity;
+  return [...recommendations].sort((a, b) => at(b) - at(a))[0] ?? null;
 }
