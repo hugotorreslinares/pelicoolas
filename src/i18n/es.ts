@@ -12,6 +12,8 @@ export const es: Dictionary = {
     friends: "Amigos",
     movieMap: "Movie Map",
     menu: "Menú",
+    lists: "Listas",
+    halloween: "Halloween",
   },
   account: {
     toggleTheme: "Cambiar tema",

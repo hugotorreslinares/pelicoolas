@@ -35,6 +35,8 @@ export const en = {
     friends: "Friends",
     movieMap: "Movie Map",
     menu: "Menu",
+    lists: "Lists",
+    halloween: "Halloween",
   },
   account: {
     toggleTheme: "Toggle theme",

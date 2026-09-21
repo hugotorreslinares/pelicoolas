@@ -7,6 +7,7 @@ import {
   NetworkIcon,
   WaypointsIcon,
   UsersIcon,
+  GhostIcon,
   XIcon,
 } from "lucide-react";
 import {
@@ -42,6 +43,9 @@ export function MobileNav({ locale }: MobileNavProps) {
     { href: "/connections", label: t.nav.connections, icon: NetworkIcon },
     { href: "/map", label: t.nav.movieMap, icon: WaypointsIcon },
     { href: "/friends", label: t.nav.friends, icon: UsersIcon },
+  ];
+  const lists = [
+    { href: "/halloween", label: t.nav.halloween, icon: GhostIcon },
   ] as const;
 
   return (
@@ -79,6 +83,19 @@ export function MobileNav({ locale }: MobileNavProps) {
             </DialogClose>
           </div>
           {links.map(({ href, label, icon: Icon }) => (
+            <a
+              key={href}
+              href={href}
+              className="focus-ring flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Icon className="size-4" />
+              {label}
+            </a>
+          ))}
+          <p className="px-3 pt-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            {t.nav.lists}
+          </p>
+          {lists.map(({ href, label, icon: Icon }) => (
             <a
               key={href}
               href={href}

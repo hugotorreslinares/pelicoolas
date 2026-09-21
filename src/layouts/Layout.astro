@@ -17,6 +17,7 @@ import {
   EyeIcon,
   UsersIcon,
   WaypointsIcon,
+  GhostIcon,
 } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
@@ -63,6 +64,7 @@ const isWatchlistActive = pathname === "/watchlist";
 const isConnectionsActive = pathname === "/connections";
 const isMapActive = pathname === "/map";
 const isFriendsActive = pathname === "/friends";
+const isHalloweenActive = pathname === "/halloween";
 
 // size-11 (44px): minimum comfortable touch target on mobile — these are
 // icon-only links (visible label is sr-only), so padding alone previously
@@ -235,6 +237,19 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
               <UsersIcon className="size-4" />
               {t.nav.friends}
             </a>
+            <p
+              class="px-3 pt-4 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+              {t.nav.lists}
+            </p>
+            <a
+              href="/halloween"
+              class={sidebarLinkClass(isHalloweenActive)}
+              aria-current={isHalloweenActive ? "page" : undefined}
+            >
+              <GhostIcon className="size-4" />
+              {t.nav.halloween}
+            </a>
           </nav>
         </div>
         <div class="flex items-center gap-1 border-t pt-4">
@@ -329,6 +344,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
                 >
                   <UsersIcon className="size-4" />
                   <span class="sr-only">{t.nav.friends}</span>
+                </a>
+                <a
+                  href="/halloween"
+                  class={navLinkClass(isHalloweenActive)}
+                  aria-current={isHalloweenActive ? "page" : undefined}
+                  title={`${t.nav.lists}: ${t.nav.halloween}`}
+                >
+                  <GhostIcon className="size-4" />
+                  <span class="sr-only">{t.nav.halloween}</span>
                 </a>
               </nav>
               <NotificationBell client:idle />
