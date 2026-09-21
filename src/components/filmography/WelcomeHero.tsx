@@ -12,7 +12,7 @@ interface WelcomeHeroProps {
 export function WelcomeHero({ locale }: WelcomeHeroProps) {
   const t = getDictionary(locale);
   return (
-    <div className="space-y-4 py-6 text-center">
+    <div className="flex w-full flex-col justify-center space-y-4 py-6 text-center">
       <img
         src="/logo.png"
         alt=""

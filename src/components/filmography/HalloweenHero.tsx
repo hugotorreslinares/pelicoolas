@@ -11,7 +11,7 @@ interface HalloweenHeroProps {
 export function HalloweenHero({ locale }: HalloweenHeroProps) {
   const t = getDictionary(locale).halloween;
   return (
-    <div className="space-y-4 py-6 text-center">
+    <div className="flex w-full flex-col justify-center space-y-4 py-6 text-center">
       <div className="mx-auto flex size-24 items-center justify-center rounded-full bg-orange-500/15 sm:size-32">
         <GhostIcon className="size-10 text-orange-500 sm:size-14" />
       </div>

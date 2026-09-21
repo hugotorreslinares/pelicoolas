@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { WelcomeHero } from "./WelcomeHero";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { SocialHero } from "./SocialHero";
@@ -41,19 +41,7 @@ export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
     : baseSlides;
 
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const slideRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [activeIndex, setActiveIndex] = useState(0);
-  const [height, setHeight] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    const el = slideRefs.current[activeIndex];
-    if (!el) return;
-    const observer = new ResizeObserver(([entry]) =>
-      setHeight(entry.contentRect.height),
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [activeIndex]);
 
   function handleScroll() {
     const el = scrollerRef.current;
@@ -72,17 +60,13 @@ export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
       <div
         ref={scrollerRef}
         onScroll={handleScroll}
-        className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth transition-[height] duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{ height }}
+        className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {slides.map((slide, index) => (
-          <div
-            key={index}
-            ref={(el) => {
-              slideRefs.current[index] = el;
-            }}
-            className="w-full shrink-0 snap-center self-start"
-          >
+          // Row-flex children stretch to the tallest slide, so every slide
+          // shares one height and the content below never jumps on swipe.
+          // Each slide's root fills that height and centers its own content.
+          <div key={index} className="flex w-full shrink-0 snap-center">
             {slide}
           </div>
         ))}

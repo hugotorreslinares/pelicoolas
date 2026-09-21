@@ -18,7 +18,7 @@ interface SocialHeroProps {
 export function SocialHero({ locale }: SocialHeroProps) {
   const t = getDictionary(locale);
   return (
-    <div className="relative overflow-hidden md:rounded-2xl md:border md:bg-white">
+    <div className="relative w-full overflow-hidden md:flex md:items-center md:rounded-2xl md:border md:bg-white">
       <img
         src="/friends-hero.webp"
         alt=""
@@ -31,7 +31,7 @@ export function SocialHero({ locale }: SocialHeroProps) {
         aria-hidden="true"
         className="absolute inset-0 hidden bg-gradient-to-r from-white via-white/90 to-transparent md:block md:via-white/85"
       />
-      <div className="relative space-y-4 py-6 text-center md:flex md:min-h-[520px] md:max-w-[46%] md:flex-col md:items-start md:justify-center md:px-10 md:text-left">
+      <div className="relative space-y-4 py-6 text-center md:flex md:w-full md:max-w-[46%] md:flex-col md:items-start md:justify-center md:px-10 md:text-left">
         <div className="mx-auto flex size-24 items-center justify-center rounded-full bg-muted sm:size-32 md:hidden">
           <UsersIcon className="size-10 text-muted-foreground sm:size-14" />
         </div>

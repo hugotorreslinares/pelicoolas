@@ -228,7 +228,7 @@ export function FollowedPeopleHero({
   return (
     <div
       ref={containerRef}
-      className="flex flex-wrap justify-center gap-4 overflow-visible px-2 py-10 sm:gap-5"
+      className="flex w-full flex-wrap content-center justify-center gap-4 overflow-visible px-2 py-10 sm:gap-5"
     >
       {photoPeople.map((person) => (
         <button
