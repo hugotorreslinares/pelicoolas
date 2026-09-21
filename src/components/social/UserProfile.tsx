@@ -155,6 +155,7 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
           userId={userId}
           displayName={profile.displayName}
           isOwner={isOwner}
+          onOpenMovie={setOpenMovie}
         />
       )}
 

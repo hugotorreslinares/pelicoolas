@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { computeInsights } from "./insights";
-import type { SeenMovie } from "@/types/filmography";
+import {
+  computeInsights,
+  latestRecommendation,
+  rankTopPeople,
+} from "./insights";
+import type {
+  FollowedPerson,
+  RecommendedMovie,
+  SeenMovie,
+  WatchlistMovie,
+} from "@/types/filmography";
 
 const movie = (over: Partial<SeenMovie>): SeenMovie => ({
   tmdbId: 1,
@@ -61,5 +70,49 @@ describe("computeInsights", () => {
     expect(i.averageRating).toBeNull();
     expect(i.bestYear).toBeNull();
     expect(i.busiestMonth).toBeNull();
+  });
+});
+
+const person = (tmdbId: number): FollowedPerson => ({
+  tmdbId,
+  name: `P${tmdbId}`,
+  profilePath: null,
+  knownForDepartment: "Acting",
+  createdAt: "",
+});
+const wl = (tmdbId: number, sourcePersonId?: number): WatchlistMovie =>
+  ({ tmdbId, sourcePersonId }) as WatchlistMovie;
+
+describe("rankTopPeople", () => {
+  it("ranks by watched + watchlist, drops zero-score people, applies the limit", () => {
+    const ranked = rankTopPeople(
+      [person(1), person(2), person(3)],
+      new Map([
+        [1, [10, 11, 12]],
+        [2, [20, 21]],
+        [3, [30]],
+      ]),
+      [movie({ tmdbId: 10 }), movie({ tmdbId: 11 })],
+      [wl(21), wl(99, 2), wl(12, 1)],
+      2,
+    );
+    expect(
+      ranked.map((r) => [r.person.tmdbId, r.watched, r.watchlist]),
+    ).toEqual([
+      [1, 2, 1],
+      [2, 0, 2],
+    ]);
+  });
+});
+
+describe("latestRecommendation", () => {
+  it("returns the most recently added, or null", () => {
+    const rec = (tmdbId: number, addedAt: string) =>
+      ({ tmdbId, addedAt }) as RecommendedMovie;
+    expect(latestRecommendation([])).toBeNull();
+    expect(
+      latestRecommendation([rec(1, "2026-01-01"), rec(2, "2026-05-01")])
+        ?.tmdbId,
+    ).toBe(2);
   });
 });

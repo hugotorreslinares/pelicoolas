@@ -254,6 +254,12 @@ export const en = {
       99: "a documentary buff",
     } as Readonly<Record<number, string>>,
     personalityDefault: "an all-round cinephile",
+    topPeople: "Favorite actors & directors",
+    topPeopleCounts: (watched: number, saved: number) =>
+      `${watched} watched · ${saved} on watchlist`,
+    roleActing: "Acting",
+    roleDirecting: "Directing",
+    latestRecommendation: "Latest recommendation",
     share: "Share my profile",
     shareText: (name: string, count: number) =>
       `${name} has watched ${count} movies on Pelicoolas. What's your movie profile?`,

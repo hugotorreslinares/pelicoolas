@@ -1,4 +1,9 @@
-import type { SeenMovie } from "@/types/filmography";
+import type {
+  FollowedPerson,
+  RecommendedMovie,
+  SeenMovie,
+  WatchlistMovie,
+} from "@/types/filmography";
 
 export interface Insights {
   readonly total: number;
@@ -69,4 +74,59 @@ export function computeInsights(seen: readonly SeenMovie[]): Insights {
       : null,
     topGenreId: topGenre?.[0] ?? null,
   };
+}
+
+export interface RankedPerson {
+  readonly person: FollowedPerson;
+  readonly watched: number;
+  readonly watchlist: number;
+}
+
+/**
+ * The followed people (actors/directors) with the most titles watched or
+ * on the watchlist. A title counts for a person if it is in their
+ * filmography, or was added to the watchlist from their page.
+ */
+export function rankTopPeople(
+  people: readonly FollowedPerson[],
+  movieIdsByPerson: ReadonlyMap<number, readonly number[]>,
+  seen: readonly SeenMovie[],
+  watchlist: readonly WatchlistMovie[],
+  limit = 3,
+): readonly RankedPerson[] {
+  const seenIds = new Set(seen.map((m) => m.tmdbId));
+  const watchlistIds = new Set(watchlist.map((m) => m.tmdbId));
+
+  return people
+    .map((person) => {
+      const filmography = movieIdsByPerson.get(person.tmdbId) ?? [];
+      const sourced = watchlist
+        .filter((m) => m.sourcePersonId === person.tmdbId)
+        .map((m) => m.tmdbId);
+      const watched = filmography.filter((id) => seenIds.has(id)).length;
+      const onWatchlist = new Set(
+        [
+          ...filmography.filter((id) => watchlistIds.has(id)),
+          ...sourced,
+        ].filter((id) => !seenIds.has(id)),
+      ).size;
+      return { person, watched, watchlist: onWatchlist };
+    })
+    .filter((r) => r.watched + r.watchlist > 0)
+    .sort(
+      (a, b) =>
+        b.watched + b.watchlist - (a.watched + a.watchlist) ||
+        b.watched - a.watched,
+    )
+    .slice(0, limit);
+}
+
+export function latestRecommendation(
+  recommendations: readonly RecommendedMovie[],
+): RecommendedMovie | null {
+  return (
+    [...recommendations].sort((a, b) =>
+      b.addedAt.localeCompare(a.addedAt),
+    )[0] ?? null
+  );
 }

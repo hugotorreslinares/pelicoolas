@@ -238,6 +238,12 @@ export const es: Dictionary = {
       99: "aficionado a los documentales",
     },
     personalityDefault: "cinéfilo de todo terreno",
+    topPeople: "Actores y directores favoritos",
+    topPeopleCounts: (watched, saved) =>
+      `${watched} vistas · ${saved} en watchlist`,
+    roleActing: "Actuación",
+    roleDirecting: "Dirección",
+    latestRecommendation: "Última recomendación",
     share: "Compartir mi perfil",
     shareText: (name, count) =>
       `${name} ha visto ${count} películas en Pelicoolas. ¿Cuál es tu perfil cinéfilo?`,
