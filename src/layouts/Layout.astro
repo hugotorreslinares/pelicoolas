@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { UserMenu } from "@/components/auth/UserMenu";
+import { SESSION_HINT_COOKIE } from "@/lib/sessionHint";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { MobileNav } from "@/components/nav/MobileNav";
@@ -52,6 +53,7 @@ const ogImageURL = new URL(image, Astro.site);
 
 const locale = Astro.locals.locale;
 const t = getDictionary(locale);
+const signedInHint = Astro.cookies.get(SESSION_HINT_COOKIE)?.value === "1";
 
 // /filmographies mirrors / (same <Dashboard>), so both should read as "on
 // the My Filmographies tab" — otherwise landing on / shows no active state
@@ -263,6 +265,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
           <UserMenu
             locale={locale}
             loginClassName="order-first mb-2 w-full"
+            signedInHint={signedInHint}
             client:idle
           />
         </div>
@@ -366,7 +369,11 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
                 client:idle
               />
               <ThemeToggle label={t.account.toggleTheme} client:idle />
-              <UserMenu locale={locale} client:idle />
+              <UserMenu
+                locale={locale}
+                signedInHint={signedInHint}
+                client:idle
+              />
               <MobileNav locale={locale} client:idle />
             </div>
           </div>

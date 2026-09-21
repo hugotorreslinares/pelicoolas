@@ -30,15 +30,26 @@ import {
 import { sendWelcomeEmail } from "@/lib/welcomeEmail";
 import { InviteDialog } from "@/components/social/InviteDialog";
 import { getDictionary, type Locale } from "@/i18n";
+import { cn } from "@/lib/utils";
 import { LoginButton } from "./LoginButton";
 
 interface UserMenuProps {
   readonly locale: Locale;
   /** Extra classes for the signed-out login button (e.g. to give it its own row in a narrow container). */
   readonly loginClassName?: string;
+  /**
+   * Server-side guess (see sessionHint.ts) that the visitor is signed in.
+   * While auth resolves, the placeholder is sized like what will replace it
+   * (avatar vs. login button) so the header doesn't reflow.
+   */
+  readonly signedInHint?: boolean;
 }
 
-export function UserMenu({ locale, loginClassName }: UserMenuProps) {
+export function UserMenu({
+  locale,
+  loginClassName,
+  signedInHint = true,
+}: UserMenuProps) {
   const t = getDictionary(locale);
   const { user, loading } = useAuth();
   const [exporting, setExporting] = useState(false);
@@ -73,7 +84,14 @@ export function UserMenu({ locale, loginClassName }: UserMenuProps) {
 
   if (loading) {
     return (
-      <Skeleton className="size-11 rounded-full" role="status">
+      <Skeleton
+        className={
+          signedInHint
+            ? "size-11 rounded-full"
+            : cn("h-9 w-44 rounded-lg", loginClassName)
+        }
+        role="status"
+      >
         <span className="sr-only">Loading account…</span>
       </Skeleton>
     );
