@@ -8,13 +8,22 @@ interface LoginButtonProps {
   // so call sites that don't thread a `locale` prop still translate.
   readonly locale?: Locale;
   readonly size?: "default" | "sm";
+  readonly className?: string;
 }
 
-export function LoginButton({ locale, size = "default" }: LoginButtonProps) {
+export function LoginButton({
+  locale,
+  size = "default",
+  className,
+}: LoginButtonProps) {
   const detected = useLocale();
   const t = getDictionary(locale ?? detected);
   return (
-    <Button size={size} onClick={() => void signInWithGoogle()}>
+    <Button
+      size={size}
+      className={className}
+      onClick={() => void signInWithGoogle()}
+    >
       {t.account.continueWithGoogle}
     </Button>
   );

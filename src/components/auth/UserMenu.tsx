@@ -34,9 +34,11 @@ import { LoginButton } from "./LoginButton";
 
 interface UserMenuProps {
   readonly locale: Locale;
+  /** Extra classes for the signed-out login button (e.g. to give it its own row in a narrow container). */
+  readonly loginClassName?: string;
 }
 
-export function UserMenu({ locale }: UserMenuProps) {
+export function UserMenu({ locale, loginClassName }: UserMenuProps) {
   const t = getDictionary(locale);
   const { user, loading } = useAuth();
   const [exporting, setExporting] = useState(false);
@@ -76,7 +78,7 @@ export function UserMenu({ locale }: UserMenuProps) {
       </Skeleton>
     );
   }
-  if (!user) return <LoginButton locale={locale} />;
+  if (!user) return <LoginButton locale={locale} className={loginClassName} />;
 
   const initials = user.displayName?.slice(0, 1).toUpperCase() ?? "?";
 
