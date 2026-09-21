@@ -409,6 +409,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
                     >{t.footer.halloweenLink}</a
                   >
                 </li>
+                <li>
+                  <a
+                    href="https://www.instagram.com/pelicool.as/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="focus-ring hover:text-foreground hover:underline"
+                    >Instagram</a
+                  >
+                </li>
               </ul>
             </nav>
             <nav aria-label={t.footer.legalHeading} class="space-y-2">
@@ -424,14 +433,12 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
               </ul>
             </nav>
           </div>
-          <div class="border-t">
-            <div
-              class="mx-auto w-full max-w-6xl space-y-1 p-4 text-xs text-muted-foreground sm:px-6 lg:px-8"
-            >
-              <p>{t.footer.copyright(new Date().getFullYear())}</p>
-              <p>{t.footer.tmdbAttribution}</p>
-              {showDeployInfo && <p>{t.footer.deployed(deployedAt)}</p>}
-            </div>
+          <div
+            class="mx-auto w-full max-w-6xl space-y-1 px-4 pb-6 text-xs text-muted-foreground sm:px-6 lg:px-8"
+          >
+            <p>{t.footer.copyright(new Date().getFullYear())}</p>
+            <p>{t.footer.tmdbAttribution}</p>
+            {showDeployInfo && <p>{t.footer.deployed(deployedAt)}</p>}
           </div>
         </footer>
       </div>
