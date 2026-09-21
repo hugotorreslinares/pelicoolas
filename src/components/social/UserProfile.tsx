@@ -149,13 +149,17 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
 
       {isOwner && <FollowRequestsInbox userId={userId} locale={locale} />}
 
+      {canSeePrivateLists && (
+        <ProfileInsights
+          locale={locale}
+          userId={userId}
+          displayName={profile.displayName}
+          isOwner={isOwner}
+        />
+      )}
+
       {isOwner && (
         <>
-          <ProfileInsights
-            locale={locale}
-            userId={userId}
-            displayName={profile.displayName}
-          />
           <CinematicIdentity
             locale={locale}
             userId={userId}
