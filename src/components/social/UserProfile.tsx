@@ -7,6 +7,7 @@ import { FollowButton } from "./FollowButton";
 import { FollowRequestsInbox } from "./FollowRequestsInbox";
 import { CompatibilitySection } from "./CompatibilitySection";
 import { CinematicIdentity } from "./CinematicIdentity";
+import { ProfileInsights } from "./ProfileInsights";
 import { PeopleLikeYou } from "./PeopleLikeYou";
 import { UserMovieSection } from "./UserMovieSection";
 import { BookmarkIcon, CheckCircleIcon, LockIcon } from "lucide-react";
@@ -150,6 +151,11 @@ export function UserProfile({ locale, userId }: UserProfileProps) {
 
       {isOwner && (
         <>
+          <ProfileInsights
+            locale={locale}
+            userId={userId}
+            displayName={profile.displayName}
+          />
           <CinematicIdentity
             locale={locale}
             userId={userId}

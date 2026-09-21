@@ -225,6 +225,37 @@ export const en = {
     couldntUnfollow: "Couldn't unfollow this user. Please try again.",
     retry: "Retry",
   },
+  insights: {
+    heading: "Your movie profile",
+    notEnough: (min: number) =>
+      `Mark at least ${min} movies as watched to unlock your insights.`,
+    averageRating: "Average rating",
+    averageRatingHint: "TMDB score of what you watch",
+    bestYear: "Your best year in film",
+    bestYearBody: (count: number, title: string) =>
+      `${count} watched from that year. Your top pick: ${title}`,
+    busiestMonth: "Your most cinephile month",
+    busiestMonthBody: (count: number) => `${count} movies watched`,
+    personalityLabel: "You are",
+    personality: {
+      27: "A horror devotee",
+      18: "A drama lover",
+      35: "A comedy fan",
+      878: "A sci-fi explorer",
+      28: "An action junkie",
+      10749: "A hopeless romantic",
+      53: "A thriller addict",
+      16: "An animation fan",
+      99: "A documentary buff",
+    } as Readonly<Record<number, string>>,
+    personalityDefault: "An all-round cinephile",
+    share: "Share my profile",
+    shareText: (name: string, count: number) =>
+      `${name} has watched ${count} movies on Pelicoolas. What's your movie profile?`,
+    shared: "Shared!",
+    copied: "Link copied",
+    shareFailed: "Couldn't share. Please try again.",
+  },
   identity: {
     cinematicIdentity: (name: string) => `${name}'s cinematic identity`,
     thisUser: "This user",

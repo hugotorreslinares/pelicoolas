@@ -209,6 +209,37 @@ export const es: Dictionary = {
       "No se pudo dejar de seguir a este usuario. Intenta de nuevo.",
     retry: "Reintentar",
   },
+  insights: {
+    heading: "Tu perfil cinéfilo",
+    notEnough: (min) =>
+      `Marca al menos ${min} películas como vistas para desbloquear tus insights.`,
+    averageRating: "Nota media",
+    averageRatingHint: "Puntuación TMDB de lo que ves",
+    bestYear: "Tu mejor año en el cine",
+    bestYearBody: (count, title) =>
+      `${count} vistas de ese año. Tu favorita: ${title}`,
+    busiestMonth: "Tu mes más cinéfilo",
+    busiestMonthBody: (count) => `${count} películas vistas`,
+    personalityLabel: "Eres",
+    personality: {
+      27: "Devoto del terror",
+      18: "Amante del drama",
+      35: "Fan de la comedia",
+      878: "Explorador de la ciencia ficción",
+      28: "Adicto a la acción",
+      10749: "Un romántico sin remedio",
+      53: "Adicto al suspenso",
+      16: "Fan de la animación",
+      99: "Aficionado a los documentales",
+    },
+    personalityDefault: "Cinéfilo de todo terreno",
+    share: "Compartir mi perfil",
+    shareText: (name, count) =>
+      `${name} ha visto ${count} películas en Pelicoolas. ¿Cuál es tu perfil cinéfilo?`,
+    shared: "¡Compartido!",
+    copied: "Enlace copiado",
+    shareFailed: "No se pudo compartir. Intenta de nuevo.",
+  },
   identity: {
     cinematicIdentity: (name) => `Identidad cinematográfica de ${name}`,
     thisUser: "Este usuario",

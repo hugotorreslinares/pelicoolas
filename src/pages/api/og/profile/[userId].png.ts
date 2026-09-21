@@ -1,8 +1,7 @@
 import type { APIRoute } from "astro";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
-import { getAdminDb } from "@/lib/firebase/admin";
-import type { PublicProfile } from "@/types/user";
+import { getProfileSummary } from "@/lib/profileSummary";
 
 export const prerender = false;
 
@@ -44,19 +43,8 @@ export const GET: APIRoute = async ({ params }) => {
   const userId = params.userId;
   if (!userId) return new Response("Not found", { status: 404 });
 
-  let profile: PublicProfile | null;
-  let watchedCount = 0;
-  try {
-    const db = getAdminDb();
-    const [snap, seenCount] = await Promise.all([
-      db.doc(`users/${userId}`).get(),
-      db.collection(`users/${userId}/seen`).count().get(),
-    ]);
-    profile = snap.exists ? (snap.data() as PublicProfile) : null;
-    watchedCount = seenCount.data().count;
-  } catch {
-    profile = null;
-  }
+  const { profile, watchedCount, favorites, topGenre } =
+    await getProfileSummary(userId);
 
   const name = profile?.displayName ?? profile?.username ?? "Pelicoolas user";
   const initial = name.slice(0, 1).toUpperCase();
@@ -69,15 +57,15 @@ export const GET: APIRoute = async ({ params }) => {
     {
       style: {
         display: "flex",
-        width: 168,
-        height: 168,
+        width: 140,
+        height: 140,
         borderRadius: "50%",
         overflow: "hidden",
         border: "4px solid #f59e0b",
         backgroundColor: "#3f3f46",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 72,
+        fontSize: 60,
         fontWeight: 700,
         color: "#f4f4f5",
       },
@@ -85,8 +73,8 @@ export const GET: APIRoute = async ({ params }) => {
     profile?.photoURL
       ? el("img", {
           src: profile.photoURL,
-          width: 168,
-          height: 168,
+          width: 140,
+          height: 140,
           style: { objectFit: "cover" },
         })
       : initial,
@@ -94,24 +82,56 @@ export const GET: APIRoute = async ({ params }) => {
 
   const nameEl = el(
     "div",
-    { style: { fontSize: 56, fontWeight: 700, color: "#fafafa" } },
+    { style: { fontSize: 52, fontWeight: 700, color: "#fafafa" } },
     name,
   );
 
-  const taglineEl = el(
+  const stat = (text: string) =>
+    el("div", { style: { fontSize: 30, color: "#d4d4d8" } }, text);
+  const stats = [
+    watchedCount > 0 ? `${watchedCount} movies watched` : null,
+    topGenre ? `Favorite genre: ${topGenre}` : null,
+  ].filter((t): t is string => t !== null);
+
+  const posters = favorites
+    .filter((f) => f.posterPath)
+    .map((f) =>
+      el("img", {
+        src: `https://image.tmdb.org/t/p/w342${f.posterPath}`,
+        width: 200,
+        height: 300,
+        style: { borderRadius: 14, objectFit: "cover" },
+      }),
+    );
+
+  const brand = el(
     "div",
     {
       style: {
-        fontSize: 28,
-        color: "#d4d4d8",
         display: "flex",
-        alignItems: "center",
-        gap: 10,
+        fontSize: 26,
+        fontWeight: 700,
+        color: "#18181b",
+        backgroundColor: "#f59e0b",
+        borderRadius: 999,
+        padding: "10px 24px",
       },
     },
-    watchedCount > 0
-      ? `${watchedCount} movies watched on Pelicoolas`
-      : "Pelicoolas",
+    "pelicoolas.com",
+  );
+
+  const info = el(
+    "div",
+    {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: posters.length > 0 ? "flex-start" : "center",
+        gap: 18,
+        maxWidth: 480,
+      },
+    },
+    [avatar, nameEl, ...stats.map(stat), brand],
   );
 
   const root = el(
@@ -121,17 +141,18 @@ export const GET: APIRoute = async ({ params }) => {
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 28,
+        gap: 72,
         backgroundColor: "#18181b",
         backgroundImage:
           "radial-gradient(circle at 20% 20%, #3f3f46 0%, #18181b 55%)",
         fontFamily: "Inter",
       },
     },
-    [avatar, nameEl, taglineEl],
+    posters.length > 0
+      ? [info, el("div", { style: { display: "flex", gap: 16 } }, posters)]
+      : info,
   );
 
   const svg = await satori(root as never, {

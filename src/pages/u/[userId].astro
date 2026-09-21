@@ -2,28 +2,43 @@
 export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { UserProfile } from "@/components/social/UserProfile";
-import { getAdminDb } from "@/lib/firebase/admin";
-import type { PublicProfile } from "@/types/user";
+import { getProfileSummary } from "@/lib/profileSummary";
 
 const { userId } = Astro.params;
 if (!userId) return Astro.redirect("/");
 const locale = Astro.locals.locale;
 
-// Public profile doc (name/photo only, see firestore.rules) — best-effort:
-// a lookup failure just falls back to the generic title/image, same as
-// before this fetch existed.
-let profile: PublicProfile | null;
-try {
-  const snap = await getAdminDb().doc(`users/${userId}`).get();
-  profile = snap.exists ? (snap.data() as PublicProfile) : null;
-} catch {
-  profile = null;
-}
+const { profile, watchedCount, favorites, topGenre } =
+  await getProfileSummary(userId);
 
 const name = profile?.displayName ?? profile?.username ?? null;
-const title = name ? `${name} on Pelicoolas` : "Profile — Pelicoolas";
+const es = locale === "es";
+const title = name
+  ? es
+    ? `${name} en Pelicoolas`
+    : `${name} on Pelicoolas`
+  : "Profile — Pelicoolas";
+
+// Concrete numbers/titles make the preview worth clicking; falls back to
+// the generic line when the profile has nothing to show yet.
+const highlights: string[] = [];
+if (watchedCount > 0) {
+  highlights.push(
+    es
+      ? `${watchedCount} películas vistas${topGenre ? `, sobre todo ${topGenre}` : ""}`
+      : `${watchedCount} movies watched${topGenre ? `, mostly ${topGenre}` : ""}`,
+  );
+}
+if (favorites.length > 0) {
+  const titles = favorites.map((f) => f.title).join(", ");
+  highlights.push(es ? `Favoritas: ${titles}` : `Favorites: ${titles}`);
+}
 const description = name
-  ? `See what ${name} has watched, their watchlist, and their favorite movies on Pelicoolas.`
+  ? highlights.length > 0
+    ? `${highlights.join(". ")}. ${es ? "Únete y arma tu propio perfil cinéfilo." : "Join and build your own movie profile."}`
+    : es
+      ? `Mira lo que ${name} ha visto, su watchlist y sus películas favoritas en Pelicoolas.`
+      : `See what ${name} has watched, their watchlist, and their favorite movies on Pelicoolas.`
   : "Follow a Pelicoolas user to see what they've watched, their watchlist, and their favorites.";
 ---
 
@@ -31,6 +46,7 @@ const description = name
   title={title}
   description={description}
   image={`/api/og/profile/${userId}.png`}
+  imageAlt={title}
   noindex
 >
   <UserProfile locale={locale} userId={userId} client:load />
