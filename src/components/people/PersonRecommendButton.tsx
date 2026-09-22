@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { StarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { announce } from "@/lib/a11y";
 import {
@@ -34,6 +35,7 @@ export function PersonRecommendButton({
   const { user, loading: authLoading } = useAuth();
   const [recommended, setRecommended] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [showSignInHint, setShowSignInHint] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -47,7 +49,10 @@ export function PersonRecommendButton({
   }, [user, personId]);
 
   async function toggleRecommended() {
-    if (!user) return;
+    if (!user) {
+      setShowSignInHint(true);
+      return;
+    }
     const next = !recommended;
     setRecommended(next);
     announce(
@@ -77,22 +82,27 @@ export function PersonRecommendButton({
     }
   }
 
-  // Signed-out visitors get FollowButton's sign-in prompt already sitting
-  // next to this one — no need for a second prompt here.
-  if (authLoading || !checked || !user) return null;
+  if (authLoading || !checked) return null;
 
   return (
-    <Button
-      variant={recommended ? "secondary" : "outline"}
-      onClick={() => void toggleRecommended()}
-    >
-      <StarIcon
-        data-icon="inline-start"
-        className={recommended ? "fill-current" : ""}
-      />
-      {recommended
-        ? t.recommendPerson.recommended
-        : t.recommendPerson.recommend}
-    </Button>
+    <div className="space-y-1">
+      <Button
+        variant={recommended ? "secondary" : "outline"}
+        onClick={() => void toggleRecommended()}
+      >
+        <StarIcon
+          data-icon="inline-start"
+          className={recommended ? "fill-current" : ""}
+        />
+        {recommended
+          ? t.recommendPerson.recommended
+          : t.recommendPerson.recommend}
+      </Button>
+      {showSignInHint && (
+        <div className="flex items-center gap-2">
+          <LoginButton size="sm" />
+        </div>
+      )}
+    </div>
   );
 }
