@@ -57,3 +57,13 @@ export interface Invite {
   readonly convertedUid: string | null;
   readonly convertedAt: string | null;
 }
+
+/**
+ * `users/{userId}/private/settings` — owner-only, never merged into
+ * PublicProfile. Holds the email address the weekly-digest cron sends to
+ * (see design.md, Engagement) and that email's opt-out flag.
+ */
+export interface PrivateSettings {
+  readonly email?: string;
+  readonly weeklyDigestOptOut?: boolean;
+}

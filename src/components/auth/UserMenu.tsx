@@ -19,6 +19,7 @@ import {
   exportUserData,
   subscribeToFollowersList,
   subscribeToFollowRequests,
+  syncPrivateEmail,
   syncPublicProfile,
 } from "@/lib/firebase/firestore";
 import { downloadJson } from "@/lib/download";
@@ -70,6 +71,7 @@ export function UserMenu({
       void convertPendingInviteIfAny(() => user.getIdToken());
       void sendWelcomeEmail(() => user.getIdToken());
     });
+    void syncPrivateEmail(user.uid, user.email);
     return subscribeToFollowRequests(user.uid, (requests) =>
       setPendingRequests(requests.length),
     );

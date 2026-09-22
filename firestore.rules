@@ -138,6 +138,18 @@ service cloud.firestore {
       match /invites/{inviteId} {
         allow read: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Owner-only, unlike /users/{userId} itself — holds the email address
+      // (never put on the public profile doc) so the weekly-digest cron can
+      // find a recipient via the Admin SDK without importing
+      // firebase-admin/auth (see verifyIdToken.ts for why that's avoided:
+      // jose/require-in-the-middle conflict under Sentry). Also holds
+      // weeklyDigestOptOut, flipped by the one-click unsubscribe link
+      // (/api/unsubscribe-digest, Admin SDK, no auth — the signed token in
+      // the link IS the credential).
+      match /private/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

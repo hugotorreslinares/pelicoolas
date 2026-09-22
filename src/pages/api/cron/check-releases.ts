@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { Timestamp } from "firebase-admin/firestore";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { getFilmography } from "@/lib/tmdb/movies";
 import { TmdbError } from "@/lib/tmdb/client";
@@ -82,7 +83,11 @@ export const GET: APIRoute = async ({ request }) => {
             personName: person.name,
             releaseDate: movie.releaseDate,
             read: false,
-            createdAt: new Date().toISOString(),
+            // A real Timestamp, not an ISO string — matches the fan-out
+            // writes in notifications.ts (serverTimestamp()), so the
+            // weekly-digest cron can range-query createdAt across every
+            // notification type with one query. See weekly-digest.ts.
+            createdAt: Timestamp.now(),
           });
           notified++;
         } catch {

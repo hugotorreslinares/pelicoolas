@@ -594,3 +594,32 @@ describe("firestore.rules — invites", () => {
     await assertFails(getDoc(doc(bob, "users/alice/invites/i1")));
   });
 });
+
+describe("firestore.rules — private settings (email, digest opt-out)", () => {
+  it("lets a user read and write their own private settings", async () => {
+    const alice = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(alice, "users/alice/private/settings"), {
+        email: "alice@example.com",
+      }),
+    );
+    await assertSucceeds(getDoc(doc(alice, "users/alice/private/settings")));
+  });
+
+  it("denies another user, signed in or not, from reading or writing it", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/private/settings"), {
+        email: "alice@example.com",
+      });
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDoc(doc(bob, "users/alice/private/settings")));
+    await assertFails(
+      setDoc(doc(bob, "users/alice/private/settings"), {
+        email: "hijacked@example.com",
+      }),
+    );
+    const anon = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(anon, "users/alice/private/settings")));
+  });
+});

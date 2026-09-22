@@ -526,6 +526,24 @@ export async function setSeenGenres(
  *  `createdAt` is only ever set on the first sync, so it stays a true
  *  "joined" date rather than resetting on every sign-in. */
 /** Returns true the first time this uid is ever synced — used to gate one-time signup side effects (e.g. marking a pending invite as converted). */
+function privateSettingsRef(userId: string) {
+  return doc(requireDb(), "users", userId, "private", "settings");
+}
+
+/**
+ * Mirrors the signed-in user's email into a private (owner-only, never
+ * public) doc — the weekly-digest cron reads it via the Admin SDK to find
+ * a recipient, without importing firebase-admin/auth (see firestore.rules,
+ * /private, for why). Best-effort merge, call alongside syncPublicProfile.
+ */
+export async function syncPrivateEmail(
+  userId: string,
+  email: string | null,
+): Promise<void> {
+  if (!email) return;
+  await setDoc(privateSettingsRef(userId), { email }, { merge: true });
+}
+
 export async function syncPublicProfile(user: {
   readonly uid: string;
   readonly displayName: string | null;
