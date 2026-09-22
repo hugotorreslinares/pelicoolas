@@ -20,7 +20,7 @@ const SITE_URL = "https://pelicoolas.com";
 // anyone with nothing to report or no email on file — a recurring empty
 // email is exactly the kind of thing that gets an account to unsubscribe
 // from everything, including the notifications that ARE useful to them.
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, url }) => {
   const secret = import.meta.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
   if (!secret || authHeader !== `Bearer ${secret}`) {
@@ -37,12 +37,18 @@ export const GET: APIRoute = async ({ request }) => {
   let sent = 0;
   let skipped = 0;
 
-  const usersSnap = await db.collection("users").get();
+  // ?uid=... scopes a manual run to one account — same auth (CRON_SECRET)
+  // as the real weekly run, just for trying it on yourself before trusting
+  // it to actually go out to everyone on the real schedule.
+  const singleUid = url.searchParams.get("uid");
+  const userRefs = singleUid
+    ? [db.collection("users").doc(singleUid)]
+    : (await db.collection("users").get()).docs.map((d) => d.ref);
 
-  for (const userDoc of usersSnap.docs) {
-    const uid = userDoc.id;
+  for (const userRef of userRefs) {
+    const uid = userRef.id;
     try {
-      const settingsSnap = await userDoc.ref
+      const settingsSnap = await userRef
         .collection("private")
         .doc("settings")
         .get();
@@ -52,7 +58,7 @@ export const GET: APIRoute = async ({ request }) => {
         continue;
       }
 
-      const notifSnap = await userDoc.ref
+      const notifSnap = await userRef
         .collection("notifications")
         .where("createdAt", ">=", cutoff)
         .orderBy("createdAt", "desc")
