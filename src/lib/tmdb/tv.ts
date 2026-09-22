@@ -21,11 +21,7 @@ export async function getTrendingTV(): Promise<readonly TrendingMovie[]> {
     posterPath: show.poster_path,
     releaseYear: toReleaseYear(show.first_air_date),
     voteAverage: show.vote_average ?? null,
-    // TMDB's TV genre ids are a different namespace from movie genre ids
-    // (see lib/tmdb/genres.ts, movie-only) — dropped here rather than risk
-    // a TV show's genre rendering as the wrong movie genre name wherever
-    // genreIds gets displayed (Watched/Watchlist genre filter chips).
-    genreIds: [],
+    genreIds: show.genre_ids ?? [],
     mediaType: "tv" as const,
   }));
 }
@@ -43,8 +39,7 @@ export async function searchTV(
     posterPath: show.poster_path,
     releaseYear: toReleaseYear(show.first_air_date),
     voteAverage: show.vote_average ?? null,
-    // See getTrendingTV — TV/movie genre ids are separate TMDB namespaces.
-    genreIds: [],
+    genreIds: show.genre_ids ?? [],
     mediaType: "tv" as const,
   }));
 }

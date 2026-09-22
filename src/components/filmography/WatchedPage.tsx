@@ -22,7 +22,11 @@ import {
   subscribeToSeenMoviesFull,
 } from "@/lib/firebase/firestore";
 import { mapWithConcurrency } from "@/lib/concurrency";
-import { fetchMovieDetails, fetchPersonData } from "@/lib/movieData";
+import {
+  fetchMovieDetails,
+  fetchPersonData,
+  fetchTVDetails,
+} from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
 import { getDictionary, type Locale } from "@/i18n";
@@ -315,20 +319,34 @@ export function WatchedPage({ locale }: WatchedPageProps) {
 
   // Entries marked seen before genreIds existed have no such field at all
   // — backfill them once in the background, same pattern as the watchlist.
+  // TV entries written before TMDB's real TV genre ids were wired up (see
+  // lib/tmdb/tv.ts) instead stored an explicit empty array, not `undefined`
+  // — caught here too so old shows don't stay ungenred forever.
   const backfilledRef = useRef<Set<number>>(new Set());
   useEffect(() => {
     if (!user || !movies) return;
     const toBackfill = movies.filter(
-      (m) => m.genreIds === undefined && !backfilledRef.current.has(m.tmdbId),
+      (m) =>
+        !backfilledRef.current.has(m.tmdbId) &&
+        (m.genreIds === undefined ||
+          (m.mediaType === "tv" && m.genreIds.length === 0)),
     );
     if (toBackfill.length === 0) return;
 
     for (const movie of toBackfill) backfilledRef.current.add(movie.tmdbId);
     void mapWithConcurrency(toBackfill, 6, async (movie) => {
       try {
-        const details = await fetchMovieDetails(movie.tmdbId);
+        const details =
+          movie.mediaType === "tv"
+            ? await fetchTVDetails(movie.tmdbId)
+            : await fetchMovieDetails(movie.tmdbId);
         if (details) {
-          await setSeenGenres(user.uid, movie.tmdbId, details.genreIds);
+          await setSeenGenres(
+            user.uid,
+            movie.tmdbId,
+            details.genreIds,
+            movie.mediaType,
+          );
         }
       } catch {
         // Best-effort backfill — leave this one for next visit.

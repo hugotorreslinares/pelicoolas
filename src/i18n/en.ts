@@ -418,6 +418,11 @@ export const en = {
     unknown: "Unknown",
     removeFrom: (title: string) => `Remove ${title} from your recommendations`,
     removeFromRecommendations: "Remove from recommendations",
+    peopleRecommendations: (count: number | null) =>
+      `Actors & directors${count !== null ? ` (${count})` : ""}`,
+    removePersonFrom: (name: string) =>
+      `Remove ${name} from your recommendations`,
+    viewProfileOf: (name: string) => `View ${name}'s profile`,
   },
   connections: {
     heading: "Connections",
@@ -574,6 +579,12 @@ export const en = {
     unfollowed: (name: string) => `Unfollowed ${name}`,
     following: "✓ Following",
     follow: "+ Follow",
+  },
+  recommendPerson: {
+    now: (name: string) => `Recommended ${name}`,
+    removed: (name: string) => `Removed ${name} from your recommendations`,
+    recommended: "★ Recommended",
+    recommend: "★ Recommend",
   },
   badges: {
     personComplete: (name: string) => `Completed ${name}`,

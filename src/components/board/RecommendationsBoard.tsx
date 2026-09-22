@@ -15,11 +15,13 @@ import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
 import { announce } from "@/lib/a11y";
 import {
   removeFromRecommendations,
+  removePersonFromRecommendations,
   subscribeToRecommendations,
+  subscribeToRecommendedPeople,
 } from "@/lib/firebase/firestore";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { getDictionary, type Locale } from "@/i18n";
-import type { RecommendedMovie } from "@/types/filmography";
+import type { RecommendedMovie, RecommendedPerson } from "@/types/filmography";
 
 const POSTER_WIDTHS = [185, 342, 500];
 const POSTER_SIZES = "(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
@@ -42,7 +44,13 @@ export function RecommendationsBoard({
   const [movies, setMovies] = useState<readonly RecommendedMovie[] | null>(
     null,
   );
+  const [people, setPeople] = useState<readonly RecommendedPerson[] | null>(
+    null,
+  );
   const [openMovie, setOpenMovie] = useState<RecommendedMovie | null>(null);
+  const [removingPersonIds, setRemovingPersonIds] = useState<
+    ReadonlySet<number>
+  >(new Set());
   const [copied, setCopied] = useState(false);
   // Optimistically hides a removed card immediately instead of waiting on
   // the subscription to echo the delete back — restored on failure.
@@ -55,6 +63,25 @@ export function RecommendationsBoard({
   useEffect(() => {
     return subscribeToRecommendations(userId, setMovies);
   }, [userId]);
+
+  useEffect(() => {
+    return subscribeToRecommendedPeople(userId, setPeople);
+  }, [userId]);
+
+  async function handleRemovePerson(person: RecommendedPerson) {
+    setRemovingPersonIds((prev) => new Set(prev).add(person.tmdbId));
+    announce(t.board.removed(person.name));
+    try {
+      await removePersonFromRecommendations(userId, person.tmdbId);
+    } catch {
+      setRemovingPersonIds((prev) => {
+        const next = new Set(prev);
+        next.delete(person.tmdbId);
+        return next;
+      });
+      toast.error(t.board.couldntRemove(person.name));
+    }
+  }
 
   async function handleRemove(movie: RecommendedMovie) {
     setRemovingIds((prev) => new Set(prev).add(movie.tmdbId));
@@ -154,6 +181,42 @@ export function RecommendationsBoard({
             </div>
           )}
       </div>
+
+      {(isOwner
+        ? people === null || people.length > 0
+        : (people?.length ?? 0) > 0) && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-muted-foreground">
+            {t.board.peopleRecommendations(
+              people !== null ? people.length : null,
+            )}
+          </p>
+          {people === null && (
+            <div className="flex flex-wrap gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="size-20 shrink-0 rounded-full" />
+              ))}
+            </div>
+          )}
+          {people !== null &&
+            people.filter((p) => !removingPersonIds.has(p.tmdbId)).length >
+              0 && (
+              <div className="flex flex-wrap gap-4">
+                {people
+                  .filter((p) => !removingPersonIds.has(p.tmdbId))
+                  .map((person) => (
+                    <BoardPersonCard
+                      key={person.tmdbId}
+                      person={person}
+                      isOwner={isOwner}
+                      onRemove={() => void handleRemovePerson(person)}
+                      t={t}
+                    />
+                  ))}
+              </div>
+            )}
+        </div>
+      )}
 
       {!isOwner && (
         <div className="rounded-lg border bg-muted/40 p-4 text-center">
@@ -271,6 +334,65 @@ function BoardMovieCard({
       <p className="text-sm text-muted-foreground">
         {movie.releaseYear ?? t.board.unknown}
       </p>
+    </div>
+  );
+}
+
+interface BoardPersonCardProps {
+  readonly person: RecommendedPerson;
+  readonly isOwner: boolean;
+  readonly onRemove: () => void;
+  readonly t: ReturnType<typeof getDictionary>;
+}
+
+function BoardPersonCard({
+  person,
+  isOwner,
+  onRemove,
+  t,
+}: BoardPersonCardProps) {
+  return (
+    <div className="w-20 shrink-0 text-center">
+      <div className="relative">
+        <a
+          href={`/person/${person.tmdbId}`}
+          className="focus-ring block"
+          aria-label={t.board.viewProfileOf(person.name)}
+        >
+          {person.profilePath ? (
+            <img
+              src={tmdbImageUrl(person.profilePath, 185)}
+              alt=""
+              loading="lazy"
+              className="card-elevated aspect-square w-full rounded-full border object-cover"
+            />
+          ) : (
+            <div className="flex aspect-square w-full items-center justify-center rounded-full border bg-muted text-lg font-semibold text-muted-foreground">
+              {person.name.slice(0, 1)}
+            </div>
+          )}
+        </a>
+        {isOwner && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  aria-label={t.board.removePersonFrom(person.name)}
+                  className="absolute -right-1 -bottom-1 size-8 rounded-full shadow"
+                  onClick={onRemove}
+                />
+              }
+            >
+              <XIcon />
+            </TooltipTrigger>
+            <TooltipContent>{t.board.removeFromRecommendations}</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+      <p className="mt-1 truncate text-sm font-medium">{person.name}</p>
     </div>
   );
 }

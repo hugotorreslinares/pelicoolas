@@ -64,6 +64,21 @@ export interface RecommendedMovie {
 }
 
 /**
+ * An actor/director recommendation on the same public board
+ * (`users/{userId}/recommendedPeople`) — a separate collection from
+ * RecommendedMovie (different shape: no releaseYear/voteAverage, has
+ * knownForDepartment) rather than a discriminated union, same reasoning as
+ * keeping `recommendations` and `followedPeople` separate collections.
+ */
+export interface RecommendedPerson {
+  readonly tmdbId: number;
+  readonly name: string;
+  readonly profilePath: string | null;
+  readonly knownForDepartment: string | null;
+  readonly addedAt: string;
+}
+
+/**
  * `users/{userId}/seen/{movieId}` — the single source of truth for "have I
  * watched this movie", used everywhere: search, watchlist, recommendations
  * board, Connections, and a followed person's filmography checkbox alike.

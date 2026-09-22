@@ -399,6 +399,47 @@ describe("firestore.rules — recommendations (public board)", () => {
   });
 });
 
+describe("firestore.rules — recommendedPeople (public board)", () => {
+  it("lets a user add, read, and remove their own recommended people", async () => {
+    const db = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/recommendedPeople/500"), {
+        name: "Tom Hanks",
+        tmdbId: 500,
+      }),
+    );
+    await assertSucceeds(getDoc(doc(db, "users/alice/recommendedPeople/500")));
+    await assertSucceeds(
+      deleteDoc(doc(db, "users/alice/recommendedPeople/500")),
+    );
+  });
+
+  it("lets anyone read it, signed in or not", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/recommendedPeople/500"), {
+        name: "Tom Hanks",
+        tmdbId: 500,
+      });
+    });
+    const anon = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(
+      getDoc(doc(anon, "users/alice/recommendedPeople/500")),
+    );
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(bob, "users/alice/recommendedPeople/500")));
+  });
+
+  it("denies anyone but the owner from writing to it", async () => {
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      setDoc(doc(bob, "users/alice/recommendedPeople/500"), {
+        name: "Tom Hanks",
+        tmdbId: 500,
+      }),
+    );
+  });
+});
+
 describe("firestore.rules — seen (personal watched log)", () => {
   it("lets a user mark, read, and unmark a movie as seen", async () => {
     const db = testEnv.authenticatedContext("alice").firestore();

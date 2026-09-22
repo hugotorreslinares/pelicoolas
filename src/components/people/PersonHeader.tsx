@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FollowButton } from "./FollowButton";
+import { PersonRecommendButton } from "./PersonRecommendButton";
 import { PersonPhotoGallery } from "./PersonPhotoGallery";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import { calculateAge } from "@/lib/age";
@@ -122,12 +123,20 @@ export function PersonHeader({
             </h1>
             <p className="text-sm text-muted-foreground">{department}</p>
           </div>
-          <FollowButton
-            personId={profile.id}
-            name={profile.name}
-            profilePath={profile.profilePath}
-            knownForDepartment={profile.knownForDepartment}
-          />
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <FollowButton
+              personId={profile.id}
+              name={profile.name}
+              profilePath={profile.profilePath}
+              knownForDepartment={profile.knownForDepartment}
+            />
+            <PersonRecommendButton
+              personId={profile.id}
+              name={profile.name}
+              profilePath={profile.profilePath}
+              knownForDepartment={profile.knownForDepartment}
+            />
+          </div>
         </div>
 
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 sm:justify-start">

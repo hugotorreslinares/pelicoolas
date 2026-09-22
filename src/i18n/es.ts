@@ -397,6 +397,10 @@ export const es: Dictionary = {
     unknown: "Desconocido",
     removeFrom: (title) => `Quitar ${title} de tus recomendaciones`,
     removeFromRecommendations: "Quitar de recomendaciones",
+    peopleRecommendations: (count) =>
+      `Actores y directores${count !== null ? ` (${count})` : ""}`,
+    removePersonFrom: (name) => `Quitar a ${name} de tus recomendaciones`,
+    viewProfileOf: (name) => `Ver el perfil de ${name}`,
   },
   connections: {
     heading: "Conexiones",
@@ -554,6 +558,12 @@ export const es: Dictionary = {
     unfollowed: (name) => `Dejaste de seguir a ${name}`,
     following: "✓ Siguiendo",
     follow: "+ Seguir",
+  },
+  recommendPerson: {
+    now: (name) => `Recomendaste a ${name}`,
+    removed: (name) => `Quitaste a ${name} de tus recomendaciones`,
+    recommended: "★ Recomendado",
+    recommend: "★ Recomendar",
   },
   badges: {
     personComplete: (name) => `Completaste a ${name}`,

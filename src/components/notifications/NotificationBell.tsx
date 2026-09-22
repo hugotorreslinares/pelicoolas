@@ -115,7 +115,8 @@ export function NotificationBell() {
               render={
                 <a
                   href={
-                    n.type === "new-release"
+                    n.type === "new-release" ||
+                    n.type === "person-recommendation"
                       ? `/person/${n.personId}`
                       : `/u/${n.recommenderId}`
                   }
@@ -126,11 +127,20 @@ export function NotificationBell() {
                 if (!n.read) void markNotificationRead(user.uid, n.id);
               }}
             >
-              {n.posterPath ? (
+              {(
+                n.type === "person-recommendation"
+                  ? n.profilePath
+                  : n.posterPath
+              ) ? (
                 <img
-                  src={tmdbImageUrl(n.posterPath, 92)}
+                  src={tmdbImageUrl(
+                    n.type === "person-recommendation"
+                      ? n.profilePath!
+                      : n.posterPath!,
+                    92,
+                  )}
                   alt=""
-                  className="h-14 w-10 shrink-0 rounded object-cover"
+                  className={`h-14 w-10 shrink-0 object-cover ${n.type === "person-recommendation" ? "rounded-full" : "rounded"}`}
                 />
               ) : (
                 <div className="h-14 w-10 shrink-0 rounded bg-muted" />
@@ -139,10 +149,14 @@ export function NotificationBell() {
                 <span className="text-sm font-medium">
                   {n.type === "new-release"
                     ? `${n.personName} has a new movie`
-                    : `${n.recommenderName} recommended a ${n.mediaType === "tv" ? "show" : "movie"}`}
+                    : n.type === "person-recommendation"
+                      ? `${n.recommenderName} recommended an actor/director`
+                      : `${n.recommenderName} recommended a ${n.mediaType === "tv" ? "show" : "movie"}`}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  {n.movieTitle}
+                  {n.type === "person-recommendation"
+                    ? n.personName
+                    : n.movieTitle}
                 </span>
               </span>
               {!n.read && (

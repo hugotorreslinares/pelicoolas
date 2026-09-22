@@ -19,6 +19,7 @@ import { db } from "./client";
 import type {
   FollowedPerson,
   RecommendedMovie,
+  RecommendedPerson,
   SeenMovie,
   WatchedMovie,
   WatchlistMovie,
@@ -62,6 +63,16 @@ function watchlistMovieRef(
     userId,
     "watchlist",
     mediaDocId(movieId, mediaType),
+  );
+}
+
+function recommendedPersonRef(userId: string, personId: number) {
+  return doc(
+    requireDb(),
+    "users",
+    userId,
+    "recommendedPeople",
+    String(personId),
   );
 }
 
@@ -243,8 +254,9 @@ export async function setWatchlistDetails(
     readonly genreIds: readonly number[];
     readonly durationMinutes: number | null;
   },
+  mediaType?: "movie" | "tv",
 ): Promise<void> {
-  await updateDoc(watchlistMovieRef(userId, movieId), details);
+  await updateDoc(watchlistMovieRef(userId, movieId, mediaType), details);
 }
 
 export async function isInWatchlist(
@@ -391,6 +403,48 @@ export function subscribeToRecommendations(
   );
 }
 
+// Same collection shape/rules pattern as recommendations above, for
+// recommending a person (actor/director) instead of a movie/show — see
+// RecommendedPerson.
+export async function addPersonToRecommendations(
+  userId: string,
+  person: Omit<RecommendedPerson, "addedAt">,
+): Promise<void> {
+  await setDoc(recommendedPersonRef(userId, person.tmdbId), {
+    ...person,
+    addedAt: serverTimestamp(),
+  });
+}
+
+export async function removePersonFromRecommendations(
+  userId: string,
+  personId: number,
+): Promise<void> {
+  await deleteDoc(recommendedPersonRef(userId, personId));
+}
+
+export async function isPersonRecommended(
+  userId: string,
+  personId: number,
+): Promise<boolean> {
+  const snapshot = await getDoc(recommendedPersonRef(userId, personId));
+  return snapshot.exists();
+}
+
+// No auth check here on purpose — same public board as
+// subscribeToRecommendations above.
+export function subscribeToRecommendedPeople(
+  userId: string,
+  callback: (people: readonly RecommendedPerson[]) => void,
+): () => void {
+  return onSnapshot(
+    collection(requireDb(), "users", userId, "recommendedPeople"),
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as RecommendedPerson));
+    },
+  );
+}
+
 export async function markMovieSeen(
   userId: string,
   movie: Omit<SeenMovie, "watchedAt">,
@@ -455,8 +509,9 @@ export async function setSeenGenres(
   userId: string,
   movieId: number,
   genreIds: readonly number[],
+  mediaType?: "movie" | "tv",
 ): Promise<void> {
-  await updateDoc(seenMovieRef(userId, movieId), { genreIds });
+  await updateDoc(seenMovieRef(userId, movieId, mediaType), { genreIds });
 }
 
 // --- Follow other users --------------------------------------------------

@@ -146,6 +146,7 @@ export const tmdbSearchTVResponseSchema = z.object({
       poster_path: z.string().nullable(),
       first_air_date: z.string().optional(),
       vote_average: z.number().optional(),
+      genre_ids: z.array(z.number()).optional(),
     }),
   ),
 });

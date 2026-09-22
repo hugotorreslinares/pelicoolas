@@ -30,7 +30,7 @@ import {
 } from "@/lib/firebase/firestore";
 import { awardBadgeOnce } from "@/lib/firebase/badges";
 import { mapWithConcurrency } from "@/lib/concurrency";
-import { fetchMovieDetails } from "@/lib/movieData";
+import { fetchMovieDetails, fetchTVDetails } from "@/lib/movieData";
 import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
 import { genreName } from "@/lib/tmdb/genres";
 import { getDictionary, type Locale } from "@/i18n";
@@ -127,18 +127,36 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
   // Entries added before genreIds/durationMinutes existed have no such
   // fields at all (`undefined`, not an empty array/null — those are real
   // "TMDB has nothing here"). Backfill both together in one write, reusing
-  // the same fetchMovieDetails call for both — no extra TMDB requests.
+  // the same fetchMovieDetails call for both — no extra TMDB requests. TV
+  // entries have no runtime, and ones added before real TV genre ids were
+  // wired up (see lib/tmdb/tv.ts) stored an explicit empty array rather
+  // than `undefined` — caught here too so old shows don't stay ungenred.
   const backfilledRef = useRef<Set<number>>(new Set());
   useEffect(() => {
     if (!user || !movies) return;
     const toBackfill = movies.filter(
-      (m) => m.genreIds === undefined && !backfilledRef.current.has(m.tmdbId),
+      (m) =>
+        !backfilledRef.current.has(m.tmdbId) &&
+        (m.genreIds === undefined ||
+          (m.mediaType === "tv" && m.genreIds.length === 0)),
     );
     if (toBackfill.length === 0) return;
 
     for (const movie of toBackfill) backfilledRef.current.add(movie.tmdbId);
     void mapWithConcurrency(toBackfill, 6, async (movie) => {
       try {
+        if (movie.mediaType === "tv") {
+          const details = await fetchTVDetails(movie.tmdbId);
+          if (details) {
+            await setWatchlistDetails(
+              user.uid,
+              movie.tmdbId,
+              { genreIds: details.genreIds, durationMinutes: null },
+              "tv",
+            );
+          }
+          return;
+        }
         const details = await fetchMovieDetails(movie.tmdbId);
         if (details) {
           await setWatchlistDetails(user.uid, movie.tmdbId, {
