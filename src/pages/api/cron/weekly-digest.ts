@@ -81,7 +81,14 @@ export const GET: APIRoute = async ({ request, url }) => {
           subject: "Tu semana en Pelicoolas",
           html: renderDigestEmailHtml(items, unsubscribeUrl),
         },
-        { idempotencyKey: `weekly-digest/${uid}/${runDate}` },
+        // Only set on the real scheduled run (no ?uid=) — its purpose is
+        // surviving a retried cron invocation without double-sending
+        // everyone, not blocking a manual re-test on the same calendar day
+        // (Resend 409s a reused key once the payload changes, e.g. after
+        // tweaking the template — a manual test should always go through).
+        singleUid
+          ? undefined
+          : { idempotencyKey: `weekly-digest/${uid}/${runDate}` },
       );
       if (error) {
         logApiError("cron-weekly-digest", new Error(error.message));
