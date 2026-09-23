@@ -589,6 +589,12 @@ export const es: Dictionary = {
         : `Quitaste ${title} de tu tablón de recomendaciones`,
     couldntUpdate: (title) =>
       `No se pudo actualizar "${title}". Intenta de nuevo.`,
+    rateThisMovie: "Califica esta película",
+    rateCount: (n) =>
+      `Calificar con ${n} ${n === 1 ? "crispeta" : "crispetas"}`,
+    rated: (n) => `Calificaste con ${n} ${n === 1 ? "crispeta" : "crispetas"}`,
+    yourRating: "Tu calificación",
+    couldntRate: "No se pudo guardar tu calificación. Intenta de nuevo.",
     unknown: "Desconocido",
     minutes: (count) => `${count} min`,
     seasons: (count) => `${count} ${count === 1 ? "temporada" : "temporadas"}`,

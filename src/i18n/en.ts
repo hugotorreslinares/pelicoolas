@@ -611,6 +611,11 @@ export const en = {
       `${added ? "Added" : "Removed"} ${title} ${added ? "to" : "from"} your recommendations board`,
     couldntUpdate: (title: string) =>
       `Couldn't update "${title}". Please try again.`,
+    rateThisMovie: "Rate this movie",
+    rateCount: (n: number) => `Rate ${n} ${n === 1 ? "crispeta" : "crispetas"}`,
+    rated: (n: number) => `Rated ${n} ${n === 1 ? "crispeta" : "crispetas"}`,
+    yourRating: "Your rating",
+    couldntRate: "Couldn't save your rating. Please try again.",
     unknown: "Unknown",
     minutes: (count: number) => `${count} min`,
     seasons: (count: number) =>

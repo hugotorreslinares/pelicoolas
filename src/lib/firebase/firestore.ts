@@ -26,6 +26,7 @@ import type {
 } from "@/types/filmography";
 import type { FriendActivity } from "@/types/friends";
 import type { FilmographyMovie, TrendingMovie } from "@/types/movie";
+import { clampRating } from "@/lib/rating";
 import type {
   Follower,
   Following,
@@ -512,6 +513,30 @@ export async function setSeenGenres(
   mediaType?: "movie" | "tv",
 ): Promise<void> {
   await updateDoc(seenMovieRef(userId, movieId, mediaType), { genreIds });
+}
+
+// "Crispetas" (1-5 popcorn) rating — lives on the same `seen` doc as the
+// watched record itself, so it's only settable once the movie has actually
+// been marked watched (updateDoc fails if the doc doesn't exist yet) and
+// disappears along with it if the movie is later unmarked.
+export async function setMovieRating(
+  userId: string,
+  movieId: number,
+  rating: number,
+  mediaType?: "movie" | "tv",
+): Promise<void> {
+  await updateDoc(seenMovieRef(userId, movieId, mediaType), {
+    rating: clampRating(rating),
+  });
+}
+
+export async function getMovieRating(
+  userId: string,
+  movieId: number,
+  mediaType?: "movie" | "tv",
+): Promise<number | null> {
+  const snapshot = await getDoc(seenMovieRef(userId, movieId, mediaType));
+  return (snapshot.data() as SeenMovie | undefined)?.rating ?? null;
 }
 
 // --- Follow other users --------------------------------------------------

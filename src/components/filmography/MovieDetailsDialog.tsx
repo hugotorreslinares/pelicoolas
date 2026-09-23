@@ -19,7 +19,9 @@ import {
 import { fetchMovieDetails, fetchTVDetails } from "@/lib/movieData";
 import { MovieActions } from "@/components/movies/MovieActions";
 import { MovieRecommendButton } from "@/components/movies/MovieRecommendButton";
+import { PopcornRating } from "@/components/movies/PopcornRating";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
+import { useMovieRating } from "@/lib/hooks/useMovieRating";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { getDictionary, type Dictionary } from "@/i18n";
 import { useLocale } from "@/lib/hooks/useLocale";
@@ -210,6 +212,11 @@ export function MovieDetailsDialog({
         },
     () => setShowSignIn(true),
   );
+  const { rating, rate } = useMovieRating(
+    movieId,
+    actionState.watched,
+    mediaType,
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -304,6 +311,14 @@ export function MovieDetailsDialog({
                 </div>
               )}
               <p className="text-sm text-muted-foreground">{view.subtitle}</p>
+              {actionState.watched && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {t.yourRating}
+                  </span>
+                  <PopcornRating value={rating} onRate={rate} />
+                </div>
+              )}
               {mediaType === "movie" && (
                 <Button
                   size="sm"

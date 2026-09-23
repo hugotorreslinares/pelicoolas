@@ -97,4 +97,8 @@ export interface SeenMovie {
   readonly genreIds?: readonly number[];
   /** Absent means "movie". */
   readonly mediaType?: "movie" | "tv";
+  /** 1-5 "crispetas" (popcorn) rating — absent until the user rates it.
+   *  Only settable once the movie is marked watched (this doc is the
+   *  watched record itself), and disappears along with it if unmarked. */
+  readonly rating?: number;
 }
