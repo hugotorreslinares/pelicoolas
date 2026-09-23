@@ -64,7 +64,7 @@ export function PosterCarousel({
       <div
         ref={scrollerRef}
         onScroll={updateEdges}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1"
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-thin scroll-smooth pb-1"
       >
         {movies.map((movie) => (
           <button

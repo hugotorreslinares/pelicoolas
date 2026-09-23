@@ -153,6 +153,33 @@
     @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
   }
 
+  /* Thin, theme-matched scrollbar for horizontal poster/avatar strips —
+     replaces the default OS scrollbar (thick, flat gray, ignores the
+     theme) with a slim rounded thumb using --muted-foreground, faint at
+     rest and clearer on hover. Firefox via scrollbar-width/-color,
+     Chromium/Safari via the ::-webkit-scrollbar pseudo-elements. */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    height: 6px;
+  }
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background-color: color-mix(
+      in oklch,
+      var(--muted-foreground) 50%,
+      transparent
+    );
+    border-radius: 999px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
   /*
    * Old-film sprocket holes running down the page edges — purely decorative
    * page-frame identity, not tied to any element's layout. Fixed to the

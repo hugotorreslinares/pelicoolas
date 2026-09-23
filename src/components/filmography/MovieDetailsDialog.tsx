@@ -353,7 +353,7 @@ export function MovieDetailsDialog({
             {view.cast.length > 0 && (
               <div className="mt-4 space-y-2">
                 <p className="text-sm font-medium">{t.cast}</p>
-                <div className="flex gap-3 overflow-x-auto pb-1">
+                <div className="flex gap-3 overflow-x-auto scroll-thin pb-1">
                   {view.cast.map((member) => (
                     <a
                       key={member.personId}

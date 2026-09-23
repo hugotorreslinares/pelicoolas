@@ -56,7 +56,7 @@ export function RecentUsersSlider({ locale }: RecentUsersSliderProps) {
       <p className="text-sm font-medium text-muted-foreground">
         {t.heroes.newOnPelicoolas}
       </p>
-      <div className="flex gap-4 overflow-x-auto pb-1">
+      <div className="flex gap-4 overflow-x-auto scroll-thin pb-1">
         {visible.map((profile) => (
           <a
             key={profile.uid}

@@ -28,7 +28,7 @@ export function TrendingSlider({
   return (
     <div className="space-y-2 text-left">
       <p className="text-sm font-medium text-muted-foreground">{heading}</p>
-      <div className="flex gap-3 overflow-x-auto pb-1">
+      <div className="flex gap-3 overflow-x-auto scroll-thin pb-1">
         {items.map((item, index) => (
           <TrendingCard
             locale={locale}
