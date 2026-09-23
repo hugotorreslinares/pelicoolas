@@ -4,12 +4,15 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { FriendsPage } from "@/components/friends/FriendsPage";
 
+import { getDictionary } from "@/i18n";
+
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="Friends — Pelicoolas"
-  description="See what the people you follow have recently watched, added to their watchlist, or recommended."
+  title={`${t.friends.heading} — Pelicoolas`}
+  description={t.friends.metaDescription}
   noindex
 >
   <FriendsPage client:load locale={locale} />

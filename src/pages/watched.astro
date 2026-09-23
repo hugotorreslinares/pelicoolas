@@ -4,12 +4,15 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { WatchedPage } from "@/components/filmography/WatchedPage";
 
+import { getDictionary } from "@/i18n";
+
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="Watched — Pelicoolas"
-  description="Every movie you've marked watched, across every actor, director, and however you found it."
+  title={`${t.watched.heading} — Pelicoolas`}
+  description={t.watched.metaDescription}
   noindex
 >
   <WatchedPage client:load locale={locale} />

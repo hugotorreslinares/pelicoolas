@@ -4,12 +4,15 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { Dashboard } from "@/components/filmography/Dashboard";
 
+import { getDictionary } from "@/i18n";
+
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="My Filmographies — Pelicoolas"
-  description="Follow your favorite actors and directors and track which of their movies you've already watched."
+  title={`${t.dashboard.heading} — Pelicoolas`}
+  description={t.dashboard.findPerson}
   noindex
   canonicalPath="/"
 >

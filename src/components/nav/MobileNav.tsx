@@ -79,7 +79,7 @@ export function MobileNav({ locale }: MobileNavProps) {
               }
             >
               <XIcon />
-              <span className="sr-only">Close</span>
+              <span className="sr-only">{t.common.close}</span>
             </DialogClose>
           </div>
           {links.map(({ href, label, icon: Icon }) => (

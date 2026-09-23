@@ -62,7 +62,7 @@ export function PersonPhotoGallery({
           }
         >
           <XIcon className="size-5" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{t.common.close}</span>
         </DialogClose>
 
         <DialogTitle>{personName}</DialogTitle>

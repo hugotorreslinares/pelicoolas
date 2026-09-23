@@ -4,12 +4,15 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { HalloweenChallenge } from "@/components/challenge/HalloweenChallenge";
 
+import { getDictionary } from "@/i18n";
+
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="Halloween Challenge — Pelicoolas"
-  description="31 horror movies to watch before October 31. Build your list and earn the Halloween Marathon badge."
+  title={`${t.halloween.heading} — Pelicoolas`}
+  description={t.halloween.metaDescription}
   noindex
 >
   <HalloweenChallenge locale={locale} client:load />

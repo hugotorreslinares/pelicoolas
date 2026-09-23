@@ -6,12 +6,15 @@ import { RecommendationsBoard } from "@/components/board/RecommendationsBoard";
 const { userId } = Astro.params;
 if (!userId) return Astro.redirect("/");
 
+import { getDictionary } from "@/i18n";
+
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="Movie Recommendations — Pelicoolas"
-  description="Movies worth watching, picked by a Pelicoolas user — no account needed to browse."
+  title={`${t.board.movieRecommendations} — Pelicoolas`}
+  description={t.board.visitorSubtitle}
 >
   <RecommendationsBoard userId={userId} locale={locale} client:load />
 </Layout>

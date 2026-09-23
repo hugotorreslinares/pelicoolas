@@ -2,15 +2,17 @@
 export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { MovieMap } from "@/components/connections/MovieMap";
+import { getDictionary } from "@/i18n";
 
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
   title="Movie Map — Pelicoolas"
-  description="Explore movies through what's similar to them — click your way from one to the next."
+  description={t.movieMap.metaDescription}
   noindex
 >
-  <h1 class="mb-4 text-xl font-semibold">Movie Map</h1>
+  <h1 class="mb-4 text-xl font-semibold">{t.nav.movieMap}</h1>
   <MovieMap locale={locale} client:load />
 </Layout>

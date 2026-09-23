@@ -83,6 +83,7 @@ export const es: Dictionary = {
     search: "Buscar",
     noImage: "Sin imagen",
     nothingHereYet: "Todavía no hay nada aquí.",
+    close: "Cerrar",
   },
   dashboard: {
     heading: "Mis filmografías",
@@ -122,6 +123,8 @@ export const es: Dictionary = {
   },
   watched: {
     heading: "Vistas",
+    metaDescription:
+      "Todas las películas que marcaste como vistas, sin importar el actor, director o cómo llegaste a ellas.",
     signInPrompt: "Inicia sesión para ver todo lo que marcaste como visto.",
     emptyHeading: "Todavía no marcaste nada como visto.",
     emptyBody:
@@ -136,6 +139,8 @@ export const es: Dictionary = {
   },
   watchlist: {
     heading: "Watchlist",
+    metaDescription:
+      "Películas que guardaste de las filmografías que sigues, listas para ver después.",
     myWatchlist: "Mi Watchlist",
     signInPrompt: "Inicia sesión para guardar películas en tu radar.",
     emptyHeading: "Tu watchlist está vacía.",
@@ -327,6 +332,9 @@ export const es: Dictionary = {
       "Busca actores, directores, películas y series — sigue filmografías o agrega títulos a tu watchlist.",
   },
   friends: {
+    heading: "Amigos",
+    metaDescription:
+      "Mira lo que las personas que sigues han visto, agregado a su watchlist o recomendado recientemente.",
     followRequests: (count) => `Solicitudes de seguimiento (${count})`,
     deny: "Rechazar",
     approve: "Aprobar",
@@ -443,6 +451,8 @@ export const es: Dictionary = {
   },
   connections: {
     heading: "Conexiones",
+    metaDescription:
+      "Mira cómo se conectan las películas y personas de tu filmografía — reparto compartido, actores que trabajaron juntos.",
     subtitle:
       "Cómo se cruzan la gente que sigues y las películas en las que aparecen.",
     tabPeople: "Gente que trabajó junta",
@@ -482,6 +492,8 @@ export const es: Dictionary = {
     atSizeLimit: " El mapa llegó a su límite de tamaño.",
     viewDetailsFor: (title) => `Ver detalles de ${title}`,
     viewDetails: "Ver detalles",
+    metaDescription:
+      "Explora películas a través de lo que se parece a ellas — sigue de una a otra con un clic.",
   },
   usernamePrompt: {
     invalidUsername: "3-20 caracteres: letras, números, guion bajo.",
@@ -506,6 +518,9 @@ export const es: Dictionary = {
     badgeAlt: (label) => `Insignia "${label}"`,
   },
   people: {
+    heading: "Personas",
+    metaDescription:
+      "Descubre personas en Pelicoolas, mira a quién sigues y quién te sigue.",
     discover: "Descubrir",
     following: "Siguiendo",
     followers: "Seguidores",
@@ -631,6 +646,8 @@ export const es: Dictionary = {
       "Arma tu lista de Halloween, mira una al día y gana la insignia Maratón de Halloween.",
     heroCta: "Armar mi lista",
     heading: "Reto de Halloween",
+    metaDescription:
+      "31 películas de terror para ver antes del 31 de octubre. Arma tu lista y gana la insignia Maratón de Halloween.",
     subtitle: "31 películas de terror para ver antes del 31 de octubre.",
     daysLeft: (n) => `${n} ${n === 1 ? "día" : "días"} restantes`,
     signInPrompt: "Inicia sesión para armar tu lista de Halloween.",
@@ -676,5 +693,76 @@ export const es: Dictionary = {
       "Invita a un amigo a seguirte — vas a ver qué tan parecidos son sus gustos de cine a los tuyos.",
     invitePromptCta: "Invitar a un amigo",
     invitePromptDismiss: "Ahora no",
+  },
+  wrapped: {
+    metaDescription:
+      "Tus estadísticas personales de lo visto entre todos los que sigues.",
+    signInToSeeStats: "Inicia sesión para ver tus estadísticas.",
+    emptyFollowSomeone:
+      "Sigue a alguien y marca algunas películas como vistas para ver tus estadísticas aquí.",
+    emptyMarkSome:
+      "Marca algunas películas como vistas para ver tus estadísticas aquí.",
+    moviesWatched: "Películas vistas",
+    mostWatched: "Más vista",
+    movieCount: (count) => `${count} películas`,
+    favoriteDecade: "Década favorita",
+    moviesFromThen: (count) => `${count} películas de esa época`,
+  },
+  privacy: {
+    title: "Privacidad y datos — Pelicoolas",
+    metaDescription:
+      "Qué recopila Pelicoolas, por qué, y tus derechos sobre tus datos.",
+    heading: "Privacidad y datos",
+    lastUpdated: "Última actualización: septiembre 2026",
+    noSellHeading: "No vendemos ni compartimos tus datos",
+    noSellBody:
+      "Pelicoolas no vende, alquila ni comparte tus datos personales con anunciantes, corredores de datos, ni terceros con fines de mercadeo. No corremos publicidad. Tus datos solo llegan a los proveedores de abajo, y solo para que la app funcione.",
+    whatWeCollectHeading: "Qué recopilamos",
+    accountInfoLabel: "Datos de tu cuenta",
+    accountInfoBody:
+      "tu nombre, correo y foto de perfil, desde Google Sign-In. Nunca vemos ni guardamos tu contraseña de Google.",
+    activityLabel: "Tu actividad en la app",
+    activityBody:
+      "personas que sigues, películas que marcas como vistas o agregas a tu watchlist, insignias que ganas. Esto es lo que hace funcionar la app — el seguimiento de filmografías.",
+    publicProfileLabel: "Perfil público",
+    publicProfileBefore:
+      "si usas la función de seguir a otros usuarios, tu nombre y foto quedan visibles para cualquiera que tenga el link de tu perfil (",
+    publicProfileAfter:
+      "). Tus películas vistas y tu watchlist solo son visibles para quienes hayas aprobado como seguidores. Nada más es público a menos que lo compartas tú mismo (por ejemplo, tu tablón de recomendaciones).",
+    analyticsLabel: "Analítica básica de uso",
+    analyticsBody:
+      "vistas de página y métricas de rendimiento vía Vercel Analytics — datos agregados, no ligados a tu identidad más allá de lo necesario para mostrar una gráfica.",
+    whoElseHeading: "Quién más toca tus datos",
+    firebaseLabel: "Firebase (Google)",
+    firebaseBody:
+      "aloja nuestra base de datos y maneja el inicio de sesión. Ahí viven tu cuenta y los datos de la app.",
+    vercelLabel: "Vercel",
+    vercelBody: "aloja la app en sí y su analítica.",
+    tmdbLabel: "TMDB",
+    tmdbBody:
+      "consultamos la API de TMDB del lado del servidor para datos de películas y personas (pósters, reparto, calificaciones). No le enviamos a TMDB ninguna información que te identifique — solo los IDs de película/persona necesarios para traer datos públicos.",
+    noAdvertisingBody:
+      "Ninguno de estos proveedores tiene permitido usar tus datos para su propia publicidad.",
+    cookiesHeading: "Cookies y almacenamiento local",
+    cookiesBody:
+      "Usamos el almacenamiento local de tu navegador para cosas como tu preferencia de tema, ajustes de vista, y caché sin conexión (esta app funciona como PWA instalable). No usamos cookies de rastreo ni cookies de publicidad de terceros.",
+    yourRightsHeading: "Tus derechos",
+    accessExportLabel: "Acceso y exportación",
+    accessExportBody: (exportDataLabel) =>
+      `descarga todo lo que has guardado, cuando quieras, desde el menú de tu cuenta ("${exportDataLabel}").`,
+    deletionLabel: "Eliminación",
+    deletionBody:
+      "escríbenos (abajo) para pedir la eliminación completa de tu cuenta, y borramos tus datos de nuestra base de datos.",
+    correctionLabel: "Corrección",
+    correctionBody:
+      "tu nombre y foto vienen de Google; actualízalos allá y se sincronizan aquí la próxima vez que inicies sesión.",
+    gdprCcpaBody:
+      "Si estás en la UE/Reino Unido, esto corresponde a tus derechos GDPR de acceso, borrado y portabilidad de datos. Si estás en California, esto cubre tus derechos bajo la CCPA — y para que quede explícito: no vendemos tu información personal.",
+    childrenHeading: "Menores de edad",
+    childrenBody:
+      "Pelicoolas no está dirigido a menores de 13 años, y no recopilamos datos suyos a sabiendas.",
+    contactHeading: "Contacto",
+    contactBody:
+      "¿Preguntas sobre esta política o quieres hacer una solicitud sobre tus datos? Escríbenos vía la información de contacto en el repositorio de GitHub de la app.",
   },
 };

@@ -8,6 +8,8 @@ import {
 } from "@/lib/firebase/firestore";
 import { fetchPersonData } from "@/lib/movieData";
 import { mapWithConcurrency } from "@/lib/concurrency";
+import { getDictionary } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 import type { FollowedPerson } from "@/types/filmography";
 import type { FilmographyMovie } from "@/types/movie";
 
@@ -21,6 +23,7 @@ function decadeOf(year: number): string {
 }
 
 export function WrappedStats() {
+  const t = getDictionary(useLocale()).wrapped;
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [dataById, setDataById] = useState<Record<number, PersonData>>({});
@@ -81,16 +84,14 @@ export function WrappedStats() {
 
   if (!user) {
     return (
-      <p className="text-center text-muted-foreground">
-        Sign in to see your stats.
-      </p>
+      <p className="text-center text-muted-foreground">{t.signInToSeeStats}</p>
     );
   }
 
   if (!people || people.length === 0) {
     return (
       <p className="text-center text-muted-foreground">
-        Follow someone and mark a few movies watched to see your stats here.
+        {t.emptyFollowSomeone}
       </p>
     );
   }
@@ -135,9 +136,7 @@ export function WrappedStats() {
 
   if (totalWatched === 0) {
     return (
-      <p className="text-center text-muted-foreground">
-        Mark a few movies as watched to see your stats here.
-      </p>
+      <p className="text-center text-muted-foreground">{t.emptyMarkSome}</p>
     );
   }
 
@@ -146,7 +145,7 @@ export function WrappedStats() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm text-muted-foreground">
-            Movies watched
+            {t.moviesWatched}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -158,7 +157,7 @@ export function WrappedStats() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm text-muted-foreground">
-              Most watched
+              {t.mostWatched}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -169,7 +168,7 @@ export function WrappedStats() {
               {personWithMost.person.name}
             </a>
             <p className="text-sm text-muted-foreground">
-              {watchedCountFor(personWithMost)} movies
+              {t.movieCount(watchedCountFor(personWithMost))}
             </p>
           </CardContent>
         </Card>
@@ -179,13 +178,13 @@ export function WrappedStats() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm text-muted-foreground">
-              Favorite decade
+              {t.favoriteDecade}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{topDecade[0]}</p>
             <p className="text-sm text-muted-foreground">
-              {topDecade[1]} movies from then
+              {t.moviesFromThen(topDecade[1])}
             </p>
           </CardContent>
         </Card>

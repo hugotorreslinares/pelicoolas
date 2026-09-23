@@ -3,12 +3,15 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { ConnectionsPage } from "@/components/connections/ConnectionsPage";
 
+import { getDictionary } from "@/i18n";
+
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="Connections — Pelicoolas"
-  description="See how the movies and people in your filmography connect — shared cast, actors who worked together."
+  title={`${t.connections.heading} — Pelicoolas`}
+  description={t.connections.metaDescription}
   noindex
 >
   <ConnectionsPage locale={locale} client:load />

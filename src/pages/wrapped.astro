@@ -3,15 +3,19 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { WrappedStats } from "@/components/wrapped/WrappedStats";
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="Your Year in Film — Pelicoolas"
-  description="Your personal viewing stats across everyone you follow."
+  title={`${t.dashboard.yourYearInFilm} — Pelicoolas`}
+  description={t.wrapped.metaDescription}
   noindex
 >
   <div class="space-y-4">
-    <h1 class="text-xl font-semibold">Your Year in Film</h1>
+    <h1 class="text-xl font-semibold">{t.dashboard.yourYearInFilm}</h1>
     <WrappedStats client:load />
   </div>
 </Layout>

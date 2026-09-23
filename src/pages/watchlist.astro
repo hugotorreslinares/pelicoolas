@@ -4,12 +4,15 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { WatchlistPage } from "@/components/filmography/WatchlistPage";
 
+import { getDictionary } from "@/i18n";
+
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 ---
 
 <Layout
-  title="Watchlist — Pelicoolas"
-  description="Movies you've bookmarked from the filmographies you follow, ready to watch next."
+  title={`${t.watchlist.heading} — Pelicoolas`}
+  description={t.watchlist.metaDescription}
   noindex
 >
   <WatchlistPage client:load locale={locale} />

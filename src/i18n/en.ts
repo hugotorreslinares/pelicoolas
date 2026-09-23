@@ -107,6 +107,7 @@ export const en = {
     search: "Search",
     noImage: "No image",
     nothingHereYet: "Nothing here yet.",
+    close: "Close",
   },
   dashboard: {
     heading: "My Filmographies",
@@ -145,6 +146,8 @@ export const en = {
   },
   watched: {
     heading: "Watched",
+    metaDescription:
+      "Every movie you've marked watched, across every actor, director, and however you found it.",
     signInPrompt: "Sign in to see everything you've marked watched.",
     emptyHeading: "Nothing marked watched yet.",
     emptyBody:
@@ -159,6 +162,8 @@ export const en = {
   },
   watchlist: {
     heading: "Watchlist",
+    metaDescription:
+      "Movies you've bookmarked from the filmographies you follow, ready to watch next.",
     myWatchlist: "My Watchlist",
     signInPrompt: "Sign in to keep movies on your radar.",
     emptyHeading: "Your watchlist is empty.",
@@ -347,6 +352,9 @@ export const en = {
       "Search actors, directors, movies, and TV shows — follow filmographies or add titles to your watchlist.",
   },
   friends: {
+    heading: "Friends",
+    metaDescription:
+      "See what the people you follow have recently watched, added to their watchlist, or recommended.",
     followRequests: (count: number) => `Follow requests (${count})`,
     deny: "Deny",
     approve: "Approve",
@@ -467,6 +475,8 @@ export const en = {
   },
   connections: {
     heading: "Connections",
+    metaDescription:
+      "See how the movies and people in your filmography connect — shared cast, actors who worked together.",
     subtitle:
       "How the people you follow — and the movies they're in — overlap.",
     tabPeople: "People who worked together",
@@ -506,6 +516,8 @@ export const en = {
     atSizeLimit: " Map is at its size limit.",
     viewDetailsFor: (title: string) => `View details for ${title}`,
     viewDetails: "View details",
+    metaDescription:
+      "Explore movies through what's similar to them — click your way from one to the next.",
   },
   usernamePrompt: {
     invalidUsername: "3-20 characters: letters, numbers, underscore.",
@@ -530,6 +542,9 @@ export const en = {
     badgeAlt: (label: string) => `"${label}" badge`,
   },
   people: {
+    heading: "People",
+    metaDescription:
+      "Discover people on Pelicoolas, see who you follow, and who follows you.",
     discover: "Discover",
     following: "Following",
     followers: "Followers",
@@ -653,6 +668,8 @@ export const en = {
       "Build your Halloween list, watch one a day, and earn the Halloween Marathon badge.",
     heroCta: "Build my list",
     heading: "Halloween challenge",
+    metaDescription:
+      "31 horror movies to watch before October 31. Build your list and earn the Halloween Marathon badge.",
     subtitle: "31 horror movies to watch before October 31.",
     daysLeft: (n: number) => `${n} ${n === 1 ? "day" : "days"} left`,
     signInPrompt: "Sign in to build your Halloween list.",
@@ -698,6 +715,75 @@ export const en = {
       "Invite a friend to follow you — you'll see how your taste in movies compares.",
     invitePromptCta: "Invite a friend",
     invitePromptDismiss: "Not now",
+  },
+  wrapped: {
+    metaDescription: "Your personal viewing stats across everyone you follow.",
+    signInToSeeStats: "Sign in to see your stats.",
+    emptyFollowSomeone:
+      "Follow someone and mark a few movies watched to see your stats here.",
+    emptyMarkSome: "Mark a few movies as watched to see your stats here.",
+    moviesWatched: "Movies watched",
+    mostWatched: "Most watched",
+    movieCount: (count: number) => `${count} movies`,
+    favoriteDecade: "Favorite decade",
+    moviesFromThen: (count: number) => `${count} movies from then`,
+  },
+  privacy: {
+    title: "Privacy & Data Policy — Pelicoolas",
+    metaDescription:
+      "What Pelicoolas collects, why, and your rights over your data.",
+    heading: "Privacy & Data Policy",
+    lastUpdated: "Last updated: September 2026",
+    noSellHeading: "We don't sell or share your data",
+    noSellBody:
+      "Pelicoolas does not sell, rent, or share your personal data with advertisers, data brokers, or any third party for marketing purposes. We don't run ads. The only places your data goes are the service providers below, strictly to make the app work.",
+    whatWeCollectHeading: "What we collect",
+    accountInfoLabel: "Account info",
+    accountInfoBody:
+      "your name, email, and profile photo, from Google Sign-In. We never see or store your Google password.",
+    activityLabel: "Your activity in the app",
+    activityBody:
+      "people you follow, movies you mark watched or add to your watchlist, badges you earn. This is what makes the app work — tracking filmographies.",
+    publicProfileLabel: "Public profile",
+    publicProfileBefore:
+      "if you use the follow-other-users feature, your display name and photo become visible to anyone with your profile link (",
+    publicProfileAfter:
+      "). Your watched movies and watchlist are visible only to people you've approved as followers. Nothing else is public unless you explicitly share it (e.g. your recommendations board).",
+    analyticsLabel: "Basic usage analytics",
+    analyticsBody:
+      "page views and performance metrics via Vercel Analytics — aggregated, not tied to your identity beyond what's needed to render a chart.",
+    whoElseHeading: "Who else touches your data",
+    firebaseLabel: "Firebase (Google)",
+    firebaseBody:
+      "hosts our database and handles sign-in. Your account and app data live there.",
+    vercelLabel: "Vercel",
+    vercelBody: "hosts the app itself and its analytics.",
+    tmdbLabel: "TMDB",
+    tmdbBody:
+      "we query TMDB's API server-side for movie and person data (posters, cast, ratings). We don't send TMDB any information that identifies you — just the movie/person IDs needed to fetch public data.",
+    noAdvertisingBody:
+      "None of these providers are permitted to use your data for their own advertising.",
+    cookiesHeading: "Cookies & local storage",
+    cookiesBody:
+      "We use your browser's local storage for things like your theme preference, view settings, and offline caching (this app works as an installable PWA). We don't use tracking cookies or third-party ad cookies.",
+    yourRightsHeading: "Your rights",
+    accessExportLabel: "Access & export",
+    accessExportBody: (exportDataLabel: string) =>
+      `download everything you've stored at any time from your account menu ("${exportDataLabel}").`,
+    deletionLabel: "Deletion",
+    deletionBody:
+      "email us (below) to request full account deletion, and we'll remove your data from our database.",
+    correctionLabel: "Correction",
+    correctionBody:
+      "your name/photo come from Google; update them there and they'll sync here next time you sign in.",
+    gdprCcpaBody:
+      "If you're in the EU/UK, these map to your GDPR rights of access, erasure, and data portability. If you're in California, this covers your CCPA rights — and to be explicit: we do not sell your personal information.",
+    childrenHeading: "Children",
+    childrenBody:
+      "Pelicoolas isn't directed at children under 13, and we don't knowingly collect data from them.",
+    contactHeading: "Contact",
+    contactBody:
+      "Questions about this policy or a data request? Reach out via the contact info on the app's GitHub repository.",
   },
 };
 
