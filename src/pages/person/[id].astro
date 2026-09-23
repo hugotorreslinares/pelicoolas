@@ -10,9 +10,11 @@ import { TmdbError } from "@/lib/tmdb/client";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
 import { ArrowLeftIcon, ClapperboardIcon } from "lucide-react";
 import engagement from "@/config/engagement.json";
+import { getDictionary } from "@/i18n";
 import type { CreditDepartment } from "@/types/filmography";
 
 const locale = Astro.locals.locale;
+const t = getDictionary(locale);
 const MAX_DESCRIPTION_LENGTH = 160;
 
 function truncate(text: string, maxLength: number): string {
@@ -27,7 +29,7 @@ let department: CreditDepartment = "Acting";
 let movies: Awaited<ReturnType<typeof getFilmography>> = [];
 
 if (!Number.isInteger(personId)) {
-  error = "No people found. Try another name.";
+  error = t.search.noPeopleFound;
 } else {
   try {
     profile = await getPersonProfile(personId);
@@ -37,14 +39,14 @@ if (!Number.isInteger(personId)) {
   } catch (e) {
     error =
       e instanceof TmdbError
-        ? "We couldn't load this filmography. Please try again."
-        : "No people found. Try another name.";
+        ? t.search.couldntLoadPerson
+        : t.search.noPeopleFound;
   }
 }
 const description = profile
   ? profile.biography
     ? truncate(profile.biography, MAX_DESCRIPTION_LENGTH)
-    : `See ${profile.name}'s full filmography and track which movies you've watched.`
+    : t.personHeader.defaultBio(profile.name)
   : undefined;
 const ogImage = profile?.profilePath
   ? tmdbImageUrl(profile.profilePath, 500)
@@ -78,22 +80,22 @@ if (referer) {
     if (refUrl.origin === Astro.url.origin) {
       if (refUrl.pathname === "/watchlist") {
         backHref = "/watchlist";
-        backLabel = "your watchlist";
+        backLabel = t.personHeader.backToWatchlist;
       } else if (
         refUrl.pathname === "/" ||
         refUrl.pathname === "/filmographies"
       ) {
         backHref = "/filmographies";
-        backLabel = "My Filmographies";
+        backLabel = t.personHeader.backToFilmographies;
       } else if (refUrl.pathname === "/search") {
         backHref = "/search";
-        backLabel = "search";
+        backLabel = t.personHeader.backToSearch;
       } else if (
         refUrl.pathname.startsWith("/person/") &&
         refUrl.pathname !== Astro.url.pathname
       ) {
         backHref = refUrl.pathname;
-        backLabel = "the previous filmography";
+        backLabel = t.personHeader.backToFilmography;
       }
     }
   } catch {
@@ -115,7 +117,7 @@ if (referer) {
         class="focus-ring mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeftIcon className="size-3.5" />
-        Back to {backLabel}
+        {backLabel}
       </a>
     )
   }
@@ -126,8 +128,10 @@ if (referer) {
     onThisDayMovie && (
       <p class="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground">
         <ClapperboardIcon className="size-4 shrink-0" />
-        On this day in {onThisDayMovie.releaseYear}, "{onThisDayMovie.title}"
-        was released.
+        {t.personHeader.onThisDay(
+          onThisDayMovie.releaseYear ?? 0,
+          onThisDayMovie.title,
+        )}
       </p>
     )
   }

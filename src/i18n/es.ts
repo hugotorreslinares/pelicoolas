@@ -182,6 +182,9 @@ export const es: Dictionary = {
     filterAll: "Todas",
     filterUnwatched: "No vistas",
     filterWatched: "Vistas",
+    progressCount: (watched, total) => `${watched} / ${total} películas`,
+    progressPending: (remaining) => `${remaining} películas por ver`,
+    loadingProgress: "Cargando progreso…",
   },
   profile: {
     pelicoolasUser: "Usuario de Pelicoolas",
@@ -319,6 +322,9 @@ export const es: Dictionary = {
     couldntSendInvite: "No se pudo enviar la invitación. Intenta de nuevo.",
     inviteSentTo: (username) => `Invitación enviada a @${username}`,
     pageHeading: "Buscar actores, directores, películas y series",
+    pageTitle: "Buscar — Pelicoolas",
+    metaDescription:
+      "Busca actores, directores, películas y series — sigue filmografías o agrega títulos a tu watchlist.",
   },
   friends: {
     followRequests: (count) => `Solicitudes de seguimiento (${count})`,
@@ -356,8 +362,30 @@ export const es: Dictionary = {
     remaining: (watched, total, remaining) =>
       `${watched} / ${total} · ${remaining} por ver`,
   },
+  department: {
+    acting: "Actuación",
+    directing: "Dirección",
+    writing: "Guion",
+    production: "Producción",
+    sound: "Sonido",
+    camera: "Cámara",
+    art: "Arte",
+    costumeMakeUp: "Vestuario y maquillaje",
+    editing: "Edición",
+    visualEffects: "Efectos visuales",
+    crew: "Equipo técnico",
+    lighting: "Iluminación",
+  },
   personHeader: {
     viewPhotosOf: (name) => `Ver fotos de ${name}`,
+    backToWatchlist: "Volver a tu watchlist",
+    backToFilmographies: "Volver a Mis filmografías",
+    backToSearch: "Volver a la búsqueda",
+    backToFilmography: "Volver a la filmografía anterior",
+    onThisDay: (year, title) =>
+      `Un día como hoy en ${year} se estrenó "${title}".`,
+    defaultBio: (name) =>
+      `Mira la filmografía completa de ${name} y lleva el registro de lo que ya viste.`,
     female: "Femenino",
     male: "Masculino",
     nonBinary: "No binario",
@@ -372,6 +400,17 @@ export const es: Dictionary = {
     alsoKnownAs: "También conocido como:",
     couldntLoadPhotos: "No se pudieron cargar las fotos. Intenta de nuevo.",
     noPhotosAvailable: "No hay fotos disponibles.",
+  },
+  notifications: {
+    label: "Notificaciones",
+    labelUnread: (count) => `Notificaciones, ${count} sin leer`,
+    loading: "Cargando notificaciones…",
+    empty:
+      "Todavía no tienes notificaciones — te avisamos cuando alguien que sigues saque película nueva o recomiende algo.",
+    newRelease: (name) => `${name} tiene película nueva`,
+    recommendedMovie: (name) => `${name} recomendó una película`,
+    recommendedShow: (name) => `${name} recomendó una serie`,
+    recommendedPerson: (name) => `${name} recomendó un actor o director`,
   },
   board: {
     yourRecommendations: "Tus recomendaciones",

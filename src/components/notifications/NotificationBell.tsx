@@ -22,9 +22,12 @@ import {
   subscribeToNotifications,
 } from "@/lib/firebase/notifications";
 import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 import type { AppNotification } from "@/types/notifications";
 
 export function NotificationBell() {
+  const t = getDictionary(useLocale()).notifications;
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<
     readonly AppNotification[]
@@ -63,6 +66,19 @@ export function NotificationBell() {
     );
   }
 
+  function notificationTitle(n: AppNotification): string {
+    switch (n.type) {
+      case "new-release":
+        return t.newRelease(n.personName);
+      case "person-recommendation":
+        return t.recommendedPerson(n.recommenderName);
+      case "recommendation":
+        return n.mediaType === "tv"
+          ? t.recommendedShow(n.recommenderName)
+          : t.recommendedMovie(n.recommenderName);
+    }
+  }
+
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
       <Tooltip>
@@ -71,9 +87,7 @@ export function NotificationBell() {
             <DropdownMenuTrigger
               className="focus-ring relative flex size-11 items-center justify-center rounded-full hover:bg-muted"
               aria-label={
-                unreadCount > 0
-                  ? `Notifications, ${unreadCount} unread`
-                  : "Notifications"
+                unreadCount > 0 ? t.labelUnread(unreadCount) : t.label
               }
             />
           }
@@ -83,15 +97,15 @@ export function NotificationBell() {
             <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" />
           )}
         </TooltipTrigger>
-        <TooltipContent>Notifications</TooltipContent>
+        <TooltipContent>{t.label}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+          <DropdownMenuLabel>{t.label}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {!loaded && (
             <div className="space-y-2 p-2" role="status">
-              <span className="sr-only">Loading notifications…</span>
+              <span className="sr-only">{t.loading}</span>
               {Array.from({ length: 3 }, (_, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <Skeleton className="h-14 w-10 shrink-0 rounded" />
@@ -104,10 +118,7 @@ export function NotificationBell() {
             </div>
           )}
           {loaded && notifications.length === 0 && (
-            <p className="p-2 text-sm text-muted-foreground">
-              No notifications yet — you'll hear about it when someone you
-              follow has a new movie out, or recommends something.
-            </p>
+            <p className="p-2 text-sm text-muted-foreground">{t.empty}</p>
           )}
           {notifications.map((n) => (
             <DropdownMenuItem
@@ -147,11 +158,7 @@ export function NotificationBell() {
               )}
               <span className="flex flex-col gap-0.5 text-left">
                 <span className="text-sm font-medium">
-                  {n.type === "new-release"
-                    ? `${n.personName} has a new movie`
-                    : n.type === "person-recommendation"
-                      ? `${n.recommenderName} recommended an actor/director`
-                      : `${n.recommenderName} recommended a ${n.mediaType === "tv" ? "show" : "movie"}`}
+                  {notificationTitle(n)}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   {n.type === "person-recommendation"

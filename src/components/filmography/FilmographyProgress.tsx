@@ -1,5 +1,7 @@
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getDictionary } from "@/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 
 interface FilmographyProgressProps {
   readonly watchedCount: number;
@@ -14,10 +16,12 @@ export function FilmographyProgress({
   totalCount,
   loading = false,
 }: FilmographyProgressProps) {
+  const t = getDictionary(useLocale()).filmography;
+
   if (loading) {
     return (
       <div className="space-y-1" role="status">
-        <span className="sr-only">Loading watched progress…</span>
+        <span className="sr-only">{t.loadingProgress}</span>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-2 w-full" />
         <Skeleton className="h-5 w-28" />
@@ -32,11 +36,11 @@ export function FilmographyProgress({
   return (
     <div className="space-y-1">
       <p className="text-sm font-medium">
-        {watchedCount} / {totalCount} movies
+        {t.progressCount(watchedCount, totalCount)}
       </p>
       <Progress value={percent} />
       <p className="text-sm text-muted-foreground">
-        {remaining} movies pending
+        {t.progressPending(remaining)}
       </p>
     </div>
   );

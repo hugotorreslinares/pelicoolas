@@ -13,6 +13,7 @@ import { PersonPhotoGallery } from "./PersonPhotoGallery";
 import { tmdbImageUrl, tmdbDensitySrcSet } from "@/lib/tmdb/image";
 import { calculateAge } from "@/lib/age";
 import { cn } from "@/lib/utils";
+import { translateDepartment } from "@/lib/department";
 import { getDictionary, type Locale } from "@/i18n";
 import type { PersonProfile } from "@/types/person";
 
@@ -23,8 +24,8 @@ interface PersonHeaderProps {
   readonly locale: Locale;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso: string, locale: Locale): string {
+  return new Date(iso).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -76,12 +77,12 @@ export function PersonHeader({
   const birthdayLine = profile.birthday
     ? profile.deathday
       ? t.personHeader.yearsOldRange(
-          formatDate(profile.birthday),
-          formatDate(profile.deathday),
+          formatDate(profile.birthday, locale),
+          formatDate(profile.deathday, locale),
           calculateAge(profile.birthday, profile.deathday),
         )
       : t.personHeader.yearsOldSingle(
-          formatDate(profile.birthday),
+          formatDate(profile.birthday, locale),
           calculateAge(profile.birthday),
         )
     : null;
@@ -121,7 +122,9 @@ export function PersonHeader({
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
               {profile.name}
             </h1>
-            <p className="text-sm text-muted-foreground">{department}</p>
+            <p className="text-sm text-muted-foreground">
+              {translateDepartment(department, t)}
+            </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <FollowButton
@@ -169,7 +172,7 @@ export function PersonHeader({
             <InfoItem
               icon={StarIcon}
               label={t.personHeader.knownFor}
-              value={profile.knownForDepartment}
+              value={translateDepartment(profile.knownForDepartment, t) ?? ""}
             />
           )}
           <InfoItem

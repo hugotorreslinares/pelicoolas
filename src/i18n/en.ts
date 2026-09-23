@@ -199,6 +199,10 @@ export const en = {
     filterAll: "All",
     filterUnwatched: "Unwatched",
     filterWatched: "Watched",
+    progressCount: (watched: number, total: number) =>
+      `${watched} / ${total} movies`,
+    progressPending: (remaining: number) => `${remaining} movies pending`,
+    loadingProgress: "Loading watched progress…",
   },
   profile: {
     pelicoolasUser: "Pelicoolas user",
@@ -338,6 +342,9 @@ export const en = {
     couldntSendInvite: "Couldn't send the invite. Please try again.",
     inviteSentTo: (username: string) => `Invite sent to @${username}`,
     pageHeading: "Search actors, directors, movies & TV shows",
+    pageTitle: "Search — Pelicoolas",
+    metaDescription:
+      "Search actors, directors, movies, and TV shows — follow filmographies or add titles to your watchlist.",
   },
   friends: {
     followRequests: (count: number) => `Follow requests (${count})`,
@@ -375,8 +382,30 @@ export const en = {
     remaining: (watched: number, total: number, remaining: number) =>
       `${watched} / ${total} · ${remaining} remaining`,
   },
+  department: {
+    acting: "Acting",
+    directing: "Directing",
+    writing: "Writing",
+    production: "Production",
+    sound: "Sound",
+    camera: "Camera",
+    art: "Art",
+    costumeMakeUp: "Costume & Make-Up",
+    editing: "Editing",
+    visualEffects: "Visual Effects",
+    crew: "Crew",
+    lighting: "Lighting",
+  },
   personHeader: {
     viewPhotosOf: (name: string) => `View photos of ${name}`,
+    backToWatchlist: "Back to your watchlist",
+    backToFilmographies: "Back to My Filmographies",
+    backToSearch: "Back to search",
+    backToFilmography: "Back to the previous filmography",
+    onThisDay: (year: number, title: string) =>
+      `On this day in ${year}, "${title}" was released.`,
+    defaultBio: (name: string) =>
+      `See ${name}'s full filmography and track which movies you've watched.`,
     female: "Female",
     male: "Male",
     nonBinary: "Non-binary",
@@ -392,6 +421,18 @@ export const en = {
     alsoKnownAs: "Also known as:",
     couldntLoadPhotos: "We couldn't load these photos. Please try again.",
     noPhotosAvailable: "No photos available.",
+  },
+  notifications: {
+    label: "Notifications",
+    labelUnread: (count: number) => `Notifications, ${count} unread`,
+    loading: "Loading notifications…",
+    empty:
+      "No notifications yet — you'll hear about it when someone you follow has a new movie out, or recommends something.",
+    newRelease: (name: string) => `${name} has a new movie`,
+    recommendedMovie: (name: string) => `${name} recommended a movie`,
+    recommendedShow: (name: string) => `${name} recommended a show`,
+    recommendedPerson: (name: string) =>
+      `${name} recommended an actor/director`,
   },
   board: {
     yourRecommendations: "Your recommendations",
