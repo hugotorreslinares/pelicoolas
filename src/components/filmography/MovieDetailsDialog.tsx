@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -180,12 +180,26 @@ function WatchProvidersSection({
   );
 }
 
+// Horizontal drag past this many px (and more horizontal than vertical
+// movement, so a vertical scroll attempt on the poster doesn't misfire as
+// a swipe) counts as a swipe rather than a tap or a scroll.
+const SWIPE_THRESHOLD_PX = 50;
+
 interface MovieDetailsDialogProps {
   readonly movieId: number;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   /** Defaults to "movie" — every pre-existing call site opens a movie. */
   readonly mediaType?: MediaType;
+  /**
+   * Swipe-the-poster navigation to the previous/next item in whatever list
+   * the caller opened this from (e.g. /watched, /watchlist) — all three
+   * optional, and omitting them (most call sites) just leaves swiping
+   * inert. 1 = next, -1 = previous.
+   */
+  readonly onNavigate?: (direction: 1 | -1) => void;
+  readonly hasPrevious?: boolean;
+  readonly hasNext?: boolean;
 }
 
 export function MovieDetailsDialog({
@@ -193,11 +207,35 @@ export function MovieDetailsDialog({
   open,
   onOpenChange,
   mediaType = "movie",
+  onNavigate,
+  hasPrevious = false,
+  hasNext = false,
 }: MovieDetailsDialogProps) {
   const t = getDictionary(useLocale()).movie;
   const [view, setView] = useState<DialogView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start || !onNavigate) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) < Math.abs(dy)) {
+      return;
+    }
+    if (dx < 0 && hasNext) onNavigate(1);
+    else if (dx > 0 && hasPrevious) onNavigate(-1);
+  }
+
   const actionState = useMovieActionState(
     view
       ? movieSummary(view, mediaType)
@@ -275,13 +313,19 @@ export function MovieDetailsDialog({
           // and forces horizontal scroll instead of wrapping.
           <div className="min-w-0">
             {view.posterPath && (
-              <img
-                src={tmdbImageUrl(view.posterPath, 342)}
-                srcSet={tmdbWidthSrcSet(view.posterPath, POSTER_WIDTHS)}
-                sizes="(min-width: 640px) 448px, 100vw"
-                alt=""
-                className="mb-2 h-64 w-full rounded-lg object-cover md:h-96"
-              />
+              <div
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                className="touch-pan-y"
+              >
+                <img
+                  src={tmdbImageUrl(view.posterPath, 342)}
+                  srcSet={tmdbWidthSrcSet(view.posterPath, POSTER_WIDTHS)}
+                  sizes="(min-width: 640px) 448px, 100vw"
+                  alt=""
+                  className="mb-2 h-64 w-full rounded-lg object-cover md:h-96"
+                />
+              </div>
             )}
             <DialogHeader>
               <div className="flex items-start justify-between gap-2">

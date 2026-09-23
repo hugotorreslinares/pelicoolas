@@ -15,6 +15,7 @@ import {
   PopcornIcon,
 } from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
+import { adjacentItem } from "@/lib/adjacentItem";
 import { InviteFriendPrompt } from "@/components/social/InviteFriendPrompt";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
@@ -462,6 +463,20 @@ export function WatchedPage({ locale }: WatchedPageProps) {
 
   const yearGroups = groupByYear(filtered);
   const personGroups = groupByPerson(filtered, people ?? [], personMovieIds);
+  // Same order as what's actually rendered below (respects the current
+  // filters and groupMode) — swiping the dialog's poster steps through
+  // this, not the unfiltered `movies`.
+  const orderedForNav: readonly SeenMovie[] =
+    groupMode === "year"
+      ? yearGroups.flatMap(([, ms]) => ms)
+      : [
+          ...personGroups.groups.flatMap((g) => g.movies),
+          ...personGroups.other,
+        ];
+  const { previous: previousMovie, next: nextMovie } = adjacentItem(
+    orderedForNav,
+    openMovie,
+  );
 
   // Keys for whichever grouping is currently shown — drives the
   // expand/collapse-all control (and only that mode's groups, so switching
@@ -669,6 +684,12 @@ export function WatchedPage({ locale }: WatchedPageProps) {
           mediaType={openMovie.mediaType}
           open={openMovie !== null}
           onOpenChange={(open) => !open && setOpenMovie(null)}
+          onNavigate={(direction) => {
+            const target = direction === 1 ? nextMovie : previousMovie;
+            if (target) setOpenMovie(target);
+          }}
+          hasPrevious={previousMovie !== null}
+          hasNext={nextMovie !== null}
         />
       )}
     </div>

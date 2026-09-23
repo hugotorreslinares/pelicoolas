@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ClockIcon, LayoutGridIcon, ListIcon, ShuffleIcon } from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
+import { adjacentItem } from "@/lib/adjacentItem";
 import { FilmographyProgress } from "./FilmographyProgress";
 import { MovieActions } from "@/components/movies/MovieActions";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -268,6 +269,9 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
       ? byWatchedStatus
       : byWatchedStatus.filter((m) => m.genreIds?.includes(genreFilter));
   const sorted = sortMovies(filtered, order);
+  // Same order as what's rendered below — swiping the dialog's poster
+  // steps through this list, respecting the current filter/sort.
+  const navNext = adjacentItem(sorted, openMovie);
 
   const unwatchedMovies = movies.filter((m) => !seenIds.has(m.tmdbId));
 
@@ -485,6 +489,12 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
           mediaType={openMovie.mediaType}
           open={openMovie !== null}
           onOpenChange={(open) => !open && setOpenMovie(null)}
+          onNavigate={(direction) => {
+            const target = direction === 1 ? navNext.next : navNext.previous;
+            if (target) setOpenMovie(target);
+          }}
+          hasPrevious={navNext.previous !== null}
+          hasNext={navNext.next !== null}
         />
       )}
     </div>
