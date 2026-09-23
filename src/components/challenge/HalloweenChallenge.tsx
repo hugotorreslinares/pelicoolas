@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { FilmographyProgress } from "@/components/filmography/FilmographyProgress";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
+import { adjacentItem } from "@/lib/adjacentItem";
 import { MovieActions } from "@/components/movies/MovieActions";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
@@ -154,7 +155,7 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
   const [editing, setEditing] = useState(false);
   const [selection, setSelection] = useState<ReadonlySet<number>>(new Set());
   const [saving, setSaving] = useState(false);
-  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [openMovie, setOpenMovie] = useState<TrendingMovie | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<readonly TrendingMovie[] | null>(null);
   const [searchError, setSearchError] = useState(false);
@@ -259,6 +260,7 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
   ).length;
   const done =
     challenge.length >= HALLOWEEN_SIZE && watchedCount >= challenge.length;
+  const challengeNav = adjacentItem(challenge, openMovie);
 
   useEffect(() => {
     if (!user || !done) return;
@@ -518,15 +520,22 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
           <ProgressCard
             key={m.tmdbMovieId}
             movie={m}
-            onOpen={() => setOpenMovieId(m.tmdbMovieId)}
+            onOpen={() => setOpenMovie(m)}
           />
         ))}
       </div>
-      {openMovieId !== null && (
+      {openMovie !== null && (
         <MovieDetailsDialog
-          movieId={openMovieId}
+          movieId={openMovie.tmdbMovieId}
           open
-          onOpenChange={(open) => !open && setOpenMovieId(null)}
+          onOpenChange={(open) => !open && setOpenMovie(null)}
+          onNavigate={(direction) => {
+            const target =
+              direction === 1 ? challengeNav.next : challengeNav.previous;
+            if (target) setOpenMovie(target);
+          }}
+          hasPrevious={challengeNav.previous !== null}
+          hasNext={challengeNav.next !== null}
         />
       )}
     </div>
