@@ -97,7 +97,16 @@ export function renderDigestEmailHtml(
     <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;">
       <tr>
         <td>
-          <div style="font-weight:800;font-size:18px;color:#f97316;margin-bottom:4px;">PELICOOLAS</div>
+          <table role="presentation" style="margin-bottom:4px;">
+            <tr>
+              <td style="vertical-align:middle;padding-right:8px;">
+                <img src="${SITE_URL}/logo.png" width="24" height="24" alt="" style="display:block;border-radius:6px;">
+              </td>
+              <td style="vertical-align:middle;">
+                <span style="font-weight:800;font-size:18px;color:#f97316;">PELICOOLAS</span>
+              </td>
+            </tr>
+          </table>
           <div style="font-size:20px;font-weight:700;margin-bottom:16px;">Tu semana en Pelicoolas</div>
           <table role="presentation" width="100%">${rows}</table>
           <div style="margin-top:20px;">
