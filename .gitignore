@@ -36,3 +36,10 @@ firebase-debug.log
 .idea/
 .vercel
 .env*
+
+# Claude Code local tooling state — installed skill cache and /graphify
+# output, not part of the app itself.
+/.agents/
+/.claude/skills/
+/skills-lock.json
+/graphify-out/
