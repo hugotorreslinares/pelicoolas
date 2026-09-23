@@ -12,6 +12,7 @@ import {
   ChevronsUpDownIcon,
   LayoutGridIcon,
   ListIcon,
+  PopcornIcon,
 } from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { InviteFriendPrompt } from "@/components/social/InviteFriendPrompt";
@@ -40,6 +41,7 @@ const VIEW_MODE_KEY = "watched-view-mode";
 
 type GroupMode = "year" | "person";
 type ViewMode = "grid" | "list";
+type RatingFilter = "all" | "rated" | "unrated";
 
 function readStoredViewMode(): ViewMode {
   if (typeof window === "undefined") return "grid";
@@ -108,6 +110,15 @@ function groupByPerson(
   return { stillLoading, groups, other };
 }
 
+function RatingBadge({ rating }: { readonly rating: number }) {
+  return (
+    <span className="absolute top-2 left-2 flex items-center gap-0.5 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-semibold shadow">
+      <PopcornIcon className="size-3 fill-primary text-primary" />
+      {rating}
+    </span>
+  );
+}
+
 function MovieCard({
   movie,
   onOpen,
@@ -121,9 +132,10 @@ function MovieCard({
       <button
         type="button"
         onClick={onOpen}
-        className="focus-ring card-elevated block w-full overflow-hidden rounded-lg border text-left"
+        className="focus-ring card-elevated relative block w-full overflow-hidden rounded-lg border text-left"
         aria-label={t.cards.viewDetailsFor(movie.title)}
       >
+        {movie.rating != null && <RatingBadge rating={movie.rating} />}
         {movie.posterPath ? (
           <img
             src={tmdbImageUrl(movie.posterPath, 342)}
@@ -159,9 +171,10 @@ function MovieListRow({
     <button
       type="button"
       onClick={onOpen}
-      className="focus-ring card-elevated flex w-full items-center gap-3 overflow-hidden rounded-lg border p-2 text-left"
+      className="focus-ring card-elevated relative flex w-full items-center gap-3 overflow-hidden rounded-lg border p-2 text-left"
       aria-label={t.cards.viewDetailsFor(movie.title)}
     >
+      {movie.rating != null && <RatingBadge rating={movie.rating} />}
       {movie.posterPath ? (
         <img
           src={tmdbImageUrl(movie.posterPath, 92)}
@@ -275,6 +288,7 @@ export function WatchedPage({ locale }: WatchedPageProps) {
   const [genreFilter, setGenreFilter] = useState<number | typeof ALL_GENRES>(
     ALL_GENRES,
   );
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>("all");
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovie, setOpenMovie] = useState<SeenMovie | null>(null);
   // Keyed by "year:2024" / "person:123" / "person:other" — a single Set
@@ -433,10 +447,18 @@ export function WatchedPage({ locale }: WatchedPageProps) {
     .sort((a, b) => b[1] - a[1])
     .map(([id]) => id);
 
-  const filtered =
+  const ratedCount = movies.filter((m) => m.rating != null).length;
+
+  const byGenre =
     genreFilter === ALL_GENRES
       ? movies
       : movies.filter((m) => m.genreIds?.includes(genreFilter));
+  const filtered =
+    ratingFilter === "all"
+      ? byGenre
+      : byGenre.filter((m) =>
+          ratingFilter === "rated" ? m.rating != null : m.rating == null,
+        );
 
   const yearGroups = groupByYear(filtered);
   const personGroups = groupByPerson(filtered, people ?? [], personMovieIds);
@@ -488,6 +510,37 @@ export function WatchedPage({ locale }: WatchedPageProps) {
           <span className="text-xs opacity-70">({genreCounts.get(id)})</span>
         </Button>
       ))}
+    </div>
+  );
+
+  const ratingChips = (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        size="sm"
+        variant={ratingFilter === "all" ? "default" : "outline"}
+        onClick={() => setRatingFilter("all")}
+      >
+        {t.watched.ratingFilterAll}
+        <span className="text-xs opacity-70">({movies.length})</span>
+      </Button>
+      <Button
+        size="sm"
+        variant={ratingFilter === "rated" ? "default" : "outline"}
+        onClick={() => setRatingFilter("rated")}
+      >
+        {t.watched.ratingFilterRated}
+        <span className="text-xs opacity-70">({ratedCount})</span>
+      </Button>
+      <Button
+        size="sm"
+        variant={ratingFilter === "unrated" ? "default" : "outline"}
+        onClick={() => setRatingFilter("unrated")}
+      >
+        {t.watched.ratingFilterUnrated}
+        <span className="text-xs opacity-70">
+          ({movies.length - ratedCount})
+        </span>
+      </Button>
     </div>
   );
 
@@ -576,6 +629,7 @@ export function WatchedPage({ locale }: WatchedPageProps) {
       </div>
 
       {genreChips}
+      {ratingChips}
 
       {groupMode === "year" && (
         <div className="space-y-6">
