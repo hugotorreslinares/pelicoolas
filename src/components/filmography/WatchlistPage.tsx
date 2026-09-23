@@ -205,7 +205,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
       <div className="space-y-4">
         <h1 className="sr-only">{t.watchlist.heading}</h1>
         <Skeleton className="h-24 w-full rounded-lg" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {Array.from({ length: 12 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[2/3] w-full rounded-lg" />
           ))}
@@ -438,7 +438,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
           {t.watchlist.noMoviesMatch}
         </p>
       ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {sorted.map((movie) => (
             <WatchlistGridCard
               key={movie.tmdbId}
@@ -513,7 +513,7 @@ function WatchlistGridCard({
 
   return (
     <div>
-      <div className="card-elevated group relative overflow-hidden rounded-lg border">
+      <div className="card-elevated group relative overflow-hidden rounded-sm border">
         <button
           type="button"
           onClick={onOpen}
