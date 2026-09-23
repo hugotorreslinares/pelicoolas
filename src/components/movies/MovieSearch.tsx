@@ -71,7 +71,7 @@ export function MovieSearch({
   }, [query, mediaType]);
 
   return (
-    <div className="mx-auto w-full max-w-xl space-y-4">
+    <div className="mx-auto w-full max-w-4xl space-y-4">
       <Input
         placeholder={
           mediaType === "tv"

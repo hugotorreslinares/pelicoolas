@@ -31,7 +31,7 @@ interface PersonSearchProps {
 
 export function PersonSearch({
   locale,
-  className = "mx-auto w-full max-w-xl space-y-4",
+  className = "mx-auto w-full max-w-4xl space-y-4",
   showRecent: showRecentProp = true,
   trendingMovies = [],
 }: PersonSearchProps) {
