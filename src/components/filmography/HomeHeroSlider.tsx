@@ -1,4 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
+import { PopcornIcon } from "lucide-react";
 import { WelcomeHero } from "./WelcomeHero";
 import { FollowedPeopleHero } from "./FollowedPeopleHero";
 import { SocialHero } from "./SocialHero";
@@ -60,7 +61,21 @@ export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
       <div
         ref={scrollerRef}
         onScroll={handleScroll}
-        className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        // The backdrop is one continuous image, tiled horizontally
+        // (background-size auto 100% + repeat-x) instead of stretched to
+        // exactly N slides — a seamless subtle texture tiles cleanly at any
+        // slide count, no need to recompute sizing when Halloween season
+        // adds/removes a slide. `background-attachment: local` (not the
+        // CSS default `scroll`) is what makes it pan together with the
+        // slides as you swipe, instead of staying fixed in the viewport —
+        // that's the whole "one long image" illusion.
+        style={{
+          backgroundImage: "url(/hero-backdrop.webp)",
+          backgroundSize: "auto 100%",
+          backgroundRepeat: "repeat-x",
+          backgroundAttachment: "local",
+        }}
+        className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden rounded-2xl scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {slides.map((slide, index) => (
           // Row-flex children stretch to the tallest slide, so every slide
@@ -72,7 +87,7 @@ export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
         ))}
       </div>
 
-      <div className="flex justify-center gap-1.5">
+      <div className="flex justify-center gap-1 sm:gap-2">
         {slides.map((_, index) => (
           <button
             key={index}
@@ -80,11 +95,20 @@ export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
             aria-label={t.cards.goToSlide(index + 1, slides.length)}
             aria-current={activeIndex === index}
             onClick={() => goTo(index)}
-            className={cn(
-              "size-1.5 rounded-full transition-colors",
-              activeIndex === index ? "bg-primary" : "bg-muted-foreground/30",
-            )}
-          />
+            // A bigger hit target than the icon itself (the icon stays
+            // small/subtle; the button padding is what's actually easier
+            // to click with a mouse on desktop, per request).
+            className="focus-ring rounded-full p-1.5 sm:p-2"
+          >
+            <PopcornIcon
+              className={cn(
+                "size-2.5 transition-colors sm:size-3.5",
+                activeIndex === index
+                  ? "fill-primary text-primary"
+                  : "text-muted-foreground/40",
+              )}
+            />
+          </button>
         ))}
       </div>
     </div>

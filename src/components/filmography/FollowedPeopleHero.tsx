@@ -219,7 +219,7 @@ export function FollowedPeopleHero({
         className="flex h-48 items-center justify-center sm:h-64"
         role="status"
       >
-        <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
+        <Loader2Icon className="size-6 animate-spin text-white/60" />
         <span className="sr-only">Loading…</span>
       </div>
     );
