@@ -587,6 +587,9 @@ export const en = {
       "Search by username, send a follow request, and see what they're watching, adding, and recommending.",
     findFriendsCta: "Find friends",
     newOnPelicoolas: "New on Pelicoolas",
+    betaBadge: "Beta",
+    betaNote:
+      "We're in beta — your ideas shape what we build next. Tell us on Instagram @pelicool.as.",
   },
   friendsPage: {
     heading: "Friends",

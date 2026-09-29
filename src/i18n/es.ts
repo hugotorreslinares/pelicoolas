@@ -563,6 +563,9 @@ export const es: Dictionary = {
       "Busca por username, envía una solicitud de seguimiento y mira qué están viendo, agregando y recomendando.",
     findFriendsCta: "Buscar amigos",
     newOnPelicoolas: "Nuevos en Pelicoolas",
+    betaBadge: "Beta",
+    betaNote:
+      "Estamos en beta — tus ideas ayudan a construir lo que sigue. Cuéntanos en Instagram @pelicool.as.",
   },
   friendsPage: {
     heading: "Amigos",

@@ -24,13 +24,19 @@ export function WelcomeHero({ locale }: WelcomeHeroProps) {
         height={128}
         className="mx-auto size-24 sm:size-32"
       />
-      <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+      <h1 className="flex items-center justify-center gap-2 text-3xl font-bold tracking-tight text-white sm:text-5xl">
         Pelicoolas
+        <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 text-xs font-semibold tracking-wide text-white/90 uppercase sm:text-sm">
+          {t.heroes.betaBadge}
+        </span>
       </h1>
       <p className="mx-auto max-w-md text-white/80">{t.heroes.welcomeBody}</p>
       <Button render={<a href="/search" />}>
         {t.heroes.searchActorsDirectors}
       </Button>
+      <p className="mx-auto max-w-sm text-xs text-white/60">
+        {t.heroes.betaNote}
+      </p>
     </div>
   );
 }
