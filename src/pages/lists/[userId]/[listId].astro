@@ -3,6 +3,7 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { ListDetailPage } from "@/components/lists/ListDetailPage";
+import { getListSummary } from "@/lib/listSummary";
 
 import { getDictionary } from "@/i18n";
 
@@ -11,12 +12,22 @@ if (!userId || !listId) return Astro.redirect("/");
 
 const locale = Astro.locals.locale;
 const t = getDictionary(locale);
+const es = locale === "es";
+
+const { name, movieCount } = await getListSummary(userId, listId);
+const title = name ? `${name} — Pelicoolas` : `${t.lists.heading} — Pelicoolas`;
+const description = name
+  ? es
+    ? `${movieCount} ${movieCount === 1 ? "película" : "películas"} en esta lista de Pelicoolas.`
+    : `${movieCount} ${movieCount === 1 ? "movie" : "movies"} in this Pelicoolas list.`
+  : t.lists.metaDescription;
 ---
 
 <Layout
-  title={`${t.lists.heading} — Pelicoolas`}
-  description={t.lists.metaDescription}
-  noindex
+  title={title}
+  description={description}
+  image={`/api/og/list/${userId}/${listId}.png`}
+  imageAlt={title}
 >
   <ListDetailPage userId={userId} listId={listId} locale={locale} client:load />
 </Layout>
