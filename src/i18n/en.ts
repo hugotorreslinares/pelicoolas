@@ -829,6 +829,7 @@ export const en = {
     searchError: "Couldn't search. Please try again.",
     noResults: "No results.",
     added: (title: string) => `Added ${title}`,
+    addTo: (title: string) => `Add ${title} to this list`,
     couldntAdd: (title: string) => `Couldn't add "${title}". Please try again.`,
     removed: (title: string) => `Removed ${title}`,
     couldntRemove: (title: string) =>

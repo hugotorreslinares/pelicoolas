@@ -810,6 +810,7 @@ export const es: Dictionary = {
     searchError: "No pudimos buscar. Intenta de nuevo.",
     noResults: "Sin resultados.",
     added: (title) => `Agregaste ${title}`,
+    addTo: (title) => `Agregar ${title} a esta lista`,
     couldntAdd: (title) => `No pudimos agregar "${title}". Intenta de nuevo.`,
     removed: (title) => `Quitaste ${title}`,
     couldntRemove: (title) => `No pudimos quitar "${title}". Intenta de nuevo.`,

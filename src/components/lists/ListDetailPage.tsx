@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { PencilIcon, XIcon } from "lucide-react";
+import { CheckIcon, PencilIcon, PlusIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -88,6 +88,9 @@ export function ListDetailPage({
   }, [query]);
 
   const list = lists?.find((l) => l.id === listId) ?? null;
+  const inListKeys = new Set(
+    (movies ?? []).map((m) => `${m.mediaType ?? "movie"}-${m.tmdbId}`),
+  );
 
   async function handleAdd(m: TrendingMovie) {
     try {
@@ -99,7 +102,7 @@ export function ListDetailPage({
         voteAverage: m.voteAverage,
         mediaType: m.mediaType === "tv" ? "tv" : undefined,
       });
-      announce(t.added(m.title));
+      toast.success(t.added(m.title));
     } catch {
       toast.error(t.couldntAdd(m.title));
     }
@@ -212,26 +215,26 @@ export function ListDetailPage({
           {results !== null && results.length > 0 && (
             <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
               {results.map((m) => (
-                <button
+                <SearchResultCard
                   key={m.tmdbMovieId}
-                  type="button"
-                  onClick={() => void handleAdd(m)}
-                  className="focus-ring mb-3 block w-full break-inside-avoid text-left"
-                >
-                  {m.posterPath ? (
-                    <img
-                      src={tmdbImageUrl(m.posterPath, 185)}
-                      alt=""
-                      loading="lazy"
-                      className="aspect-[2/3] w-full rounded-lg border object-cover"
-                    />
-                  ) : (
-                    <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground">
-                      {m.title}
-                    </div>
+                  movie={m}
+                  inList={inListKeys.has(
+                    `${m.mediaType ?? "movie"}-${m.tmdbMovieId}`,
                   )}
-                  <p className="mt-1 truncate text-xs font-medium">{m.title}</p>
-                </button>
+                  onAdd={() => void handleAdd(m)}
+                  onRemove={() =>
+                    void handleRemove({
+                      tmdbId: m.tmdbMovieId,
+                      title: m.title,
+                      posterPath: m.posterPath,
+                      releaseYear: m.releaseYear,
+                      voteAverage: m.voteAverage,
+                      addedAt: "",
+                      mediaType: m.mediaType === "tv" ? "tv" : undefined,
+                    })
+                  }
+                  t={t}
+                />
               ))}
             </div>
           )}
@@ -287,6 +290,65 @@ export function ListDetailPage({
           onOpenChange={(open) => !open && setOpenMovie(null)}
         />
       )}
+    </div>
+  );
+}
+
+interface SearchResultCardProps {
+  readonly movie: TrendingMovie;
+  readonly inList: boolean;
+  readonly onAdd: () => void;
+  readonly onRemove: () => void;
+  readonly t: ReturnType<typeof getDictionary>["lists"];
+}
+
+// Explicit add/remove button on every result — clicking the poster alone
+// gave no visible feedback and no way to tell what was already added.
+function SearchResultCard({
+  movie,
+  inList,
+  onAdd,
+  onRemove,
+  t,
+}: SearchResultCardProps) {
+  return (
+    <div className="mb-3 break-inside-avoid">
+      <div className="relative overflow-hidden rounded-lg border">
+        {movie.posterPath ? (
+          <img
+            src={tmdbImageUrl(movie.posterPath, 185)}
+            alt=""
+            loading="lazy"
+            className="aspect-[2/3] w-full object-cover"
+          />
+        ) : (
+          <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-xs text-muted-foreground">
+            {movie.title}
+          </div>
+        )}
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant={inList ? "default" : "secondary"}
+                size="icon"
+                aria-label={
+                  inList ? t.removeFrom(movie.title) : t.addTo(movie.title)
+                }
+                className="absolute right-2 bottom-2 size-11 rounded-full shadow"
+                onClick={inList ? onRemove : onAdd}
+              />
+            }
+          >
+            {inList ? <CheckIcon /> : <PlusIcon />}
+          </TooltipTrigger>
+          <TooltipContent>
+            {inList ? t.removeFrom(movie.title) : t.addTo(movie.title)}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      <p className="mt-1 truncate text-xs font-medium">{movie.title}</p>
     </div>
   );
 }
