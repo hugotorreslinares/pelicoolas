@@ -1,0 +1,19 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { ListsPage } from "@/components/lists/ListsPage";
+
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale);
+---
+
+<Layout
+  title={`${t.lists.heading} — Pelicoolas`}
+  description={t.lists.metaDescription}
+  noindex
+>
+  <ListsPage client:load locale={locale} />
+</Layout>

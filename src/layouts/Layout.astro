@@ -19,6 +19,7 @@ import {
   WaypointsIcon,
   GhostIcon,
   SearchIcon,
+  ListVideoIcon,
 } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
@@ -67,6 +68,7 @@ const isConnectionsActive = pathname === "/connections";
 const isMapActive = pathname === "/map";
 const isFriendsActive = pathname === "/friends";
 const isHalloweenActive = pathname === "/halloween";
+const isListsActive = pathname === "/lists";
 
 // size-11 (44px): minimum comfortable touch target on mobile — these are
 // icon-only links (visible label is sr-only), so padding alone previously
@@ -258,6 +260,14 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
               {t.nav.lists}
             </p>
             <a
+              href="/lists"
+              class={sidebarLinkClass(isListsActive)}
+              aria-current={isListsActive ? "page" : undefined}
+            >
+              <ListVideoIcon className="size-4" />
+              {t.nav.myLists}
+            </a>
+            <a
               href="/halloween"
               class={sidebarLinkClass(isHalloweenActive)}
               aria-current={isHalloweenActive ? "page" : undefined}
@@ -368,6 +378,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
                 >
                   <UsersIcon className="size-4" />
                   <span class="sr-only">{t.nav.friends}</span>
+                </a>
+                <a
+                  href="/lists"
+                  class={navLinkClass(isListsActive)}
+                  aria-current={isListsActive ? "page" : undefined}
+                  title={`${t.nav.lists}: ${t.nav.myLists}`}
+                >
+                  <ListVideoIcon className="size-4" />
+                  <span class="sr-only">{t.nav.myLists}</span>
                 </a>
                 <a
                   href="/halloween"

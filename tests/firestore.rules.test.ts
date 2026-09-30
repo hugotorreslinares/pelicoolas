@@ -440,6 +440,55 @@ describe("firestore.rules — recommendedPeople (public board)", () => {
   });
 });
 
+describe("firestore.rules — lists (public, shareable movie lists)", () => {
+  it("lets the owner create, read, and delete a list and its movies", async () => {
+    const db = testEnv.authenticatedContext("alice").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/lists/ff"), { name: "Found footage" }),
+    );
+    await assertSucceeds(getDoc(doc(db, "users/alice/lists/ff")));
+    await assertSucceeds(
+      setDoc(doc(db, "users/alice/lists/ff/movies/13"), {
+        tmdbId: 13,
+        title: "Forrest Gump",
+      }),
+    );
+    await assertSucceeds(getDoc(doc(db, "users/alice/lists/ff/movies/13")));
+    await assertSucceeds(deleteDoc(doc(db, "users/alice/lists/ff/movies/13")));
+    await assertSucceeds(deleteDoc(doc(db, "users/alice/lists/ff")));
+  });
+
+  it("lets anyone read a list and its movies, signed in or not", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/alice/lists/ff"), {
+        name: "Found footage",
+      });
+      await setDoc(doc(ctx.firestore(), "users/alice/lists/ff/movies/13"), {
+        tmdbId: 13,
+        title: "Forrest Gump",
+      });
+    });
+    const anon = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(anon, "users/alice/lists/ff")));
+    await assertSucceeds(getDoc(doc(anon, "users/alice/lists/ff/movies/13")));
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(bob, "users/alice/lists/ff")));
+  });
+
+  it("denies anyone but the owner from writing to a list or its movies", async () => {
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      setDoc(doc(bob, "users/alice/lists/ff"), { name: "Found footage" }),
+    );
+    await assertFails(
+      setDoc(doc(bob, "users/alice/lists/ff/movies/13"), {
+        tmdbId: 13,
+        title: "Forrest Gump",
+      }),
+    );
+  });
+});
+
 describe("firestore.rules — seen (personal watched log)", () => {
   it("lets a user mark, read, and unmark a movie as seen", async () => {
     const db = testEnv.authenticatedContext("alice").firestore();

@@ -8,6 +8,7 @@ import {
   WaypointsIcon,
   UsersIcon,
   GhostIcon,
+  ListVideoIcon,
   XIcon,
 } from "lucide-react";
 import {
@@ -45,6 +46,7 @@ export function MobileNav({ locale }: MobileNavProps) {
     { href: "/friends", label: t.nav.friends, icon: UsersIcon },
   ];
   const lists = [
+    { href: "/lists", label: t.nav.myLists, icon: ListVideoIcon },
     { href: "/halloween", label: t.nav.halloween, icon: GhostIcon },
   ] as const;
 

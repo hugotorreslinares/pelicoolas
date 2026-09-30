@@ -49,7 +49,7 @@ function followedPersonRef(userId: string, personId: number) {
 // (every doc written before TV support looks like this; no migration
 // needed), TV docs get a "tv-" prefix so the two can never collide in the
 // same collection.
-function mediaDocId(id: number, mediaType?: "movie" | "tv"): string {
+export function mediaDocId(id: number, mediaType?: "movie" | "tv"): string {
   return mediaType === "tv" ? `tv-${id}` : String(id);
 }
 

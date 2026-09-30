@@ -131,6 +131,20 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == userId;
       }
 
+      // User-created shareable lists (e.g. "Found footage") — same public
+      // pattern as /recommendations: readable by anyone with the link,
+      // writable only by the owner. Movies are a subcollection so the list
+      // doc itself stays small regardless of how many titles it holds.
+      match /lists/{listId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == userId;
+
+        match /movies/{movieId} {
+          allow read: if true;
+          allow write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
       // Written by /api/invite and /api/invite/convert via the Admin SDK
       // (bypasses these rules entirely) — same pattern as /notifications.
       // This rule only governs the client: reading your own sent invites
