@@ -46,6 +46,7 @@ export const en = {
     myProfile: "My profile",
     myBoard: "My recommendations board",
     inviteFriend: "Invite a friend",
+    importMovies: "Import movies",
     exportData: "Export data",
     exporting: "Exporting…",
     signOut: "Sign out",
@@ -375,7 +376,8 @@ export const en = {
     couldntSendRetry: "Couldn't send the invite. Please try again.",
     inviteSentTo: (email: string) => `Invite sent to ${email}`,
     title: "Invite a friend",
-    description: "Send an email invite to join Pelicoolas.",
+    description:
+      "Send an email invite to join Pelicoolas — you both unlock a badge once they join.",
     emailPlaceholder: "friend@example.com",
     messagePlaceholder: "Add a personal message (optional)",
     sending: "Sending…",
@@ -544,6 +546,7 @@ export const en = {
     shareBadge: (label: string) => `Share "${label}" badge`,
     shareBadgeTooltip: "Share badge",
     badgeAlt: (label: string) => `"${label}" badge`,
+    justEarned: "You just unlocked this — share it?",
   },
   people: {
     heading: "People",
@@ -673,6 +676,10 @@ export const en = {
       `Watched ${name}'s movies across many different decades.`,
     halloweenMarathon: "Halloween Marathon",
     halloweenMarathonDesc: "Watched all 31 horror movies before October 31.",
+    referralInviter: "Matchmaker",
+    referralInviterDesc: "A friend you invited joined Pelicoolas.",
+    referralInvitee: "Welcomed In",
+    referralInviteeDesc: "Joined Pelicoolas through a friend's invite.",
   },
   halloween: {
     heroTitle: "31 horror movies before October 31",
@@ -845,6 +852,36 @@ export const en = {
     viewDetailsFor: (title: string) => `View details for ${title}`,
     noPoster: "No poster",
     unknown: "Unknown",
+  },
+  import: {
+    heading: "Import your movies",
+    subtitle:
+      "Already tracking your watched movies elsewhere? Bring them over in one shot.",
+    signInPrompt: "Sign in to import your movies.",
+    chooseFile: "Choose a CSV file",
+    supportedFormats:
+      "Letterboxd (watched.csv, watchlist.csv) or IMDb (ratings.csv, WATCHLIST.csv) exports.",
+    couldntRead:
+      "Couldn't find a title column in that file. Make sure it's an unmodified export.",
+    rowsFound: (n: number) =>
+      `${n} ${n === 1 ? "movie" : "movies"} found in the file.`,
+    destWatchlist: "Add to watchlist",
+    destWatched: "Mark as watched",
+    matchOnTmdb: "Find these on TMDB",
+    matching: "Searching…",
+    couldntMatch: "Couldn't match your movies. Please try again.",
+    matchSummary: (matched: number, total: number) =>
+      `Matched ${matched} of ${total}. Uncheck anything you don't want to import.`,
+    notFound: "not found",
+    include: (title: string) => `Include ${title}`,
+    exclude: (title: string) => `Exclude ${title}`,
+    importSelected: (n: number) =>
+      `Import ${n} ${n === 1 ? "movie" : "movies"}`,
+    importing: "Importing…",
+    couldntImport: "Couldn't import your movies. Please try again.",
+    imported: (n: number) => `Imported ${n} ${n === 1 ? "movie" : "movies"}`,
+    viewWatchlist: "View watchlist",
+    viewWatched: "View watched",
   },
 };
 

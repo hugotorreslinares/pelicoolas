@@ -21,14 +21,22 @@ function badgeRef(userId: string, badgeId: string) {
  * later stops being true (e.g. unfollowing someone after completing their
  * filmography) — nothing ever deletes a badge doc.
  */
+export const BADGE_EARNED_EVENT = "pelicoolas:badge-earned";
+
+/** Returns true the one time a badge is newly awarded — lets callers trigger a one-shot "you just unlocked this" moment instead of re-firing on every re-render. */
 export async function awardBadgeOnce(
   userId: string,
   badge: Omit<Badge, "earnedAt">,
-): Promise<void> {
+): Promise<boolean> {
   const ref = badgeRef(userId, badge.id);
   const snapshot = await getDoc(ref);
-  if (snapshot.exists()) return;
-  await setDoc(ref, { ...badge, earnedAt: new Date().toISOString() });
+  if (snapshot.exists()) return false;
+  const earned: Badge = { ...badge, earnedAt: new Date().toISOString() };
+  await setDoc(ref, earned);
+  window.dispatchEvent(
+    new CustomEvent<Badge>(BADGE_EARNED_EVENT, { detail: earned }),
+  );
+  return true;
 }
 
 export function subscribeToBadges(

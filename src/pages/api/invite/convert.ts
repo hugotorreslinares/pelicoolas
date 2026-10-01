@@ -1,7 +1,9 @@
 import type { APIRoute } from "astro";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { verifyFirebaseIdToken } from "@/lib/firebase/verifyIdToken";
+import { awardBadgeOnceAdmin } from "@/lib/firebase/adminBadges";
 import { errorResponse, jsonResponse, logApiError } from "@/lib/api";
+import engagement from "@/config/engagement.json";
 import type { Invite } from "@/types/user";
 
 export const prerender = false;
@@ -55,6 +57,26 @@ export const POST: APIRoute = async ({ request }) => {
       convertedUid: newUserUid,
       convertedAt: new Date().toISOString(),
     } satisfies Partial<Invite>);
+
+    // Double-sided reward — both the inviter and the new signup unlock a
+    // badge, so the invite flow pays off for whoever sent it, not just the
+    // app. Best-effort: a failure here shouldn't undo the conversion above.
+    if (engagement.badges.referral) {
+      await Promise.all([
+        awardBadgeOnceAdmin(ref, {
+          id: "referral-inviter",
+          type: "referral",
+          label: "Matchmaker",
+          description: "A friend you invited joined Pelicoolas.",
+        }),
+        awardBadgeOnceAdmin(newUserUid, {
+          id: "referral-invitee",
+          type: "referral",
+          label: "Welcomed In",
+          description: "Joined Pelicoolas through a friend's invite.",
+        }),
+      ]).catch((error) => logApiError("invite-convert-badges", error));
+    }
 
     return jsonResponse({ ok: true });
   } catch (error) {

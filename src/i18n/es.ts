@@ -23,6 +23,7 @@ export const es: Dictionary = {
     myProfile: "Mi perfil",
     myBoard: "Mi tablón de recomendaciones",
     inviteFriend: "Invitar a un amigo",
+    importMovies: "Importar películas",
     exportData: "Exportar datos",
     exporting: "Exportando…",
     signOut: "Cerrar sesión",
@@ -355,7 +356,8 @@ export const es: Dictionary = {
     couldntSendRetry: "No se pudo enviar la invitación. Intenta de nuevo.",
     inviteSentTo: (email) => `Invitación enviada a ${email}`,
     title: "Invitar a un amigo",
-    description: "Envía una invitación por email para unirse a Pelicoolas.",
+    description:
+      "Envía una invitación por email para unirse a Pelicoolas — los dos desbloquean una insignia cuando se una.",
     emailPlaceholder: "amigo@ejemplo.com",
     messagePlaceholder: "Agrega un mensaje personal (opcional)",
     sending: "Enviando…",
@@ -520,6 +522,7 @@ export const es: Dictionary = {
     shareBadge: (label) => `Compartir insignia "${label}"`,
     shareBadgeTooltip: "Compartir insignia",
     badgeAlt: (label) => `Insignia "${label}"`,
+    justEarned: "Acabás de desbloquear esto — ¿la compartís?",
   },
   people: {
     heading: "Personas",
@@ -652,6 +655,11 @@ export const es: Dictionary = {
     halloweenMarathon: "Maratón de Halloween",
     halloweenMarathonDesc:
       "Viste las 31 películas de terror antes del 31 de octubre.",
+    referralInviter: "Casamentero",
+    referralInviterDesc: "Un amigo que invitaste se unió a Pelicoolas.",
+    referralInvitee: "Bienvenida",
+    referralInviteeDesc:
+      "Te uniste a Pelicoolas por la invitación de un amigo.",
   },
   halloween: {
     heroTitle: "31 películas de terror antes del 31 de octubre",
@@ -825,5 +833,35 @@ export const es: Dictionary = {
     viewDetailsFor: (title) => `Ver detalles de ${title}`,
     noPoster: "Sin póster",
     unknown: "Desconocido",
+  },
+  import: {
+    heading: "Importa tus películas",
+    subtitle:
+      "¿Ya llevas registro de lo que has visto en otra parte? Trae todo de una vez.",
+    signInPrompt: "Inicia sesión para importar tus películas.",
+    chooseFile: "Elige un archivo CSV",
+    supportedFormats:
+      "Exportaciones de Letterboxd (watched.csv, watchlist.csv) o IMDb (ratings.csv, WATCHLIST.csv).",
+    couldntRead:
+      "No encontramos una columna de título en ese archivo. Verifica que sea una exportación sin modificar.",
+    rowsFound: (n) =>
+      `Encontramos ${n} ${n === 1 ? "película" : "películas"} en el archivo.`,
+    destWatchlist: "Agregar a watchlist",
+    destWatched: "Marcar como vistas",
+    matchOnTmdb: "Buscarlas en TMDB",
+    matching: "Buscando…",
+    couldntMatch: "No pudimos buscar tus películas. Intenta de nuevo.",
+    matchSummary: (matched, total) =>
+      `Encontramos ${matched} de ${total}. Desmarca las que no quieras importar.`,
+    notFound: "no encontrada",
+    include: (title) => `Incluir ${title}`,
+    exclude: (title) => `Excluir ${title}`,
+    importSelected: (n) =>
+      `Importar ${n} ${n === 1 ? "película" : "películas"}`,
+    importing: "Importando…",
+    couldntImport: "No pudimos importar tus películas. Intenta de nuevo.",
+    imported: (n) => `Importaste ${n} ${n === 1 ? "película" : "películas"}`,
+    viewWatchlist: "Ver watchlist",
+    viewWatched: "Ver vistas",
   },
 };

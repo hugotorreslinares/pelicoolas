@@ -239,6 +239,32 @@ export async function addToWatchlist(
   });
 }
 
+const BATCH_CHUNK_SIZE = 400; // Firestore's batch limit is 500 writes — leaves headroom
+
+function chunk<T>(items: readonly T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size)
+    out.push(items.slice(i, i + size));
+  return out;
+}
+
+/** Bulk watchlist import (e.g. from a Letterboxd/IMDb export) — chunked batched writes instead of one `addToWatchlist` call per movie. */
+export async function addManyToWatchlist(
+  userId: string,
+  movies: readonly Omit<WatchlistMovie, "addedAt">[],
+): Promise<void> {
+  for (const group of chunk(movies, BATCH_CHUNK_SIZE)) {
+    const batch = writeBatch(requireDb());
+    for (const movie of group) {
+      batch.set(watchlistMovieRef(userId, movie.tmdbId, movie.mediaType), {
+        ...movie,
+        addedAt: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+}
+
 export async function removeFromWatchlist(
   userId: string,
   movieId: number,
@@ -454,6 +480,23 @@ export async function markMovieSeen(
     ...movie,
     watchedAt: serverTimestamp(),
   });
+}
+
+/** Bulk watched-import (e.g. from a Letterboxd/IMDb export) — see addManyToWatchlist. */
+export async function markManySeen(
+  userId: string,
+  movies: readonly Omit<SeenMovie, "watchedAt">[],
+): Promise<void> {
+  for (const group of chunk(movies, BATCH_CHUNK_SIZE)) {
+    const batch = writeBatch(requireDb());
+    for (const movie of group) {
+      batch.set(seenMovieRef(userId, movie.tmdbId, movie.mediaType), {
+        ...movie,
+        watchedAt: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
 }
 
 export async function unmarkMovieSeen(

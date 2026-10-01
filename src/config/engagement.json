@@ -4,7 +4,8 @@
     "filmographyMilestones": true,
     "watchlistMilestones": true,
     "actorDirectorMilestones": true,
-    "decadeSpan": true
+    "decadeSpan": true,
+    "referral": true
   },
   "nudges": {
     "cardAlmostThere": true,

@@ -182,6 +182,9 @@ export function UserMenu({
           <DropdownMenuItem onClick={() => setInviteOpen(true)}>
             {t.account.inviteFriend}
           </DropdownMenuItem>
+          <DropdownMenuItem render={<a href="/import" />}>
+            {t.account.importMovies}
+          </DropdownMenuItem>
           <DropdownMenuItem
             disabled={exporting}
             onClick={() => void handleExport()}

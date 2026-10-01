@@ -1,0 +1,19 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { ImportPage } from "@/components/imports/ImportPage";
+
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale);
+---
+
+<Layout
+  title={`${t.import.heading} — Pelicoolas`}
+  description={t.import.subtitle}
+  noindex
+>
+  <ImportPage client:load locale={locale} />
+</Layout>

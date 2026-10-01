@@ -7,6 +7,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { MobileNav } from "@/components/nav/MobileNav";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { UsernamePrompt } from "@/components/onboarding/UsernamePrompt";
+import { BadgeEarnedPrompt } from "@/components/badges/BadgeEarnedPrompt";
 import { Toaster } from "@/components/ui/sonner";
 import { HeaderSearch } from "@/components/search/HeaderSearch";
 import { LocaleToggle } from "@/components/locale/LocaleToggle";
@@ -422,6 +423,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
         </main>
         <OnboardingCarousel locale={locale} client:idle />
         <UsernamePrompt locale={locale} client:idle />
+        <BadgeEarnedPrompt locale={locale} client:idle />
         <Toaster client:idle />
         <footer class="mt-8 w-full border-t">
           <div
