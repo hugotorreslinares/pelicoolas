@@ -614,6 +614,7 @@ export const es: Dictionary = {
     signInToTrack: (tv) =>
       `para llevar el registro, guardar o recomendar ${tv ? "series" : "películas"}`,
     viewInMovieMap: "Ver en Movie Map",
+    viewFullPage: "Ver página completa",
     noOverview: "No hay sinopsis disponible.",
     cast: "Reparto",
     whereToWatch: "Dónde verla",

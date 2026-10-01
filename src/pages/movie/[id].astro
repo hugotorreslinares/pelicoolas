@@ -1,0 +1,201 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { MovieDetailActions } from "@/components/movies/MovieDetailActions";
+import { getMovieDetails } from "@/lib/tmdb/movies";
+import { resolveWatchRegion } from "@/lib/region";
+import {
+  tmdbImageUrl,
+  tmdbWidthSrcSet,
+  tmdbDensitySrcSet,
+} from "@/lib/tmdb/image";
+import { getDictionary } from "@/i18n";
+import type { MovieDetails } from "@/types/movie";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale);
+const MAX_DESCRIPTION_LENGTH = 160;
+
+function truncate(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+const movieId = Number(Astro.params.id);
+let movie: MovieDetails | null = null;
+let error: string | null = null;
+
+if (!Number.isInteger(movieId)) {
+  error = t.movie.couldntLoadMovie;
+} else {
+  try {
+    const region = resolveWatchRegion(
+      Astro.request.headers.get("accept-language"),
+    );
+    movie = await getMovieDetails(movieId, region);
+  } catch {
+    error = t.movie.couldntLoadMovie;
+  }
+}
+
+const description = movie
+  ? movie.overview
+    ? truncate(movie.overview, MAX_DESCRIPTION_LENGTH)
+    : t.movie.noOverview
+  : undefined;
+const ogImage = movie?.posterPath
+  ? tmdbImageUrl(movie.posterPath, 500)
+  : undefined;
+
+// Schema.org structured data — lets Google show rich results (rating,
+// cast) directly in search for movie-name queries. `<` escape blocks
+// a `</script>`-shaped title/overview from ever closing this tag early.
+const jsonLd = movie
+  ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Movie",
+      name: movie.title,
+      ...(ogImage && { image: ogImage }),
+      ...(movie.overview && { description: movie.overview }),
+      ...(movie.genres.length > 0 && { genre: movie.genres }),
+      ...(movie.voteAverage && {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: movie.voteAverage,
+          bestRating: 10,
+          worstRating: 0,
+        },
+      }),
+      ...(movie.cast.length > 0 && {
+        actor: movie.cast.map((c) => ({ "@type": "Person", name: c.name })),
+      }),
+    }).replace(/</g, "\\u003c")
+  : null;
+
+const tmdbMovie = movie
+  ? {
+      tmdbMovieId: movie.id,
+      title: movie.title,
+      posterPath: movie.posterPath,
+      releaseYear: movie.releaseYear,
+      voteAverage: movie.voteAverage,
+      genreIds: movie.genreIds,
+      mediaType: "movie" as const,
+    }
+  : null;
+
+const subtitle = movie
+  ? [
+      movie.releaseYear ?? t.movie.unknown,
+      movie.runtimeMinutes ? t.movie.minutes(movie.runtimeMinutes) : null,
+      movie.genres.join(", ") || null,
+    ]
+      .filter(Boolean)
+      .join(" · ")
+  : "";
+---
+
+<Layout
+  title={movie ? `${movie.title} — Pelicoolas` : "Pelicoolas"}
+  description={description}
+  image={ogImage}
+  noindex={!movie}
+>
+  {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}
+
+  {error && <p class="text-destructive">{error}</p>}
+
+  {
+    movie && tmdbMovie && (
+      <div class="mt-4 grid gap-6 sm:grid-cols-[200px_1fr]">
+        <div>
+          {movie.posterPath ? (
+            <img
+              src={tmdbImageUrl(movie.posterPath, 342)}
+              srcset={tmdbWidthSrcSet(movie.posterPath, [185, 342, 500])}
+              sizes="200px"
+              alt=""
+              class="w-full rounded-lg border object-cover"
+            />
+          ) : (
+            <div class="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-sm text-muted-foreground">
+              {movie.title}
+            </div>
+          )}
+        </div>
+        <div class="space-y-3">
+          <div>
+            <h1 class="text-2xl font-semibold">{movie.title}</h1>
+            <p class="text-sm text-muted-foreground">{subtitle}</p>
+          </div>
+
+          <MovieDetailActions movie={tmdbMovie} locale={locale} client:load />
+
+          <p class="text-sm">{movie.overview || t.movie.noOverview}</p>
+
+          {movie.externalRatings &&
+            (movie.externalRatings.imdb ||
+              movie.externalRatings.rottenTomatoes ||
+              movie.externalRatings.metacritic) && (
+              <div class="flex flex-wrap gap-3 text-sm">
+                {movie.externalRatings.imdb && (
+                  <span>
+                    <span class="font-medium">IMDb</span>{" "}
+                    {movie.externalRatings.imdb}
+                  </span>
+                )}
+                {movie.externalRatings.rottenTomatoes && (
+                  <span>
+                    <span class="font-medium">Rotten Tomatoes</span>{" "}
+                    {movie.externalRatings.rottenTomatoes}
+                  </span>
+                )}
+                {movie.externalRatings.metacritic && (
+                  <span>
+                    <span class="font-medium">Metacritic</span>{" "}
+                    {movie.externalRatings.metacritic}
+                  </span>
+                )}
+              </div>
+            )}
+
+          <a
+            href={`/map?movie=${movie.id}`}
+            class="focus-ring inline-block text-sm font-medium hover:underline"
+          >
+            {t.movie.viewInMovieMap}
+          </a>
+
+          {movie.cast.length > 0 && (
+            <div class="space-y-2">
+              <p class="text-sm font-medium">{t.movie.cast}</p>
+              <div class="flex flex-wrap gap-3">
+                {movie.cast.map((member) => (
+                  <a
+                    href={`/person/${member.personId}`}
+                    class="focus-ring flex w-16 flex-col items-center gap-1 text-center"
+                  >
+                    {member.profilePath ? (
+                      <img
+                        src={tmdbImageUrl(member.profilePath, 92)}
+                        srcset={tmdbDensitySrcSet(member.profilePath, 45, 92)}
+                        alt=""
+                        class="size-12 rounded-full border object-cover"
+                      />
+                    ) : (
+                      <div class="flex size-12 items-center justify-center rounded-full border bg-muted text-xs text-muted-foreground">
+                        {member.name.slice(0, 1)}
+                      </div>
+                    )}
+                    <span class="truncate text-xs">{member.name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+</Layout>

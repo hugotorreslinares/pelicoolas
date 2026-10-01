@@ -50,6 +50,8 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [x] **Compartir insignia en el momento de ganarla, no solo manual** (2026-10-01) — `awardBadgeOnce` dispara un evento (`pelicoolas:badge-earned`) la primera vez que escribe una insignia; `BadgeEarnedPrompt.tsx` (montado una vez en `Layout.astro`) lo escucha y abre el diálogo de compartir automáticamente, sin que el usuario tenga que ir a buscarlo en el dashboard. Lógica de preview/share/download extraída a `useBadgeShare.ts` + `BadgeShareDialog.tsx`, reusada tanto por el botón manual (`ShareBadgeButton.tsx`) como por este trigger automático — no quedó duplicada.
 - [x] **Importar watchlist/vistas desde Letterboxd o IMDb** (2026-10-01) — `/import`: sube el CSV de export de cualquiera de los dos (detecta destino por nombre de archivo, el usuario puede cambiarlo), lo parsea client-side (`csv.ts`, parser propio, sin dependencia nueva — ambos formatos comparten columnas "Title"/"Name" + "Year" aunque el resto difiera), matchea cada título contra TMDB server-side (`/api/import/match`, concurrencia acotada, rate-limited por usuario) y escribe en batch (`addManyToWatchlist`/`markManySeen`, chunks de 400). Resuelve el problema #1 de cualquier tracker nuevo: nadie quiere re-ingresar 200 películas a mano.
 
+- [x] **Páginas propias de película/show con SEO real** (2026-10-01) — `/movie/{id}` y `/tv/{id}` (antes solo existían como diálogo client-side, sin URL propia ni nada indexable). SSR directo contra TMDB (mismo patrón que `/person/[id]`, sin pasar por `/api/*`): título, póster, overview, reparto (con links a `/person/{id}`), ratings externos, todo en HTML plano sin JS. Agrega structured data `schema.org/Movie` y `TVSeries` (JSON-LD) para resultados enriquecidos en Google. El botón "Ver página completa" en `MovieDetailsDialog.tsx` (que ya se abre desde cualquier card) linkea acá, y `sitemap.xml.ts` ahora también siembra `/movie/popular` y `/tv/popular` (`getPopularMovieIds`/`getPopularTVIds`, mismo patrón que `getPopularPersonIds`). Único trozo interactivo es el botón watched/watchlist (`MovieDetailActions.tsx`, client:load), el resto es contenido estático crawlable.
+
 ## Growth hacking (ideas, sin implementar — ver análisis más abajo)
 
 - [ ] Listas como funnel SEO — ya son públicas e indexables; falta empujar activamente a crearlas con nombres long-tail buscables.
@@ -58,7 +60,6 @@ No es para escalar a muchos usuarios; es para que el proyecto esté a la altura 
 - [ ] Leaderboard social de badges / comparación entre amigos.
 - [ ] Emails trigger-based (no solo el digest semanal) — actividad de amigos en tiempo real.
 - [ ] FOMO con features early-access condicionadas a invitar amigos.
-- [ ] Páginas de película/persona con el mismo tratamiento SEO/OG que se le dio a listas.
 
 ## Producto (histórico: "sin agregar features sociales" — ver excepción arriba)
 

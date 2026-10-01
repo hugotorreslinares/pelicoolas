@@ -636,6 +636,7 @@ export const en = {
     signInToTrack: (tv: boolean) =>
       `to track, save, or recommend ${tv ? "shows" : "movies"}`,
     viewInMovieMap: "View in Movie Map",
+    viewFullPage: "View full page",
     noOverview: "No overview available.",
     cast: "Cast",
     whereToWatch: "Where to watch",

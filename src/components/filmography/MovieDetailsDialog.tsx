@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { NetworkIcon, XIcon } from "lucide-react";
+import { ExternalLinkIcon, NetworkIcon, XIcon } from "lucide-react";
 import {
   tmdbImageUrl,
   tmdbWidthSrcSet,
@@ -363,17 +363,28 @@ export function MovieDetailsDialog({
                   <PopcornRating value={rating} onRate={rate} />
                 </div>
               )}
-              {mediaType === "movie" && (
+              <div className="flex flex-wrap gap-2">
+                {mediaType === "movie" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-fit"
+                    render={<a href={`/map?movie=${view.id}`} />}
+                  >
+                    <NetworkIcon data-icon="inline-start" />
+                    {t.viewInMovieMap}
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
                   className="w-fit"
-                  render={<a href={`/map?movie=${view.id}`} />}
+                  render={<a href={`/${mediaType}/${view.id}`} />}
                 >
-                  <NetworkIcon data-icon="inline-start" />
-                  {t.viewInMovieMap}
+                  <ExternalLinkIcon data-icon="inline-start" />
+                  {t.viewFullPage}
                 </Button>
-              )}
+              </div>
             </DialogHeader>
             <DialogDescription className="mt-2">
               {view.overview || t.noOverview}

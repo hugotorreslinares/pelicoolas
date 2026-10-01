@@ -44,6 +44,19 @@ export async function searchTV(
   }));
 }
 
+const POPULAR_TV_PAGES = 5; // mirrors getPopularMovieIds/getPopularPersonIds
+
+export async function getPopularTVIds(): Promise<readonly number[]> {
+  const pages = await Promise.all(
+    Array.from({ length: POPULAR_TV_PAGES }, (_, i) =>
+      tmdbFetch("/tv/popular", tmdbTrendingTVResponseSchema, {
+        page: String(i + 1),
+      }),
+    ),
+  );
+  return [...new Set(pages.flatMap((p) => p.results.map((r) => r.id)))];
+}
+
 const CAST_LIMIT = 10;
 
 export async function getTVDetails(

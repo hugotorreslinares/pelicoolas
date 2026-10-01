@@ -1,0 +1,193 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { MovieDetailActions } from "@/components/movies/MovieDetailActions";
+import { getTVDetails } from "@/lib/tmdb/tv";
+import { resolveWatchRegion } from "@/lib/region";
+import {
+  tmdbImageUrl,
+  tmdbWidthSrcSet,
+  tmdbDensitySrcSet,
+} from "@/lib/tmdb/image";
+import { getDictionary } from "@/i18n";
+import type { TVDetails } from "@/types/movie";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale);
+const MAX_DESCRIPTION_LENGTH = 160;
+
+function truncate(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+const showId = Number(Astro.params.id);
+let show: TVDetails | null = null;
+let error: string | null = null;
+
+if (!Number.isInteger(showId)) {
+  error = t.movie.couldntLoadShow;
+} else {
+  try {
+    const region = resolveWatchRegion(
+      Astro.request.headers.get("accept-language"),
+    );
+    show = await getTVDetails(showId, region);
+  } catch {
+    error = t.movie.couldntLoadShow;
+  }
+}
+
+const description = show
+  ? show.overview
+    ? truncate(show.overview, MAX_DESCRIPTION_LENGTH)
+    : t.movie.noOverview
+  : undefined;
+const ogImage = show?.posterPath
+  ? tmdbImageUrl(show.posterPath, 500)
+  : undefined;
+
+const jsonLd = show
+  ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "TVSeries",
+      name: show.title,
+      ...(ogImage && { image: ogImage }),
+      ...(show.overview && { description: show.overview }),
+      ...(show.genres.length > 0 && { genre: show.genres }),
+      ...(show.seasonCount && { numberOfSeasons: show.seasonCount }),
+      ...(show.episodeCount && { numberOfEpisodes: show.episodeCount }),
+      ...(show.voteAverage && {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: show.voteAverage,
+          bestRating: 10,
+          worstRating: 0,
+        },
+      }),
+      ...(show.cast.length > 0 && {
+        actor: show.cast.map((c) => ({ "@type": "Person", name: c.name })),
+      }),
+    }).replace(/</g, "\\u003c")
+  : null;
+
+const tmdbShow = show
+  ? {
+      tmdbMovieId: show.id,
+      title: show.title,
+      posterPath: show.posterPath,
+      releaseYear: show.releaseYear,
+      voteAverage: show.voteAverage,
+      genreIds: show.genreIds,
+      mediaType: "tv" as const,
+    }
+  : null;
+
+const subtitle = show
+  ? [
+      show.releaseYear ?? t.movie.unknown,
+      show.seasonCount ? t.movie.seasons(show.seasonCount) : null,
+      show.genres.join(", ") || null,
+    ]
+      .filter(Boolean)
+      .join(" · ")
+  : "";
+---
+
+<Layout
+  title={show ? `${show.title} — Pelicoolas` : "Pelicoolas"}
+  description={description}
+  image={ogImage}
+  noindex={!show}
+>
+  {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}
+
+  {error && <p class="text-destructive">{error}</p>}
+
+  {
+    show && tmdbShow && (
+      <div class="mt-4 grid gap-6 sm:grid-cols-[200px_1fr]">
+        <div>
+          {show.posterPath ? (
+            <img
+              src={tmdbImageUrl(show.posterPath, 342)}
+              srcset={tmdbWidthSrcSet(show.posterPath, [185, 342, 500])}
+              sizes="200px"
+              alt=""
+              class="w-full rounded-lg border object-cover"
+            />
+          ) : (
+            <div class="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-sm text-muted-foreground">
+              {show.title}
+            </div>
+          )}
+        </div>
+        <div class="space-y-3">
+          <div>
+            <h1 class="text-2xl font-semibold">{show.title}</h1>
+            <p class="text-sm text-muted-foreground">{subtitle}</p>
+          </div>
+
+          <MovieDetailActions movie={tmdbShow} locale={locale} client:load />
+
+          <p class="text-sm">{show.overview || t.movie.noOverview}</p>
+
+          {show.externalRatings &&
+            (show.externalRatings.imdb ||
+              show.externalRatings.rottenTomatoes ||
+              show.externalRatings.metacritic) && (
+              <div class="flex flex-wrap gap-3 text-sm">
+                {show.externalRatings.imdb && (
+                  <span>
+                    <span class="font-medium">IMDb</span>{" "}
+                    {show.externalRatings.imdb}
+                  </span>
+                )}
+                {show.externalRatings.rottenTomatoes && (
+                  <span>
+                    <span class="font-medium">Rotten Tomatoes</span>{" "}
+                    {show.externalRatings.rottenTomatoes}
+                  </span>
+                )}
+                {show.externalRatings.metacritic && (
+                  <span>
+                    <span class="font-medium">Metacritic</span>{" "}
+                    {show.externalRatings.metacritic}
+                  </span>
+                )}
+              </div>
+            )}
+
+          {show.cast.length > 0 && (
+            <div class="space-y-2">
+              <p class="text-sm font-medium">{t.movie.cast}</p>
+              <div class="flex flex-wrap gap-3">
+                {show.cast.map((member) => (
+                  <a
+                    href={`/person/${member.personId}`}
+                    class="focus-ring flex w-16 flex-col items-center gap-1 text-center"
+                  >
+                    {member.profilePath ? (
+                      <img
+                        src={tmdbImageUrl(member.profilePath, 92)}
+                        srcset={tmdbDensitySrcSet(member.profilePath, 45, 92)}
+                        alt=""
+                        class="size-12 rounded-full border object-cover"
+                      />
+                    ) : (
+                      <div class="flex size-12 items-center justify-center rounded-full border bg-muted text-xs text-muted-foreground">
+                        {member.name.slice(0, 1)}
+                      </div>
+                    )}
+                    <span class="truncate text-xs">{member.name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+</Layout>

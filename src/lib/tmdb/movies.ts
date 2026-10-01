@@ -169,6 +169,19 @@ export async function getTrendingMovies(): Promise<readonly TrendingMovie[]> {
   return data.results.slice(0, TRENDING_LIMIT).map(toTrendingMovie);
 }
 
+const POPULAR_MOVIE_PAGES = 5; // 20 per page — enough to seed a sitemap without fanning out, mirrors getPopularPersonIds
+
+export async function getPopularMovieIds(): Promise<readonly number[]> {
+  const pages = await Promise.all(
+    Array.from({ length: POPULAR_MOVIE_PAGES }, (_, i) =>
+      tmdbFetch("/movie/popular", tmdbTrendingMoviesResponseSchema, {
+        page: String(i + 1),
+      }),
+    ),
+  );
+  return [...new Set(pages.flatMap((p) => p.results.map((r) => r.id)))];
+}
+
 const HORROR_GENRE_ID = "27";
 const HORROR_PAGES = Array.from({ length: 12 }, (_, i) => i + 1); // 20 per page (~240): deep enough to reach lesser-known titles once a user has watched the classics
 
