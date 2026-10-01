@@ -809,6 +809,9 @@ export const es: Dictionary = {
     searchAria: "Busca una película para agregar",
     searchError: "No pudimos buscar. Intenta de nuevo.",
     noResults: "Sin resultados.",
+    searchResults: "Resultados de la búsqueda",
+    inThisList: (count) =>
+      `En esta lista${count !== null ? ` (${count})` : ""}`,
     added: (title) => `Agregaste ${title}`,
     addTo: (title) => `Agregar ${title} a esta lista`,
     couldntAdd: (title) => `No pudimos agregar "${title}". Intenta de nuevo.`,

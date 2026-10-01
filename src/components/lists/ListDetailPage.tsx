@@ -213,32 +213,43 @@ export function ListDetailPage({
             <p className="text-sm text-muted-foreground">{t.noResults}</p>
           )}
           {results !== null && results.length > 0 && (
-            <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
-              {results.map((m) => (
-                <SearchResultCard
-                  key={m.tmdbMovieId}
-                  movie={m}
-                  inList={inListKeys.has(
-                    `${m.mediaType ?? "movie"}-${m.tmdbMovieId}`,
-                  )}
-                  onAdd={() => void handleAdd(m)}
-                  onRemove={() =>
-                    void handleRemove({
-                      tmdbId: m.tmdbMovieId,
-                      title: m.title,
-                      posterPath: m.posterPath,
-                      releaseYear: m.releaseYear,
-                      voteAverage: m.voteAverage,
-                      addedAt: "",
-                      mediaType: m.mediaType === "tv" ? "tv" : undefined,
-                    })
-                  }
-                  t={t}
-                />
-              ))}
+            <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
+              <p className="text-sm font-semibold text-muted-foreground">
+                {t.searchResults}
+              </p>
+              <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+                {results.map((m) => (
+                  <SearchResultCard
+                    key={m.tmdbMovieId}
+                    movie={m}
+                    inList={inListKeys.has(
+                      `${m.mediaType ?? "movie"}-${m.tmdbMovieId}`,
+                    )}
+                    onAdd={() => void handleAdd(m)}
+                    onRemove={() =>
+                      void handleRemove({
+                        tmdbId: m.tmdbMovieId,
+                        title: m.title,
+                        posterPath: m.posterPath,
+                        releaseYear: m.releaseYear,
+                        voteAverage: m.voteAverage,
+                        addedAt: "",
+                        mediaType: m.mediaType === "tv" ? "tv" : undefined,
+                      })
+                    }
+                    t={t}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
+      )}
+
+      {(isOwner || movies === null || visibleMovies.length > 0) && (
+        <p className="border-t pt-3 text-sm font-semibold text-muted-foreground">
+          {t.inThisList(movies !== null ? visibleMovies.length : null)}
+        </p>
       )}
 
       {movies === null && (

@@ -828,6 +828,9 @@ export const en = {
     searchAria: "Search a movie to add",
     searchError: "Couldn't search. Please try again.",
     noResults: "No results.",
+    searchResults: "Search results",
+    inThisList: (count: number | null) =>
+      `In this list${count !== null ? ` (${count})` : ""}`,
     added: (title: string) => `Added ${title}`,
     addTo: (title: string) => `Add ${title} to this list`,
     couldntAdd: (title: string) => `Couldn't add "${title}". Please try again.`,
