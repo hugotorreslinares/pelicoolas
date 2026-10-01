@@ -50,7 +50,11 @@ export function MovieActions({
   return (
     <div
       className={cn(
-        "flex overflow-hidden rounded-full border bg-secondary text-secondary-foreground shadow",
+        // inline-flex, not flex — this can sit as a direct child of a plain
+        // block container (e.g. the /movie page, not just inside another
+        // flex row), where "flex" would stretch to the parent's full width
+        // instead of hugging its two 44px buttons.
+        "inline-flex overflow-hidden rounded-full border bg-secondary text-secondary-foreground shadow",
         placement === "overlay" && "absolute top-2 right-2",
         className,
       )}

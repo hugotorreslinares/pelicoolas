@@ -105,7 +105,7 @@ export function MovieRecommendButton({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-11"
+              className="size-11 rounded-full border bg-secondary text-secondary-foreground shadow hover:bg-secondary/80"
               aria-label={
                 recommended
                   ? t.removeFromBoardAria(movie.title)
