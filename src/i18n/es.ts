@@ -615,6 +615,7 @@ export const es: Dictionary = {
       `para llevar el registro, guardar o recomendar ${tv ? "series" : "películas"}`,
     viewInMovieMap: "Ver en Movie Map",
     viewFullPage: "Ver página completa",
+    similarMovies: "Películas similares",
     noOverview: "No hay sinopsis disponible.",
     cast: "Reparto",
     whereToWatch: "Dónde verla",

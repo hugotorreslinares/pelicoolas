@@ -8,9 +8,16 @@ export interface ListSummary {
     readonly title: string;
     readonly posterPath: string | null;
   }[];
+  /** Every movie's title, for the page's schema.org/ItemList structured data. */
+  readonly titles: readonly string[];
 }
 
-const EMPTY: ListSummary = { name: null, movieCount: 0, posters: [] };
+const EMPTY: ListSummary = {
+  name: null,
+  movieCount: 0,
+  posters: [],
+  titles: [],
+};
 
 /**
  * Server-side snapshot of a shared list for link previews (page meta tags +
@@ -39,6 +46,7 @@ export async function getListSummary(
         title: d.get("title") as string,
         posterPath: (d.get("posterPath") as string | null) ?? null,
       })),
+      titles: moviesSnap.docs.map((d) => d.get("title") as string),
     };
   } catch (error) {
     console.error("getListSummary failed", userId, listId, error);

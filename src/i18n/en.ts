@@ -637,6 +637,7 @@ export const en = {
       `to track, save, or recommend ${tv ? "shows" : "movies"}`,
     viewInMovieMap: "View in Movie Map",
     viewFullPage: "View full page",
+    similarMovies: "Similar movies",
     noOverview: "No overview available.",
     cast: "Cast",
     whereToWatch: "Where to watch",

@@ -52,9 +52,11 @@ function targetDistFor(rank: number, count: number): number {
 
 interface MovieMapProps {
   readonly locale: Locale;
+  /** Seeds the map with this movie on mount instead of reading `?movie=` from the URL — used when embedding the map directly on that movie's own /movie/{id} page. */
+  readonly seedMovieId?: number;
 }
 
-export function MovieMap({ locale }: MovieMapProps) {
+export function MovieMap({ locale, seedMovieId }: MovieMapProps) {
   const t = getDictionary(locale);
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<readonly TrendingMovie[]>(
@@ -109,9 +111,9 @@ export function MovieMap({ locale }: MovieMapProps) {
   // on first mount, same as picking it from the search box. Runs once; the
   // query param is only ever read at mount, never re-synced afterward.
   useEffect(() => {
-    const movieId = Number(
-      new URLSearchParams(window.location.search).get("movie"),
-    );
+    const movieId =
+      seedMovieId ??
+      Number(new URLSearchParams(window.location.search).get("movie"));
     if (!Number.isInteger(movieId) || movieId <= 0) return;
     void fetchMovieDetails(movieId).then((details) => {
       if (!details) return;

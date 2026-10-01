@@ -3,6 +3,7 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { MovieDetailActions } from "@/components/movies/MovieDetailActions";
+import { MovieMap } from "@/components/connections/MovieMap";
 import { getMovieDetails } from "@/lib/tmdb/movies";
 import { resolveWatchRegion } from "@/lib/region";
 import {
@@ -160,13 +161,6 @@ const subtitle = movie
               </div>
             )}
 
-          <a
-            href={`/map?movie=${movie.id}`}
-            class="focus-ring inline-block text-sm font-medium hover:underline"
-          >
-            {t.movie.viewInMovieMap}
-          </a>
-
           {movie.cast.length > 0 && (
             <div class="space-y-2">
               <p class="text-sm font-medium">{t.movie.cast}</p>
@@ -195,6 +189,15 @@ const subtitle = movie
             </div>
           )}
         </div>
+      </div>
+    )
+  }
+
+  {
+    movie && (
+      <div class="mt-8">
+        <h2 class="mb-4 text-xl font-semibold">{t.movie.similarMovies}</h2>
+        <MovieMap locale={locale} seedMovieId={movie.id} client:load />
       </div>
     )
   }

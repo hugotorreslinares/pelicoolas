@@ -14,13 +14,30 @@ const locale = Astro.locals.locale;
 const t = getDictionary(locale);
 const es = locale === "es";
 
-const { name, movieCount } = await getListSummary(userId, listId);
+const { name, movieCount, titles } = await getListSummary(userId, listId);
 const title = name ? `${name} — Pelicoolas` : `${t.lists.heading} — Pelicoolas`;
 const description = name
   ? es
     ? `${movieCount} ${movieCount === 1 ? "película" : "películas"} en esta lista de Pelicoolas.`
     : `${movieCount} ${movieCount === 1 ? "movie" : "movies"} in this Pelicoolas list.`
   : t.lists.metaDescription;
+
+// schema.org/ItemList — same rich-results intent as the Movie/TVSeries JSON-LD
+// on /movie and /tv. `<` escape blocks a title shaped like `</script>`
+// from ever closing this tag early.
+const jsonLd = name
+  ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name,
+      numberOfItems: movieCount,
+      itemListElement: titles.map((movieTitle, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: movieTitle,
+      })),
+    }).replace(/</g, "\\u003c")
+  : null;
 ---
 
 <Layout
@@ -29,5 +46,6 @@ const description = name
   image={`/api/og/list/${userId}/${listId}.png`}
   imageAlt={title}
 >
+  {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}
   <ListDetailPage userId={userId} listId={listId} locale={locale} client:load />
 </Layout>
