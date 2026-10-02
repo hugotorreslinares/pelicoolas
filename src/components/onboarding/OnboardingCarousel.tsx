@@ -52,6 +52,13 @@ export function OnboardingCarousel({ locale }: OnboardingCarouselProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md gap-6 p-6 sm:max-w-md">
         <div className="space-y-3">
+          <img
+            src="/logo.png"
+            alt=""
+            width={128}
+            height={128}
+            className="mx-auto size-24 sm:size-32"
+          />
           <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {slide.kicker}
           </p>

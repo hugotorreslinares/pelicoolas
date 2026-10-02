@@ -208,7 +208,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
         <Skeleton className="h-24 w-full rounded-lg" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[2/3] w-full rounded-lg" />
+            <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
           ))}
         </div>
       </div>
@@ -540,7 +540,7 @@ function WatchlistGridCard({
               className="w-full object-cover"
             />
           ) : (
-            <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+            <div className="flex aspect-2/3 w-full items-center justify-center bg-muted text-sm text-muted-foreground">
               {t.cards.noPoster}
             </div>
           )}

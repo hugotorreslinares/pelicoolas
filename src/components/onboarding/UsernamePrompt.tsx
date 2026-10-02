@@ -62,6 +62,13 @@ export function UsernamePrompt({ locale }: UsernamePromptProps) {
     <Dialog open>
       <DialogContent showCloseButton={false} className="max-w-sm gap-4 p-6">
         <div className="space-y-2">
+          <img
+            src="/logo.png"
+            alt=""
+            width={128}
+            height={128}
+            className="mx-auto size-24 sm:size-32"
+          />
           <DialogTitle className="font-heading text-lg font-semibold">
             {t.usernamePrompt.pickUsername}
           </DialogTitle>
