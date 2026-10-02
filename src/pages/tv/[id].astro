@@ -3,6 +3,7 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { MovieDetailActions } from "@/components/movies/MovieDetailActions";
+import { TrailerButton } from "@/components/movies/TrailerButton";
 import { getTVDetails } from "@/lib/tmdb/tv";
 import { resolveWatchRegion } from "@/lib/region";
 import {
@@ -143,6 +144,14 @@ const subtitle = show
           </div>
 
           <MovieDetailActions movie={tmdbShow} locale={locale} client:load />
+          {show.trailerKey && (
+            <TrailerButton
+              youtubeKey={show.trailerKey}
+              title={show.title}
+              locale={locale}
+              client:load
+            />
+          )}
 
           <p class="text-sm">{show.overview || t.movie.noOverview}</p>
 
@@ -173,27 +182,35 @@ const subtitle = show
             )}
 
           {show.cast.length > 0 && (
-            <div class="space-y-2">
-              <p class="text-sm font-medium">{t.movie.cast}</p>
-              <div class="flex flex-wrap gap-3">
+            <div class="space-y-2 pt-2">
+              <h2 class="font-display text-lg font-bold">{t.movie.cast}</h2>
+              <div class="flex gap-3 overflow-x-auto pb-2">
                 {show.cast.map((member) => (
                   <a
                     href={`/person/${member.personId}`}
-                    class="focus-ring flex w-20 flex-col items-center gap-1 text-center"
+                    class="focus-ring group w-24 shrink-0 space-y-1.5"
                   >
                     {member.profilePath ? (
                       <img
-                        src={tmdbImageUrl(member.profilePath, 92)}
-                        srcset={tmdbDensitySrcSet(member.profilePath, 45, 92)}
+                        src={tmdbImageUrl(member.profilePath, 185)}
+                        srcset={tmdbDensitySrcSet(member.profilePath, 92, 185)}
                         alt=""
-                        class="size-12 rounded-full border object-cover"
+                        loading="lazy"
+                        class="aspect-[2/3] w-full rounded-lg border object-cover transition-transform group-hover:scale-[1.03]"
                       />
                     ) : (
-                      <div class="flex size-12 items-center justify-center rounded-full border bg-muted text-xs text-muted-foreground">
+                      <div class="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-xl text-muted-foreground">
                         {member.name.slice(0, 1)}
                       </div>
                     )}
-                    <span class="w-full truncate text-xs">{member.name}</span>
+                    <p class="line-clamp-2 text-xs leading-tight font-medium">
+                      {member.name}
+                    </p>
+                    {member.character && (
+                      <p class="line-clamp-2 text-[11px] leading-tight text-muted-foreground">
+                        {member.character}
+                      </p>
+                    )}
                   </a>
                 ))}
               </div>

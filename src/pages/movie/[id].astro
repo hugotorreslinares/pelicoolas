@@ -3,6 +3,7 @@ export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { MovieDetailActions } from "@/components/movies/MovieDetailActions";
+import { TrailerButton } from "@/components/movies/TrailerButton";
 import { MovieMap } from "@/components/connections/MovieMap";
 import { getMovieDetails } from "@/lib/tmdb/movies";
 import { resolveWatchRegion } from "@/lib/region";
@@ -155,6 +156,14 @@ const subtitle = movie
             </div>
 
             <MovieDetailActions movie={tmdbMovie} locale={locale} client:load />
+            {movie.trailerKey && (
+              <TrailerButton
+                youtubeKey={movie.trailerKey}
+                title={movie.title}
+                locale={locale}
+                client:load
+              />
+            )}
 
             <p class="text-sm">{movie.overview || t.movie.noOverview}</p>
 
@@ -183,36 +192,43 @@ const subtitle = movie
                   )}
                 </div>
               )}
-
-            {movie.cast.length > 0 && (
-              <div class="space-y-2">
-                <p class="text-sm font-medium">{t.movie.cast}</p>
-                <div class="flex flex-wrap gap-3">
-                  {movie.cast.map((member) => (
-                    <a
-                      href={`/person/${member.personId}`}
-                      class="focus-ring flex w-20 flex-col items-center gap-1 text-center"
-                    >
-                      {member.profilePath ? (
-                        <img
-                          src={tmdbImageUrl(member.profilePath, 92)}
-                          srcset={tmdbDensitySrcSet(member.profilePath, 45, 92)}
-                          alt=""
-                          class="size-12 rounded-full border object-cover"
-                        />
-                      ) : (
-                        <div class="flex size-12 items-center justify-center rounded-full border bg-muted text-xs text-white/70">
-                          {member.name.slice(0, 1)}
-                        </div>
-                      )}
-                      <span class="w-full truncate text-xs">{member.name}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
+        {movie.cast.length > 0 && (
+          <div class="relative px-4 pb-6 sm:px-8">
+            <h2 class="mb-3 font-display text-lg font-bold">{t.movie.cast}</h2>
+            <div class="flex gap-3 overflow-x-auto pb-2">
+              {movie.cast.map((member) => (
+                <a
+                  href={`/person/${member.personId}`}
+                  class="focus-ring group w-24 shrink-0 space-y-1.5 sm:w-28"
+                >
+                  {member.profilePath ? (
+                    <img
+                      src={tmdbImageUrl(member.profilePath, 185)}
+                      srcset={tmdbDensitySrcSet(member.profilePath, 92, 185)}
+                      alt=""
+                      loading="lazy"
+                      class="aspect-[2/3] w-full rounded-lg border border-white/10 object-cover transition-transform group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div class="flex aspect-[2/3] w-full items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white/70 text-xl">
+                      {member.name.slice(0, 1)}
+                    </div>
+                  )}
+                  <p class="line-clamp-2 text-xs leading-tight font-medium">
+                    {member.name}
+                  </p>
+                  {member.character && (
+                    <p class="line-clamp-2 text-[11px] leading-tight text-white/60">
+                      {member.character}
+                    </p>
+                  )}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
     )
   }

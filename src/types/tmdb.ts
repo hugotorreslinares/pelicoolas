@@ -133,6 +133,18 @@ export const tmdbMovieDetailsResponseSchema = z.object({
     .optional(),
   // Present because getMovieDetails requests append_to_response includes
   // "watch/providers" — key has a literal slash, TMDB's own naming.
+  videos: z
+    .object({
+      results: z.array(
+        z.object({
+          key: z.string(),
+          site: z.string(),
+          type: z.string(),
+          official: z.boolean().optional(),
+        }),
+      ),
+    })
+    .optional(),
   "watch/providers": tmdbWatchProvidersResponseSchema.optional(),
 });
 export type TmdbMovieDetailsResponse = z.infer<
@@ -194,6 +206,18 @@ export const tmdbTVDetailsResponseSchema = z.object({
     })
     .optional(),
   external_ids: z.object({ imdb_id: z.string().nullable() }).optional(),
+  videos: z
+    .object({
+      results: z.array(
+        z.object({
+          key: z.string(),
+          site: z.string(),
+          type: z.string(),
+          official: z.boolean().optional(),
+        }),
+      ),
+    })
+    .optional(),
   "watch/providers": tmdbWatchProvidersResponseSchema.optional(),
 });
 export type TmdbTVDetailsResponse = z.infer<typeof tmdbTVDetailsResponseSchema>;

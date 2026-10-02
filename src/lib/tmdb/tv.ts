@@ -6,7 +6,7 @@ import {
   tmdbTVDetailsResponseSchema,
 } from "@/types/tmdb";
 import type { TrendingMovie, TVDetails } from "@/types/movie";
-import { toReleaseYear, toWatchProviders } from "./movies";
+import { pickTrailerKey, toReleaseYear, toWatchProviders } from "./movies";
 
 const TRENDING_LIMIT = 10;
 
@@ -64,7 +64,7 @@ export async function getTVDetails(
   region: string,
 ): Promise<TVDetails> {
   const data = await tmdbFetch(`/tv/${tvId}`, tmdbTVDetailsResponseSchema, {
-    append_to_response: "credits,external_ids,watch/providers",
+    append_to_response: "credits,external_ids,watch/providers,videos",
   });
 
   const externalRatings = await getExternalRatings(data.external_ids?.imdb_id);
@@ -74,6 +74,7 @@ export async function getTVDetails(
     title: data.name,
     posterPath: data.poster_path,
     backdropPath: data.backdrop_path ?? null,
+    trailerKey: pickTrailerKey(data.videos?.results),
     releaseYear: toReleaseYear(data.first_air_date),
     overview: data.overview,
     seasonCount: data.number_of_seasons ?? null,

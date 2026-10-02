@@ -71,6 +71,8 @@ export interface MovieDetails {
   readonly title: string;
   readonly posterPath: string | null;
   readonly backdropPath: string | null;
+  /** YouTube video key of the best official trailer, if TMDB lists one. */
+  readonly trailerKey: string | null;
   readonly releaseYear: number | null;
   readonly overview: string | null;
   readonly runtimeMinutes: number | null;
@@ -96,6 +98,8 @@ export interface TVDetails {
   readonly title: string;
   readonly posterPath: string | null;
   readonly backdropPath: string | null;
+  /** YouTube video key of the best official trailer, if TMDB lists one. */
+  readonly trailerKey: string | null;
   readonly releaseYear: number | null;
   readonly overview: string | null;
   readonly seasonCount: number | null;

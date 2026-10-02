@@ -617,6 +617,8 @@ export const es: Dictionary = {
       `para llevar el registro, guardar o recomendar ${tv ? "series" : "películas"}`,
     viewInMovieMap: "Ver en Movie Map",
     viewFullPage: "Ver página completa",
+    watchTrailer: "Ver tráiler",
+    trailerOf: (title) => `${title} — tráiler`,
     similarMovies: "Películas similares",
     noOverview: "No hay sinopsis disponible.",
     cast: "Reparto",

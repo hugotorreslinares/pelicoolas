@@ -33,7 +33,7 @@ const CSP = [
   // actually leave the browser, so nothing shows up in Sentry.
   "worker-src 'self' blob:",
   `connect-src 'self' https://*.googleapis.com https://vitals.vercel-insights.com https://*.vercel-insights.com https://*.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io${emulatorConnectSrc}`,
-  "frame-src https://*.firebaseapp.com https://accounts.google.com",
+  "frame-src https://*.firebaseapp.com https://accounts.google.com https://www.youtube-nocookie.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",

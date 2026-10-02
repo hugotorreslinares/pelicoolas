@@ -23,6 +23,23 @@ export function toReleaseYear(releaseDate: string | undefined): number | null {
   return Number.isFinite(year) && year > 0 ? year : null;
 }
 
+/** Best YouTube trailer from TMDB's videos list: official first, else any trailer. */
+export function pickTrailerKey(
+  videos:
+    | readonly {
+        readonly key: string;
+        readonly site: string;
+        readonly type: string;
+        readonly official?: boolean;
+      }[]
+    | undefined,
+): string | null {
+  const trailers = (videos ?? []).filter(
+    (v) => v.site === "YouTube" && v.type === "Trailer",
+  );
+  return (trailers.find((v) => v.official) ?? trailers[0])?.key ?? null;
+}
+
 export function dedupeByMovieId(
   movies: readonly FilmographyMovie[],
 ): readonly FilmographyMovie[] {
@@ -102,7 +119,7 @@ export async function getMovieDetails(
   const data = await tmdbFetch(
     `/movie/${movieId}`,
     tmdbMovieDetailsResponseSchema,
-    { append_to_response: "credits,watch/providers" },
+    { append_to_response: "credits,watch/providers,videos" },
   );
 
   const externalRatings = await getExternalRatings(data.imdb_id);
@@ -112,6 +129,7 @@ export async function getMovieDetails(
     title: data.title,
     posterPath: data.poster_path,
     backdropPath: data.backdrop_path ?? null,
+    trailerKey: pickTrailerKey(data.videos?.results),
     releaseYear: toReleaseYear(data.release_date),
     overview: data.overview,
     runtimeMinutes: data.runtime,
