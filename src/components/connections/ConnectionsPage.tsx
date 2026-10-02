@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -203,12 +204,7 @@ export function ConnectionsPage({ locale }: ConnectionsPageProps) {
   }
 
   if (!user) {
-    return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{heading}</h1>
-        <p className="text-muted-foreground">{t.connections.signInPrompt}</p>
-      </div>
-    );
+    return <SignInHero locale={locale} section="connections" />;
   }
 
   const hasFollowed = !!followed && followed.length > 0;

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -420,12 +421,7 @@ export function WatchedPage({ locale }: WatchedPageProps) {
   }
 
   if (!user) {
-    return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{t.watched.heading}</h1>
-        <p className="text-muted-foreground">{t.watched.signInPrompt}</p>
-      </div>
-    );
+    return <SignInHero locale={locale} section="watched" />;
   }
 
   if (!movies || movies.length === 0) {

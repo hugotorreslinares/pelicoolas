@@ -808,6 +808,46 @@ export const en = {
     contactBody:
       "Questions about this policy or a data request? Reach out via the contact info on the app's GitHub repository.",
   },
+  signInHero: {
+    sections: {
+      watchlist: {
+        title: "Your watchlist",
+        body: "Save the movies and shows you want to watch next, see how long they are, and never lose track of a recommendation.",
+      },
+      watched: {
+        title: "Everything you've watched",
+        body: "Your full viewing history in one place: filter by genre, group by year or by person, and rate each movie with popcorns.",
+      },
+      friends: {
+        title: "See what your friends watch",
+        body: "Follow friends to see their activity, compare tastes and find the actors and directors you have in common.",
+      },
+      connections: {
+        title: "Connections between movies",
+        body: "Discover which actors show up across the filmographies you follow and how their movies connect.",
+      },
+      people: {
+        title: "People on Pelicoolas",
+        body: "Find other movie lovers, follow them and see who follows you.",
+      },
+      lists: {
+        title: "Your own movie lists",
+        body: 'Create lists like "Found footage" or "Colombian movies" and share them with a single link.',
+      },
+      import: {
+        title: "Bring your movies over",
+        body: "Import your Letterboxd or IMDb history and watchlist in one go, no retyping.",
+      },
+      halloween: {
+        title: "Halloween challenge",
+        body: "Pick 31 horror movies, watch one a day before October 31 and earn the Halloween Marathon badge.",
+      },
+      wrapped: {
+        title: "Your movie Wrapped",
+        body: "See your total watched, your most-followed person and your favorite decade.",
+      },
+    },
+  },
   lists: {
     heading: "My lists",
     metaDescription: "Create and share your own movie lists.",

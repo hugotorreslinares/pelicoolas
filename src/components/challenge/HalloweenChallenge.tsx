@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { toast } from "sonner";
 import { CheckIcon, Share2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LoginButton } from "@/components/auth/LoginButton";
 import { FilmographyProgress } from "@/components/filmography/FilmographyProgress";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { adjacentItem } from "@/lib/adjacentItem";
@@ -352,13 +352,7 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
     );
   }
   if (!user) {
-    return (
-      <div className="space-y-3">
-        {header}
-        <p className="text-muted-foreground">{t.signInPrompt}</p>
-        <LoginButton size="sm" locale={locale} />
-      </div>
-    );
+    return <SignInHero locale={locale} section="halloween" />;
   }
 
   const loading =

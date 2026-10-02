@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -216,12 +217,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
   }
 
   if (!user) {
-    return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{t.watchlist.heading}</h1>
-        <p className="text-muted-foreground">{t.watchlist.signInPrompt}</p>
-      </div>
-    );
+    return <SignInHero locale={locale} section="watchlist" />;
   }
 
   if (!movies || movies.length === 0) {

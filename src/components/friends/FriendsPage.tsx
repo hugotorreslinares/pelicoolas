@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { EyeIcon, BookmarkIcon, StarIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -179,12 +180,7 @@ export function FriendsPage({ locale }: FriendsPageProps) {
   }
 
   if (!user) {
-    return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{t.friendsPage.heading}</h1>
-        <p className="text-muted-foreground">{t.friendsPage.signInPrompt}</p>
-      </div>
-    );
+    return <SignInHero locale={locale} section="friends" />;
   }
 
   if (following === null) {

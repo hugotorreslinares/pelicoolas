@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoginButton } from "@/components/auth/LoginButton";
@@ -225,9 +226,7 @@ export function PeoplePage({ locale }: PeoplePageProps) {
 
       {tab === "following" &&
         (!user ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            {t.people.signInPrompt}
-          </p>
+          <SignInHero locale={locale} section="people" />
         ) : (
           <div className="space-y-2">
             <EmptyOrError
@@ -252,9 +251,7 @@ export function PeoplePage({ locale }: PeoplePageProps) {
 
       {tab === "followers" &&
         (!user ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            {t.people.signInPrompt}
-          </p>
+          <SignInHero locale={locale} section="people" />
         ) : (
           <div className="space-y-2">
             <EmptyOrError

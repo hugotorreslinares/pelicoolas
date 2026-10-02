@@ -790,6 +790,46 @@ export const es: Dictionary = {
     contactBody:
       "¿Preguntas sobre esta política o quieres hacer una solicitud sobre tus datos? Escríbenos vía la información de contacto en el repositorio de GitHub de la app.",
   },
+  signInHero: {
+    sections: {
+      watchlist: {
+        title: "Tu watchlist",
+        body: "Guarda las películas y series que quieres ver después, mira cuánto duran y no pierdas ninguna recomendación.",
+      },
+      watched: {
+        title: "Todo lo que has visto",
+        body: "Tu historial completo en un solo lugar: filtra por género, agrupa por año o por persona y califica cada película con crispetas.",
+      },
+      friends: {
+        title: "Mira qué ven tus amigos",
+        body: "Sigue a tus amigos para ver su actividad, comparar gustos y descubrir los actores y directores que tienen en común.",
+      },
+      connections: {
+        title: "Conexiones entre películas",
+        body: "Descubre qué actores aparecen en las filmografías que sigues y cómo se conectan sus películas.",
+      },
+      people: {
+        title: "Gente en Pelicoolas",
+        body: "Encuentra a otros cinéfilos, síguelos y mira quién te sigue.",
+      },
+      lists: {
+        title: "Tus propias listas de películas",
+        body: 'Crea listas como "Found footage" o "Películas colombianas" y compártelas con un solo link.',
+      },
+      import: {
+        title: "Trae tus películas",
+        body: "Importa tu historial y tu watchlist de Letterboxd o IMDb de una sola vez, sin volver a escribirlas.",
+      },
+      halloween: {
+        title: "Reto de Halloween",
+        body: "Elige 31 películas de terror, mira una al día antes del 31 de octubre y gana la insignia Maratón de Halloween.",
+      },
+      wrapped: {
+        title: "Tu Wrapped de cine",
+        body: "Mira cuántas películas has visto, la persona que más sigues y tu década favorita.",
+      },
+    },
+  },
   lists: {
     heading: "Mis listas",
     metaDescription: "Crea y comparte tus propias listas de películas.",

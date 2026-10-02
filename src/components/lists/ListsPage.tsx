@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { toast } from "sonner";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { createList, deleteList, subscribeToLists } from "@/lib/firebase/lists";
 import { getDictionary, type Locale } from "@/i18n";
@@ -68,13 +68,7 @@ export function ListsPage({ locale }: ListsPageProps) {
   }
 
   if (!user) {
-    return (
-      <div className="space-y-3">
-        <h1 className="text-xl font-semibold">{t.heading}</h1>
-        <p className="text-muted-foreground">{t.signInPrompt}</p>
-        <LoginButton size="sm" locale={locale} />
-      </div>
-    );
+    return <SignInHero locale={locale} section="lists" />;
   }
 
   const visible = (lists ?? []).filter((l) => !deletingIds.has(l.id));

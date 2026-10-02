@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SignInHero } from "@/components/auth/SignInHero";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -23,7 +24,8 @@ function decadeOf(year: number): string {
 }
 
 export function WrappedStats() {
-  const t = getDictionary(useLocale()).wrapped;
+  const locale = useLocale();
+  const t = getDictionary(locale).wrapped;
   const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<readonly FollowedPerson[] | null>(null);
   const [dataById, setDataById] = useState<Record<number, PersonData>>({});
@@ -83,9 +85,7 @@ export function WrappedStats() {
   }
 
   if (!user) {
-    return (
-      <p className="text-center text-muted-foreground">{t.signInToSeeStats}</p>
-    );
+    return <SignInHero locale={locale} section="wrapped" />;
   }
 
   if (!people || people.length === 0) {
