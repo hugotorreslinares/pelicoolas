@@ -43,6 +43,17 @@ if (!Number.isInteger(personId)) {
         : t.search.noPeopleFound;
   }
 }
+// Public, anonymous-identical content: let Vercel's CDN serve it instead of
+// running the function per visit. Vary keeps the per-locale/per-session-hint
+// markup from leaking across visitors.
+if (profile) {
+  Astro.response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=86400, stale-while-revalidate=604800",
+  );
+  Astro.response.headers.set("Vary", "Cookie, Accept-Language");
+}
+
 const description = profile
   ? profile.biography
     ? truncate(profile.biography, MAX_DESCRIPTION_LENGTH)

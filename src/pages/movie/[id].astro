@@ -40,6 +40,17 @@ if (!Number.isInteger(movieId)) {
   }
 }
 
+// Public, anonymous-identical content: let Vercel's CDN serve it instead of
+// running the function per visit. Vary keeps the per-locale/per-session-hint
+// markup from leaking across visitors.
+if (movie) {
+  Astro.response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=86400, stale-while-revalidate=604800",
+  );
+  Astro.response.headers.set("Vary", "Cookie, Accept-Language");
+}
+
 const description = movie
   ? movie.overview
     ? truncate(movie.overview, MAX_DESCRIPTION_LENGTH)
