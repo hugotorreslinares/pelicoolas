@@ -63,6 +63,7 @@ export function MovieActions({
         label={watchedLabel(watched, locale)}
         ariaLabel={`${watchedLabel(watched, locale)}: ${movie.title}`}
         active={watched}
+        tone="watched"
         disabled={disabled}
         buttonSize={buttonSize}
         onClick={onToggleWatched}
@@ -74,6 +75,7 @@ export function MovieActions({
         label={watchlistLabel(inWatchlist, locale)}
         ariaLabel={`${watchlistLabel(inWatchlist, locale)}: ${movie.title}`}
         active={inWatchlist}
+        tone="watchlist"
         disabled={disabled}
         buttonSize={buttonSize}
         onClick={onToggleWatchlist}
@@ -88,6 +90,8 @@ interface ActionButtonProps {
   readonly label: string;
   readonly ariaLabel: string;
   readonly active: boolean;
+  /** Active color: crimson for "watched", amber for "watchlist". */
+  readonly tone: "watched" | "watchlist";
   readonly disabled: boolean;
   readonly buttonSize: string;
   readonly onClick: () => void;
@@ -98,6 +102,7 @@ function ActionButton({
   label,
   ariaLabel,
   active,
+  tone,
   disabled,
   buttonSize,
   onClick,
@@ -118,7 +123,9 @@ function ActionButton({
               buttonSize,
               "rounded-none",
               active &&
-                "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+                (tone === "watched"
+                  ? "bg-cinema text-cinema-foreground hover:bg-cinema/90 hover:text-cinema-foreground"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"),
             )}
             onClick={(e) => {
               e.stopPropagation();

@@ -29,7 +29,7 @@ export function SignInHero({ locale, section }: SignInHeroProps) {
           height={96}
           className="size-20 sm:size-24"
         />
-        <h1 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">
+        <h1 className="text-2xl font-display font-bold tracking-tight text-white sm:text-4xl">
           {title}
         </h1>
         <p className="mx-auto max-w-md text-white/80">{body}</p>

@@ -119,7 +119,7 @@ export function PersonHeader({
       <div className="min-w-0 flex-1 space-y-4 text-center sm:text-left">
         <div className="flex flex-wrap items-start justify-center gap-3 sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h1 className="text-3xl font-display font-bold tracking-tight sm:text-4xl">
               {profile.name}
             </h1>
             <p className="text-sm text-muted-foreground">

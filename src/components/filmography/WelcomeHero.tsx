@@ -55,7 +55,7 @@ export function WelcomeHero({ locale, posters = [] }: WelcomeHeroProps) {
         height={128}
         className="relative mx-auto size-24 sm:size-32"
       />
-      <h1 className="relative flex items-center justify-center gap-2 text-3xl font-bold tracking-tight text-white sm:text-5xl">
+      <h1 className="relative flex items-center justify-center gap-2 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
         Pelicoolas
         <span className="rounded-full border border-white/30 bg-white/10 px-2 py-0.5 text-xs font-semibold tracking-wide text-white/90 uppercase sm:text-sm">
           {t.heroes.betaBadge}
