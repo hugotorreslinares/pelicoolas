@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/fraunces";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -81,9 +82,9 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  /* Second accent: theatre-curtain crimson, reserved for "watched". Contrast vs
+  /* Second accent: theatre-curtain garnet, reserved for "watched". Contrast vs
      its foreground ≥ 6:1. */
-  --cinema: oklch(0.46 0.17 22);
+  --cinema: oklch(0.38 0.13 17);
   --cinema-foreground: oklch(0.99 0.005 90);
   --radius: 0.625rem;
   --sidebar: oklch(0.975 0.008 85);
@@ -120,8 +121,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --cinema: oklch(0.66 0.19 22);
-  --cinema-foreground: oklch(0.15 0.02 22);
+  --cinema: oklch(0.58 0.16 17);
+  --cinema-foreground: oklch(0.98 0.005 17);
   --sidebar: oklch(0.21 0.008 60);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
