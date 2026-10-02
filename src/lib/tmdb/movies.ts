@@ -111,6 +111,7 @@ export async function getMovieDetails(
     id: data.id,
     title: data.title,
     posterPath: data.poster_path,
+    backdropPath: data.backdrop_path ?? null,
     releaseYear: toReleaseYear(data.release_date),
     overview: data.overview,
     runtimeMinutes: data.runtime,

@@ -85,7 +85,7 @@ function TrendingCard({ locale, item, eager, onOpen }: TrendingCardProps) {
               // signed-out visitor — eager + high priority, rest stay lazy.
               loading={eager ? "eager" : "lazy"}
               fetchPriority={eager ? "high" : undefined}
-              className="aspect-[2/3] w-full object-cover transition-transform group-hover:scale-105"
+              className="aspect-[2/3] w-full bg-muted object-cover transition-transform group-hover:scale-105"
             />
           ) : (
             <div className="flex aspect-[2/3] w-full items-center justify-center bg-muted text-xs text-muted-foreground">

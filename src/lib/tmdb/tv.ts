@@ -73,6 +73,7 @@ export async function getTVDetails(
     id: data.id,
     title: data.name,
     posterPath: data.poster_path,
+    backdropPath: data.backdrop_path ?? null,
     releaseYear: toReleaseYear(data.first_air_date),
     overview: data.overview,
     seasonCount: data.number_of_seasons ?? null,

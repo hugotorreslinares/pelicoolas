@@ -70,6 +70,7 @@ export interface MovieDetails {
   readonly id: number;
   readonly title: string;
   readonly posterPath: string | null;
+  readonly backdropPath: string | null;
   readonly releaseYear: number | null;
   readonly overview: string | null;
   readonly runtimeMinutes: number | null;
@@ -94,6 +95,7 @@ export interface TVDetails {
   readonly id: number;
   readonly title: string;
   readonly posterPath: string | null;
+  readonly backdropPath: string | null;
   readonly releaseYear: number | null;
   readonly overview: string | null;
   readonly seasonCount: number | null;

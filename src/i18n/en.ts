@@ -658,8 +658,8 @@ export const en = {
   recommendPerson: {
     now: (name: string) => `Recommended ${name}`,
     removed: (name: string) => `Removed ${name} from your recommendations`,
-    recommended: "★ Recommended",
-    recommend: "★ Recommend",
+    recommended: "Recommended",
+    recommend: "Recommend",
   },
   badges: {
     personComplete: (name: string) => `Completed ${name}`,

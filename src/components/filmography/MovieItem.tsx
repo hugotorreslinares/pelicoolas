@@ -56,7 +56,7 @@ export function MovieItem({
               alt=""
               loading="lazy"
               className={cn(
-                "w-full object-cover transition-opacity",
+                "aspect-[2/3] w-full bg-muted object-cover transition-opacity",
                 watched && "opacity-40",
               )}
             />

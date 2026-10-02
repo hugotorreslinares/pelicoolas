@@ -44,11 +44,11 @@ interface InfoItemProps {
 // own person pages and movie-map.com use for this kind of metadata.
 function InfoItem({ icon: Icon, label, value, className }: InfoItemProps) {
   return (
-    <div className={cn("flex items-start gap-2", className)}>
+    <div className={cn("flex min-w-0 max-w-full items-start gap-2", className)}>
       <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
         <Icon className="size-4" />
       </div>
-      <div>
+      <div className="min-w-0 text-left">
         <p className="text-sm font-medium">{label}</p>
         <p className="text-sm text-muted-foreground">{value}</p>
       </div>

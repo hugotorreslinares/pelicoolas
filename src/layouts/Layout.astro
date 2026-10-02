@@ -312,7 +312,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
                 >Beta</span
               >
             </a>
-            <div class="ml-auto flex items-center gap-2 sm:gap-4">
+            <div class="ml-auto flex items-center gap-1 sm:gap-4">
               <nav
                 aria-label="Main"
                 class="hidden items-center gap-1 rounded-full border p-1 sm:flex"
@@ -404,6 +404,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
               <ThemeToggle label={t.account.toggleTheme} client:idle />
               <UserMenu
                 locale={locale}
+                loginClassName="px-3 text-xs sm:px-4 sm:text-sm"
                 signedInHint={signedInHint}
                 client:idle
               />

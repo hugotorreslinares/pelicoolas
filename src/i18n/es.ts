@@ -636,8 +636,8 @@ export const es: Dictionary = {
   recommendPerson: {
     now: (name) => `Recomendaste a ${name}`,
     removed: (name) => `Quitaste a ${name} de tus recomendaciones`,
-    recommended: "★ Recomendado",
-    recommend: "★ Recomendar",
+    recommended: "Recomendado",
+    recommend: "Recomendar",
   },
   badges: {
     personComplete: (name) => `Completaste a ${name}`,

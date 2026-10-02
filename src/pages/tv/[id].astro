@@ -177,7 +177,7 @@ const subtitle = show
                 {show.cast.map((member) => (
                   <a
                     href={`/person/${member.personId}`}
-                    class="focus-ring flex w-16 flex-col items-center gap-1 text-center"
+                    class="focus-ring flex w-20 flex-col items-center gap-1 text-center"
                   >
                     {member.profilePath ? (
                       <img
@@ -191,7 +191,7 @@ const subtitle = show
                         {member.name.slice(0, 1)}
                       </div>
                     )}
-                    <span class="truncate text-xs">{member.name}</span>
+                    <span class="w-full truncate text-xs">{member.name}</span>
                   </a>
                 ))}
               </div>
