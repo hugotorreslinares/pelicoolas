@@ -23,6 +23,9 @@ importers:
       '@fontsource-variable/geist':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource/limelight':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@resvg/resvg-js':
         specifier: ^2.6.2
         version: 2.6.2
@@ -1084,6 +1087,9 @@ packages:
 
   '@fontsource-variable/geist@5.3.0':
     resolution: {integrity: sha512-j0m+vLQuG5XAYoHtGCVu0spvlGreR3EzpECUVzkFmI1mTVnAO38l/NEPDCFgZ177JxzYJCLSmTQibIiYPilGrA==}
+
+  '@fontsource/limelight@5.3.0':
+    resolution: {integrity: sha512-jiuuCdbk9/u0TA/bIZfp35cvJrfz1CJFSEFh4lk5Ma8Nh42897GbF0ny85emdYiJ6WJQjnD/BK/X0D5Oe6bxbg==}
 
   '@formatjs/ecma402-abstract@2.3.6':
     resolution: {integrity: sha512-HJnTFeRM2kVFVr5gr5kH1XP6K0JcJtE7Lzvtr3FS/so5f1kpsqqqxy5JF+FRaO6H2qmcMfAUIox7AJteieRtVw==}
@@ -8549,6 +8555,8 @@ snapshots:
   '@fontsource-variable/fraunces@5.3.0': {}
 
   '@fontsource-variable/geist@5.3.0': {}
+
+  '@fontsource/limelight@5.3.0': {}
 
   '@formatjs/ecma402-abstract@2.3.6':
     dependencies:
