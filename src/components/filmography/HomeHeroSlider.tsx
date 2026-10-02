@@ -12,6 +12,7 @@ import type { FollowedPerson } from "@/types/filmography";
 interface HomeHeroSliderProps {
   readonly locale: Locale;
   readonly people: readonly FollowedPerson[];
+  readonly posters?: readonly string[];
 }
 
 // A brand-new signed-in user has nothing on screen anywhere else on the
@@ -22,17 +23,21 @@ interface HomeHeroSliderProps {
 // carousel alongside a social slide (SocialHero) that's always present —
 // an already-active user is exactly who has friends to go find, so it
 // isn't gated on any state the way the welcome/photo-wall slides are.
-export function HomeHeroSlider({ people, locale }: HomeHeroSliderProps) {
+export function HomeHeroSlider({
+  people,
+  locale,
+  posters,
+}: HomeHeroSliderProps) {
   const t = getDictionary(locale);
   const hasPhotos = people.some((p) => p.profilePath !== null);
   const baseSlides: readonly ReactNode[] = hasPhotos
     ? [
-        <WelcomeHero key="welcome" locale={locale} />,
+        <WelcomeHero key="welcome" locale={locale} posters={posters} />,
         <FollowedPeopleHero key="followed" people={people} locale={locale} />,
         <SocialHero key="social" locale={locale} />,
       ]
     : [
-        <WelcomeHero key="welcome" locale={locale} />,
+        <WelcomeHero key="welcome" locale={locale} posters={posters} />,
         <SocialHero key="social" locale={locale} />,
       ];
 

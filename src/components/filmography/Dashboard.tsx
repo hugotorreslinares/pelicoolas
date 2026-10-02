@@ -378,6 +378,10 @@ export function Dashboard({
   // Shown in every state (signed out, no follows yet, full dashboard) —
   // recommend/watchlist/watched need a signed-in user, so this can't live
   // only in the signed-out WelcomeHero branch the way it used to.
+  const heroPosters = [...trendingMovies, ...trendingTV]
+    .map((m) => m.posterPath)
+    .filter((path): path is string => path !== null);
+
   const trendingSection = (
     <>
       <TrendingSlider
@@ -412,7 +416,7 @@ export function Dashboard({
   if (!user) {
     return (
       <div className="space-y-12">
-        <HomeHeroSlider people={[]} locale={locale} />
+        <HomeHeroSlider people={[]} locale={locale} posters={heroPosters} />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {t.dashboard.features.map(({ title, description }, i) => {
@@ -438,7 +442,11 @@ export function Dashboard({
     return (
       <div className="space-y-4">
         <h1 className="sr-only">{heading}</h1>
-        <HomeHeroSlider people={heroPeople} locale={locale} />
+        <HomeHeroSlider
+          people={heroPeople}
+          locale={locale}
+          posters={heroPosters}
+        />
         <div className="space-y-3 text-center">
           <p className="text-muted-foreground">{t.dashboard.findPerson}</p>
           <Button render={<a href="/search" />}>{t.common.search}</Button>
@@ -450,7 +458,11 @@ export function Dashboard({
 
   return (
     <div className="space-y-4">
-      <HomeHeroSlider people={heroPeople} locale={locale} />
+      <HomeHeroSlider
+        people={heroPeople}
+        locale={locale}
+        posters={heroPosters}
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">{heading}</h1>
         <div className="flex flex-wrap gap-2">
