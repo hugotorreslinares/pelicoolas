@@ -41,9 +41,14 @@ export function HomeHeroSlider({
         <SocialHero key="social" locale={locale} />,
       ];
 
-  // Seasonal banner goes first so it's what people see on landing.
+  // The welcome slide stays first (it's the brand's permanent landing
+  // moment); the seasonal banner goes right after it.
   const slides: readonly ReactNode[] = isHalloweenSeason(new Date())
-    ? [<HalloweenHero key="halloween" locale={locale} />, ...baseSlides]
+    ? [
+        baseSlides[0],
+        <HalloweenHero key="halloween" locale={locale} />,
+        ...baseSlides.slice(1),
+      ]
     : baseSlides;
 
   const scrollerRef = useRef<HTMLDivElement>(null);
