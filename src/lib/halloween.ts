@@ -3,6 +3,12 @@ import type { TrendingMovie } from "@/types/movie";
 export const HALLOWEEN_CHALLENGE_ID = "halloween-2026";
 export const HALLOWEEN_SIZE = 31;
 
+// Suggested-horror list: first load is deep enough to always find 31 unseen
+// titles, then "load more" adds one step at a time up to the cap.
+export const CANDIDATES_INITIAL = 120;
+export const CANDIDATES_STEP = 30;
+export const CANDIDATES_MAX = 500;
+
 // Banner window: shown from mid-September so people can build their list
 // before October starts, and until the challenge deadline.
 const SEASON_START = new Date(2026, 8, 15);

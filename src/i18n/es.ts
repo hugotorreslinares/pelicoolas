@@ -695,6 +695,8 @@ export const es: Dictionary = {
     deselect: (title) => `Quitar ${title} de la lista`,
     share: "Compartir mi lista",
     selectForMe: "Elegir por mí",
+    loadMore: "Cargar más",
+    loadingMore: "Cargando…",
     searchPlaceholder: "Busca una película para agregar…",
     searchAria: "Buscar películas para agregar a tu lista",
     noResults: "No se encontraron películas.",

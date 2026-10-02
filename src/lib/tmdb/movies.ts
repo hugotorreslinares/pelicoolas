@@ -183,29 +183,36 @@ export async function getPopularMovieIds(): Promise<readonly number[]> {
 }
 
 const HORROR_GENRE_ID = "27";
-const HORROR_PAGES = Array.from({ length: 12 }, (_, i) => i + 1); // 20 per page (~240): deep enough to reach lesser-known titles once a user has watched the classics
+const TMDB_PAGE_SIZE = 20;
 
 // Well-known, well-rated horror: vote_count floor keeps obscure titles with a
 // handful of perfect scores out. Ranked by popularity of votes, so index 0 is
-// the most-watched — callers preserve order.
-export async function getHorrorCandidates(): Promise<readonly TrendingMovie[]> {
+// the most-watched — callers preserve order. Returns the [offset, offset+limit)
+// slice of that ranking, fetching only the TMDB pages that slice touches.
+export async function getHorrorCandidates(
+  offset: number,
+  limit: number,
+): Promise<readonly TrendingMovie[]> {
+  const firstPage = Math.floor(offset / TMDB_PAGE_SIZE) + 1;
+  const lastPage = Math.ceil((offset + limit) / TMDB_PAGE_SIZE);
   const pages = await Promise.all(
-    HORROR_PAGES.map((page) =>
+    Array.from({ length: lastPage - firstPage + 1 }, (_, i) =>
       tmdbFetch("/discover/movie", tmdbTrendingMoviesResponseSchema, {
         with_genres: HORROR_GENRE_ID,
         sort_by: "vote_count.desc",
         "vote_average.gte": "6.3",
         "vote_count.gte": "300", // keeps out obscure titles with a handful of perfect scores
         include_adult: "false",
-        page: String(page),
+        page: String(firstPage + i),
       }),
     ),
   );
+  const start = offset - (firstPage - 1) * TMDB_PAGE_SIZE;
   const byId = new Map<number, TrendingMovie>();
   for (const m of pages.flatMap((p) => p.results.map(toTrendingMovie))) {
     if (!byId.has(m.tmdbMovieId)) byId.set(m.tmdbMovieId, m);
   }
-  return [...byId.values()];
+  return [...byId.values()].slice(start, start + limit);
 }
 
 const SIMILAR_LIMIT = 12;

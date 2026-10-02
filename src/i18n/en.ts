@@ -715,6 +715,8 @@ export const en = {
     deselect: (title: string) => `Remove ${title} from the list`,
     share: "Share my list",
     selectForMe: "Pick for me",
+    loadMore: "Load more",
+    loadingMore: "Loading…",
     searchPlaceholder: "Search a movie to add…",
     searchAria: "Search movies to add to your list",
     noResults: "No movies found.",

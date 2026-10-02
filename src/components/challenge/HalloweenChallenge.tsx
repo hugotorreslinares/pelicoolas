@@ -19,6 +19,8 @@ import {
 import { awardBadgeOnce } from "@/lib/firebase/badges";
 import { shareContent } from "@/lib/shareProfile";
 import {
+  CANDIDATES_INITIAL,
+  CANDIDATES_STEP,
   HALLOWEEN_CHALLENGE_ID,
   HALLOWEEN_SIZE,
   daysLeft,
@@ -150,6 +152,8 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
   const [candidates, setCandidates] = useState<readonly TrendingMovie[] | null>(
     null,
   );
+  const [candidatesDone, setCandidatesDone] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [candidatesError, setCandidatesError] = useState(false);
   const [candidatesGen, setCandidatesGen] = useState(0);
   const [editing, setEditing] = useState(false);
@@ -186,12 +190,19 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
     if (!user || watchlist === null || !building || candidates) return;
     let cancelled = false;
     setCandidatesError(false);
-    fetch("/api/challenge/halloween")
+    fetch(`/api/challenge/halloween?offset=0&limit=${CANDIDATES_INITIAL}`)
       .then((r) => {
         if (!r.ok) throw new Error("request failed");
-        return r.json() as Promise<{ results: readonly TrendingMovie[] }>;
+        return r.json() as Promise<{
+          results: readonly TrendingMovie[];
+          done: boolean;
+        }>;
       })
-      .then((d) => !cancelled && setCandidates(d.results))
+      .then((d) => {
+        if (cancelled) return;
+        setCandidates(d.results);
+        setCandidatesDone(d.done);
+      })
       .catch(() => !cancelled && setCandidatesError(true));
     return () => {
       cancelled = true;
@@ -224,6 +235,27 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
       clearTimeout(timer);
     };
   }, [query]);
+
+  async function loadMore() {
+    if (!candidates) return;
+    setLoadingMore(true);
+    try {
+      const r = await fetch(
+        `/api/challenge/halloween?offset=${candidates.length}&limit=${CANDIDATES_STEP}`,
+      );
+      if (!r.ok) throw new Error("request failed");
+      const d = (await r.json()) as {
+        results: readonly TrendingMovie[];
+        done: boolean;
+      };
+      setCandidates([...candidates, ...d.results]);
+      setCandidatesDone(d.done || d.results.length === 0);
+    } catch {
+      toast.error(t.couldntLoad);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   // The pool to pick from: current list first (so edits keep them), then ranked candidates.
   const pool = useMemo(() => {
@@ -474,6 +506,17 @@ export function HalloweenChallenge({ locale }: HalloweenChallengeProps) {
             />
           ))}
         </div>
+        {!candidatesDone && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              disabled={loadingMore}
+              onClick={() => void loadMore()}
+            >
+              {loadingMore ? t.loadingMore : t.loadMore}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
