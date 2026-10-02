@@ -139,6 +139,8 @@ export const es: Dictionary = {
     ratingFilterAll: "Todas",
     ratingFilterRated: "Calificadas",
     ratingFilterUnrated: "No calificadas",
+    sortDefault: "Orden normal",
+    sortByRating: "Mejor calificadas",
     expandAll: "Expandir todo",
     collapseAll: "Colapsar todo",
   },

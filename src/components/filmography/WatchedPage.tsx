@@ -43,6 +43,7 @@ const VIEW_MODE_KEY = "watched-view-mode";
 type GroupMode = "year" | "person";
 type ViewMode = "grid" | "list";
 type RatingFilter = "all" | "rated" | "unrated";
+type SortMode = "recent" | "rating";
 
 function readStoredViewMode(): ViewMode {
   if (typeof window === "undefined") return "grid";
@@ -290,6 +291,7 @@ export function WatchedPage({ locale }: WatchedPageProps) {
     ALL_GENRES,
   );
   const [ratingFilter, setRatingFilter] = useState<RatingFilter>("all");
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovie, setOpenMovie] = useState<SeenMovie | null>(null);
   // Keyed by "year:2024" / "person:123" / "person:other" — a single Set
@@ -454,12 +456,17 @@ export function WatchedPage({ locale }: WatchedPageProps) {
     genreFilter === ALL_GENRES
       ? movies
       : movies.filter((m) => m.genreIds?.includes(genreFilter));
-  const filtered =
+  const byRating =
     ratingFilter === "all"
       ? byGenre
       : byGenre.filter((m) =>
           ratingFilter === "rated" ? m.rating != null : m.rating == null,
         );
+  // Stable sort: unrated sink to the bottom, ties keep their prior order.
+  const filtered =
+    sortMode === "rating"
+      ? [...byRating].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+      : byRating;
 
   const yearGroups = groupByYear(filtered);
   const personGroups = groupByPerson(filtered, people ?? [], personMovieIds);
@@ -645,6 +652,22 @@ export function WatchedPage({ locale }: WatchedPageProps) {
 
       {genreChips}
       {ratingChips}
+      <div className="flex gap-1 self-start rounded-full border p-1 w-fit">
+        <Button
+          size="sm"
+          variant={sortMode === "recent" ? "default" : "ghost"}
+          onClick={() => setSortMode("recent")}
+        >
+          {t.watched.sortDefault}
+        </Button>
+        <Button
+          size="sm"
+          variant={sortMode === "rating" ? "default" : "ghost"}
+          onClick={() => setSortMode("rating")}
+        >
+          {t.watched.sortByRating}
+        </Button>
+      </div>
 
       {groupMode === "year" && (
         <div className="space-y-6">

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { MovieActions } from "./MovieActions";
 import { LoginButton } from "@/components/auth/LoginButton";
+import { PopcornRating } from "./PopcornRating";
 import { useMovieActionState } from "@/lib/hooks/useMovieActionState";
+import { useMovieRating } from "@/lib/hooks/useMovieRating";
 import { getDictionary, type Locale } from "@/i18n";
 import type { TrendingMovie } from "@/types/movie";
 
@@ -20,6 +22,11 @@ export function MovieDetailActions({ movie, locale }: MovieDetailActionsProps) {
   const [showSignInHint, setShowSignInHint] = useState(false);
   const { watched, inWatchlist, ready, toggleWatched, toggleWatchlist } =
     useMovieActionState(movie, () => setShowSignInHint(true));
+  const { rating, rate } = useMovieRating(
+    movie.tmdbMovieId,
+    watched,
+    movie.mediaType,
+  );
 
   if (showSignInHint) {
     return (
@@ -33,14 +40,24 @@ export function MovieDetailActions({ movie, locale }: MovieDetailActionsProps) {
   }
 
   return (
-    <MovieActions
-      movie={movie}
-      watched={watched}
-      inWatchlist={inWatchlist}
-      onToggleWatched={toggleWatched}
-      onToggleWatchlist={toggleWatchlist}
-      disabled={!ready}
-      placement="inline"
-    />
+    <div className="space-y-2">
+      <MovieActions
+        movie={movie}
+        watched={watched}
+        inWatchlist={inWatchlist}
+        onToggleWatched={toggleWatched}
+        onToggleWatchlist={toggleWatchlist}
+        disabled={!ready}
+        placement="inline"
+      />
+      {watched && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {t.movie.yourRating}
+          </span>
+          <PopcornRating value={rating} onRate={rate} />
+        </div>
+      )}
+    </div>
   );
 }

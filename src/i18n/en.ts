@@ -162,6 +162,8 @@ export const en = {
     ratingFilterAll: "All",
     ratingFilterRated: "Rated",
     ratingFilterUnrated: "Unrated",
+    sortDefault: "Default order",
+    sortByRating: "Highest rated",
     expandAll: "Expand all",
     collapseAll: "Collapse all",
   },
