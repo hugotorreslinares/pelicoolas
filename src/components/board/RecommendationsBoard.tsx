@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovieDetailsDialog } from "@/components/filmography/MovieDetailsDialog";
 import { MovieActions } from "@/components/movies/MovieActions";
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, StarIcon, XIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -157,9 +158,10 @@ export function RecommendationsBoard({
         {open &&
           movies !== null &&
           movies.filter((m) => !removingIds.has(m.tmdbId)).length === 0 && (
-            <p className="text-center text-muted-foreground">
-              {isOwner ? t.board.emptyOwner : t.board.emptyVisitor}
-            </p>
+            <EmptyState
+              icon={StarIcon}
+              title={isOwner ? t.board.emptyOwner : t.board.emptyVisitor}
+            />
           )}
 
         {open &&

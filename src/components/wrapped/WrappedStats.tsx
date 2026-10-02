@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { SparklesIcon } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SignInHero } from "@/components/auth/SignInHero";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,11 +91,7 @@ export function WrappedStats() {
   }
 
   if (!people || people.length === 0) {
-    return (
-      <p className="text-center text-muted-foreground">
-        {t.emptyFollowSomeone}
-      </p>
-    );
+    return <EmptyState icon={SparklesIcon} title={t.emptyFollowSomeone} />;
   }
 
   const entries = Object.values(dataById);

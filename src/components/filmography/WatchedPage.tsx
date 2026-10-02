@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SignInHero } from "@/components/auth/SignInHero";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,7 @@ import {
   ChevronDownIcon,
   ChevronsDownUpIcon,
   ChevronsUpDownIcon,
+  EyeIcon,
   LayoutGridIcon,
   ListIcon,
   PopcornIcon,
@@ -426,13 +428,16 @@ export function WatchedPage({ locale }: WatchedPageProps) {
 
   if (!movies || movies.length === 0) {
     return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{t.watched.emptyHeading}</h1>
-        <p className="text-muted-foreground">{t.watched.emptyBody}</p>
+      <EmptyState
+        asPageHeading
+        icon={EyeIcon}
+        title={t.watched.emptyHeading}
+        body={t.watched.emptyBody}
+      >
         <Button render={<a href="/search" />}>
           {t.watched.searchActorsDirectors}
         </Button>
-      </div>
+      </EmptyState>
     );
   }
 

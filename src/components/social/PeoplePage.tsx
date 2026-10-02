@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { UsersIcon } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SignInHero } from "@/components/auth/SignInHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,10 +57,9 @@ function EmptyOrError<T>(props: {
   }
   if (props.items.length === 0) {
     return (
-      <div className="space-y-3 py-6 text-center">
-        <p className="text-sm text-muted-foreground">{props.emptyLabel}</p>
+      <EmptyState icon={UsersIcon} title={props.emptyLabel}>
         {props.cta}
-      </div>
+      </EmptyState>
     );
   }
   return null;

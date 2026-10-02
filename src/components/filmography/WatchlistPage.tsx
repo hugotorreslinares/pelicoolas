@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SignInHero } from "@/components/auth/SignInHero";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClockIcon, LayoutGridIcon, ListIcon, ShuffleIcon } from "lucide-react";
+import {
+  BookmarkIcon,
+  ClockIcon,
+  LayoutGridIcon,
+  ListIcon,
+  ShuffleIcon,
+} from "lucide-react";
 import { MovieDetailsDialog } from "./MovieDetailsDialog";
 import { adjacentItem } from "@/lib/adjacentItem";
 import { FilmographyProgress } from "./FilmographyProgress";
@@ -222,18 +229,19 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
 
   if (!movies || movies.length === 0) {
     return (
-      <div className="space-y-3 text-center">
-        <h1 className="text-xl font-semibold">{t.watchlist.emptyHeading}</h1>
-        <p className="text-muted-foreground">{t.watchlist.emptyBody}</p>
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button render={<a href="/search" />}>
-            {t.watchlist.searchActorsDirectors}
-          </Button>
-          <Button variant="outline" render={<a href="/filmographies" />}>
-            {t.watchlist.myFilmographies}
-          </Button>
-        </div>
-      </div>
+      <EmptyState
+        asPageHeading
+        icon={BookmarkIcon}
+        title={t.watchlist.emptyHeading}
+        body={t.watchlist.emptyBody}
+      >
+        <Button render={<a href="/search" />}>
+          {t.watchlist.searchActorsDirectors}
+        </Button>
+        <Button variant="outline" render={<a href="/filmographies" />}>
+          {t.watchlist.myFilmographies}
+        </Button>
+      </EmptyState>
     );
   }
 

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SignInHero } from "@/components/auth/SignInHero";
 import { toast } from "sonner";
-import { PlusIcon, TrashIcon } from "lucide-react";
+import { ListVideoIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,7 +109,7 @@ export function ListsPage({ locale }: ListsPageProps) {
       )}
 
       {lists !== null && visible.length === 0 && (
-        <p className="text-center text-muted-foreground">{t.emptyState}</p>
+        <EmptyState icon={ListVideoIcon} title={t.emptyState} />
       )}
 
       {visible.length > 0 && (
