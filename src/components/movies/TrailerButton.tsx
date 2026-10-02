@@ -26,7 +26,12 @@ export function TrailerButton({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+      <Button
+        size="sm"
+        variant="secondary"
+        className="mt-2"
+        onClick={() => setOpen(true)}
+      >
         <PlayIcon data-icon="inline-start" />
         {t.watchTrailer}
       </Button>
