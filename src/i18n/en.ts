@@ -136,6 +136,15 @@ export const en = {
     findPerson: "Find an actor or director whose movies you want to explore.",
     yourYearInFilm: "Your Year in Film",
     almostThere: "Almost there",
+    upcomingChallenge: "Catch up before the premiere",
+    premiereIn: (title: string, days: number) =>
+      days === 0
+        ? `— ${title} is out today`
+        : `— ${title} comes out in ${days} ${days === 1 ? "day" : "days"}`,
+    remainingBefore: (remaining: number, watched: number, released: number) =>
+      `${remaining} left to watch (${watched}/${released} seen)`,
+    caughtUp:
+      "You're all caught up — nothing left to watch before the premiere!",
     moviesToComplete: (remaining: number) =>
       `— ${remaining} ${remaining === 1 ? "movie" : "movies"} to complete`,
     peopleFollowing: (count: number) => `${count} people you're following`,
@@ -683,6 +692,9 @@ export const en = {
       `Watched ${name}'s movies across many different decades.`,
     halloweenMarathon: "Halloween Marathon",
     halloweenMarathonDesc: "Watched all 31 horror movies before October 31.",
+    caughtUp: (name: string) => `Caught up with ${name}`,
+    caughtUpDesc: (name: string) =>
+      `Watched everything by ${name} before their next release.`,
     referralInviter: "Matchmaker",
     referralInviterDesc: "A friend you invited joined Pelicoolas.",
     referralInvitee: "Welcomed In",

@@ -6,7 +6,8 @@ export type BadgeType =
   | "director-milestone"
   | "decade-span"
   | "challenge"
-  | "referral";
+  | "referral"
+  | "caught-up";
 
 export interface Badge {
   readonly id: string;

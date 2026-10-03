@@ -48,6 +48,12 @@ export function localizeBadge(badge: Badge, locale: Locale): Badge {
         label: t.fullRetrospective(name),
         description: t.fullRetrospectiveDesc(name),
       };
+    case "caught-up":
+      return {
+        ...badge,
+        label: t.caughtUp(name),
+        description: t.caughtUpDesc(name),
+      };
     case "referral":
       return badge.id === "referral-inviter"
         ? {

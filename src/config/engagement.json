@@ -5,12 +5,14 @@
     "watchlistMilestones": true,
     "actorDirectorMilestones": true,
     "decadeSpan": true,
-    "referral": true
+    "referral": true,
+    "caughtUp": true
   },
   "nudges": {
     "cardAlmostThere": true,
     "dashboardAlmostThere": true,
-    "inviteFriendPrompt": true
+    "inviteFriendPrompt": true,
+    "upcomingChallenge": true
   },
   "wrapped": true,
   "onThisDay": true

@@ -14,6 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { FollowedPersonCard } from "./FollowedPersonCard";
@@ -34,6 +35,13 @@ import {
 import { awardBadgeOnce, subscribeToBadges } from "@/lib/firebase/badges";
 import { calculateAge } from "@/lib/age";
 import { mapWithConcurrency } from "@/lib/concurrency";
+import {
+  daysUntil,
+  nextUpcoming,
+  releasedIds,
+  todayIso,
+  type UpcomingRelease,
+} from "@/lib/releaseChallenge";
 import { fetchPersonData } from "@/lib/movieData";
 import { getDictionary, type Locale } from "@/i18n";
 import engagement from "@/config/engagement.json";
@@ -76,6 +84,10 @@ interface PersonStats {
   /** This person's full movie id list — needed to intersect against the
    *  global `seen` set for watchedCount. Null until fetchPersonData resolves. */
   readonly movieIds: readonly number[] | null;
+  /** Subset of movieIds already released (only those can be watched), and the
+   *  soonest movie still to come — drive the "catch up before the premiere" challenge. */
+  readonly releasedIds?: readonly number[];
+  readonly upcoming?: UpcomingRelease | null;
 }
 
 interface DashboardProps {
@@ -186,7 +198,13 @@ export function Dashboard({
         const movieIds = data.movies.map((m) => m.tmdbMovieId);
         setStatsById((prev) => ({
           ...prev,
-          [person.tmdbId]: { totalCount: data.movies.length, age, movieIds },
+          [person.tmdbId]: {
+            totalCount: data.movies.length,
+            age,
+            movieIds,
+            releasedIds: releasedIds(data.movies, todayIso()),
+            upcoming: nextUpcoming(data.movies, todayIso()),
+          },
         }));
 
         if (!migratedPersonIdsRef.current.has(person.tmdbId)) {
@@ -301,6 +319,48 @@ export function Dashboard({
       }
     }
   }, [user, completedPeople]);
+
+  // "Catch up before the premiere": a followed person with a movie still to
+  // come, and released titles of theirs you haven't watched yet. Real
+  // deadline (TMDB's release date), tied to people you already follow.
+  const upcomingChallenges = useMemo(() => {
+    const today = todayIso();
+    return (people ?? [])
+      .map((person) => {
+        const stats = statsById[person.tmdbId];
+        if (!stats?.upcoming || !stats.releasedIds?.length) return null;
+        const released = stats.releasedIds.length;
+        const watched = stats.releasedIds.filter((id) =>
+          seenIds.has(id),
+        ).length;
+        return {
+          person,
+          upcoming: stats.upcoming,
+          daysLeft: daysUntil(stats.upcoming.releaseDate, today),
+          released,
+          watched,
+          remaining: released - watched,
+        };
+      })
+      .filter((c) => c !== null)
+      .sort((a, b) => a.daysLeft - b.daysLeft)
+      .slice(0, 3);
+  }, [people, statsById, seenIds]);
+
+  useEffect(() => {
+    if (!user || !engagement.badges.caughtUp) return;
+    for (const c of upcomingChallenges) {
+      if (c.remaining > 0) continue;
+      void awardBadgeOnce(user.uid, {
+        id: `caught-up-${c.person.tmdbId}`,
+        type: "caught-up",
+        label: `Caught up with ${c.person.name}`,
+        description: `Watched everything by ${c.person.name} before their next release.`,
+        personId: c.person.tmdbId,
+        personName: c.person.name,
+      });
+    }
+  }, [user, upcomingChallenges]);
 
   const almostThere = useMemo(() => {
     if (!people) return [];
@@ -498,6 +558,39 @@ export function Dashboard({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {engagement.nudges.upcomingChallenge && upcomingChallenges.length > 0 && (
+        <div className="space-y-3 rounded-lg border bg-muted/40 p-3">
+          <p className="text-sm font-medium">{t.dashboard.upcomingChallenge}</p>
+          <ul className="space-y-3">
+            {upcomingChallenges.map((c) => (
+              <li key={c.person.tmdbId} className="space-y-1.5">
+                <p className="text-sm">
+                  <a
+                    href={`/person/${c.person.tmdbId}`}
+                    className="focus-ring font-medium hover:underline"
+                  >
+                    {c.person.name}
+                  </a>{" "}
+                  <span className="text-muted-foreground">
+                    {t.dashboard.premiereIn(c.upcoming.title, c.daysLeft)}
+                  </span>
+                </p>
+                <Progress value={(c.watched / c.released) * 100} />
+                <p className="text-xs text-muted-foreground">
+                  {c.remaining === 0
+                    ? t.dashboard.caughtUp
+                    : t.dashboard.remainingBefore(
+                        c.remaining,
+                        c.watched,
+                        c.released,
+                      )}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

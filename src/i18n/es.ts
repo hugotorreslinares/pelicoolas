@@ -113,6 +113,14 @@ export const es: Dictionary = {
     findPerson: "Busca un actor o director cuyas películas quieras explorar.",
     yourYearInFilm: "Tu año en el cine",
     almostThere: "Casi lo logras",
+    upcomingChallenge: "Ponte al día antes del estreno",
+    premiereIn: (title, days) =>
+      days === 0
+        ? `— ${title} se estrena hoy`
+        : `— ${title} se estrena en ${days} ${days === 1 ? "día" : "días"}`,
+    remainingBefore: (remaining, watched, released) =>
+      `Te faltan ${remaining} por ver (${watched}/${released} vistas)`,
+    caughtUp: "¡Estás al día! No te falta nada por ver antes del estreno.",
     moviesToComplete: (remaining) =>
       `— faltan ${remaining} ${remaining === 1 ? "película" : "películas"}`,
     peopleFollowing: (count) => `${count} personas que sigues`,
@@ -662,6 +670,9 @@ export const es: Dictionary = {
     halloweenMarathon: "Maratón de Halloween",
     halloweenMarathonDesc:
       "Viste las 31 películas de terror antes del 31 de octubre.",
+    caughtUp: (name) => `Al día con ${name}`,
+    caughtUpDesc: (name) =>
+      `Viste todo lo de ${name} antes de su próximo estreno.`,
     referralInviter: "Casamentero",
     referralInviterDesc: "Un amigo que invitaste se unió a Pelicoolas.",
     referralInvitee: "Bienvenida",
