@@ -43,6 +43,7 @@ const samples = (
           watched,
           posters: withSeen
             .filter((m) => m.posterPath)
+            .sort((a, b) => (b.voteAverage ?? 0) - (a.voteAverage ?? 0))
             .slice(0, POSTERS_PER_PERSON),
         };
       } catch {
