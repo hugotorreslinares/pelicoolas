@@ -570,6 +570,7 @@ export const es: Dictionary = {
     removedFromWatchlist: (title) => `Quitaste ${title} del watchlist`,
   },
   heroes: {
+    seeDemo: "Ver cómo funciona",
     welcomeBody:
       "Sigue a tus actores y directores favoritos, lleva el registro de lo que ya viste, y no te pierdas lo próximo que estrenen.",
     searchActorsDirectors: "Buscar actores y directores",
@@ -806,8 +807,21 @@ export const es: Dictionary = {
     contactBody:
       "¿Preguntas sobre esta política o quieres hacer una solicitud sobre tus datos? Escríbenos vía la información de contacto en el repositorio de GitHub de la app.",
   },
+  demo: {
+    title: "Mira cómo funciona Pelicoolas",
+    metaDescription:
+      "Un vistazo a seguir filmografías en Pelicoolas: sigue a un actor o director, marca lo que ya viste y mira exactamente qué te falta.",
+    sampleHeading: "Así se ve tu progreso",
+    sampleBody:
+      "Datos de ejemplo — sigue a cualquier actor o director y tus películas se marcan así.",
+    progress: (watched, total) => `${watched} de ${total} películas vistas`,
+  },
   signInHero: {
     sections: {
+      demo: {
+        title: "Tu progreso de cine, siempre visible",
+        body: "Sigue a los actores y directores que amas, marca lo que ya viste y mira cuánto falta para completar su filmografía.",
+      },
       watchlist: {
         title: "Tu watchlist",
         body: "Guarda las películas y series que quieres ver después, mira cuánto duran y no pierdas ninguna recomendación.",

@@ -64,9 +64,18 @@ export function WelcomeHero({ locale, posters = [] }: WelcomeHeroProps) {
       <p className="relative mx-auto max-w-md text-white/80">
         {t.heroes.welcomeBody}
       </p>
-      <Button className="relative" render={<a href="/search" />}>
-        {t.heroes.searchActorsDirectors}
-      </Button>
+      <div className="relative flex flex-wrap justify-center gap-2">
+        <Button render={<a href="/search" />}>
+          {t.heroes.searchActorsDirectors}
+        </Button>
+        <Button
+          variant="outline"
+          className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          render={<a href="/demo" />}
+        >
+          {t.heroes.seeDemo}
+        </Button>
+      </div>
       <p className="relative mx-auto max-w-sm text-xs text-white/60">
         {t.heroes.betaNote}
       </p>

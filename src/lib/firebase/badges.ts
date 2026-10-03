@@ -5,6 +5,7 @@ import {
   onSnapshot,
   setDoc,
 } from "firebase/firestore";
+import { auth } from "./client";
 import { requireDb } from "./firestore";
 import type { Badge } from "@/types/badges";
 
@@ -36,7 +37,27 @@ export async function awardBadgeOnce(
   window.dispatchEvent(
     new CustomEvent<Badge>(BADGE_EARNED_EVENT, { detail: earned }),
   );
+  if (badge.type === "person-complete") void notifyFriendsOfBadge(badge.id);
   return true;
+}
+
+// Best-effort: lets followers who are also chasing this filmography know a
+// friend just finished it (see /api/notify-badge). Never blocks or surfaces.
+async function notifyFriendsOfBadge(badgeId: string): Promise<void> {
+  try {
+    const idToken = await auth?.currentUser?.getIdToken();
+    if (!idToken) return;
+    await fetch("/api/notify-badge", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ badgeId }),
+    });
+  } catch {
+    // email notification is a nice-to-have
+  }
 }
 
 export function subscribeToBadges(

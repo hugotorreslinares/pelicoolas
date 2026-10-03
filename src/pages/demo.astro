@@ -1,0 +1,124 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { SignInHero } from "@/components/auth/SignInHero";
+import { getPersonProfile } from "@/lib/tmdb/people";
+import { getFilmography } from "@/lib/tmdb/movies";
+import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { setCdnCache } from "@/lib/cdnCache";
+import { todayIso } from "@/lib/releaseChallenge";
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale).demo;
+
+// Well-known names so the preview is instantly recognizable. Progress is
+// simulated (about 3 of every 5 released movies marked "seen") — nothing is
+// read from or written to any account.
+const SAMPLE_PEOPLE = [
+  { id: 31, department: "Acting" as const },
+  { id: 525, department: "Directing" as const },
+  { id: 1245, department: "Acting" as const },
+];
+const POSTERS_PER_PERSON = 7;
+
+const today = todayIso();
+const samples = (
+  await Promise.all(
+    SAMPLE_PEOPLE.map(async ({ id, department }) => {
+      try {
+        const [profile, movies] = await Promise.all([
+          getPersonProfile(id),
+          getFilmography(id, department),
+        ]);
+        const released = movies.filter(
+          (m) => m.releaseDate !== null && m.releaseDate <= today,
+        );
+        const withSeen = released.map((m, i) => ({ ...m, seen: i % 5 < 3 }));
+        const watched = withSeen.filter((m) => m.seen).length;
+        return {
+          profile,
+          total: released.length,
+          watched,
+          posters: withSeen
+            .filter((m) => m.posterPath)
+            .slice(0, POSTERS_PER_PERSON),
+        };
+      } catch {
+        return null;
+      }
+    }),
+  )
+).filter((s) => s !== null);
+
+if (samples.length > 0) setCdnCache(Astro.response.headers, 86400);
+---
+
+<Layout title={`${t.title} — Pelicoolas`} description={t.metaDescription}>
+  <div class="space-y-10">
+    <SignInHero locale={locale} section="demo" client:load />
+
+    <section class="space-y-4">
+      <div>
+        <h2 class="font-display text-2xl font-bold tracking-tight">
+          {t.sampleHeading}
+        </h2>
+        <p class="text-sm text-muted-foreground">{t.sampleBody}</p>
+      </div>
+
+      <div class="space-y-5">
+        {
+          samples.map((s) => (
+            <div class="card-elevated space-y-3 rounded-xl border p-4">
+              <div class="flex items-center gap-3">
+                {s.profile.profilePath ? (
+                  <img
+                    src={tmdbImageUrl(s.profile.profilePath, 92)}
+                    alt=""
+                    class="size-14 rounded-full border object-cover"
+                  />
+                ) : (
+                  <div class="flex size-14 items-center justify-center rounded-full border bg-muted">
+                    {s.profile.name.slice(0, 1)}
+                  </div>
+                )}
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-display text-lg font-bold">
+                    {s.profile.name}
+                  </p>
+                  <p class="text-sm text-muted-foreground">
+                    {t.progress(s.watched, s.total)}
+                  </p>
+                  <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      class="h-full rounded-full bg-primary"
+                      style={`width:${s.total ? Math.round((s.watched / s.total) * 100) : 0}%`}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2 overflow-x-auto pb-1">
+                {s.posters.map((m) => (
+                  <div class="relative w-20 shrink-0 sm:w-24">
+                    <img
+                      src={tmdbImageUrl(m.posterPath!, 185)}
+                      alt=""
+                      loading="lazy"
+                      class={`aspect-[2/3] w-full rounded-md border object-cover ${m.seen ? "opacity-50" : ""}`}
+                    />
+                    {m.seen && (
+                      <span class="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-cinema text-[11px] text-cinema-foreground shadow">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</Layout>

@@ -595,6 +595,7 @@ export const en = {
     removedFromWatchlist: (title: string) => `Removed ${title} from watchlist`,
   },
   heroes: {
+    seeDemo: "See how it works",
     welcomeBody:
       "Follow your favorite actors and directors, track what you've already watched, and never miss what they release next.",
     searchActorsDirectors: "Search actors & directors",
@@ -825,8 +826,22 @@ export const en = {
     contactBody:
       "Questions about this policy or a data request? Reach out via the contact info on the app's GitHub repository.",
   },
+  demo: {
+    title: "See how Pelicoolas works",
+    metaDescription:
+      "A look at tracking filmographies on Pelicoolas: follow an actor or director, check off what you've watched, and see exactly what's left.",
+    sampleHeading: "This is what your progress looks like",
+    sampleBody:
+      "Example data — follow any actor or director and your own movies get checked off like this.",
+    progress: (watched: number, total: number) =>
+      `${watched} of ${total} movies watched`,
+  },
   signInHero: {
     sections: {
+      demo: {
+        title: "Your movie progress, always visible",
+        body: "Follow the actors and directors you love, check off what you've watched and see how much is left to complete their filmography.",
+      },
       watchlist: {
         title: "Your watchlist",
         body: "Save the movies and shows you want to watch next, see how long they are, and never lose track of a recommendation.",
