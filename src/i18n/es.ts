@@ -6,6 +6,7 @@ export const es: Dictionary = {
   nav: {
     search: "Buscar",
     myFilmographies: "Mis filmografías",
+    filmographiesShort: "Filmografías",
     watched: "Vistas",
     watchlist: "Watchlist",
     connections: "Conexiones",

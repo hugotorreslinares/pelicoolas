@@ -29,6 +29,7 @@ export const en = {
   nav: {
     search: "Search",
     myFilmographies: "My Filmographies",
+    filmographiesShort: "Filmographies",
     watched: "Watched",
     watchlist: "Watchlist",
     connections: "Connections",
