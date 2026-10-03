@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { BookmarkIcon, EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,6 +109,14 @@ function ActionButton({
   onClick,
   children,
 }: ActionButtonProps) {
+  // Bounce the icon only when the toggle flips on while mounted — not for
+  // cards that simply render already-active on page load.
+  const wasActive = useRef(active);
+  const [popping, setPopping] = useState(false);
+  useEffect(() => {
+    if (active && !wasActive.current) setPopping(true);
+    wasActive.current = active;
+  }, [active]);
   return (
     <Tooltip>
       <TooltipTrigger
@@ -134,7 +143,12 @@ function ActionButton({
           />
         }
       >
-        {children}
+        <span
+          className={cn("inline-flex", popping && "pop")}
+          onAnimationEnd={() => setPopping(false)}
+        >
+          {children}
+        </span>
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>

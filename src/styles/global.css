@@ -166,6 +166,53 @@
     @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
   }
 
+  /* Posters rise and fade in one after another (first 12 staggered by 40ms).
+     Opt-in per grid via the `stagger-in` class; skipped entirely for users
+     who prefer reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .stagger-in > * {
+      animation: rise-in 0.4s ease-out both;
+    }
+    .stagger-in > :nth-child(2) {
+      animation-delay: 40ms;
+    }
+    .stagger-in > :nth-child(3) {
+      animation-delay: 80ms;
+    }
+    .stagger-in > :nth-child(4) {
+      animation-delay: 120ms;
+    }
+    .stagger-in > :nth-child(5) {
+      animation-delay: 160ms;
+    }
+    .stagger-in > :nth-child(6) {
+      animation-delay: 200ms;
+    }
+    .stagger-in > :nth-child(7) {
+      animation-delay: 240ms;
+    }
+    .stagger-in > :nth-child(8) {
+      animation-delay: 280ms;
+    }
+    .stagger-in > :nth-child(9) {
+      animation-delay: 320ms;
+    }
+    .stagger-in > :nth-child(10) {
+      animation-delay: 360ms;
+    }
+    .stagger-in > :nth-child(11) {
+      animation-delay: 400ms;
+    }
+    .stagger-in > :nth-child(n + 12) {
+      animation-delay: 440ms;
+    }
+
+    /* One-shot bounce when a toggle (watched/watchlist) turns on. */
+    .pop {
+      animation: pop 0.35s ease-out;
+    }
+  }
+
   /* Thin, theme-matched scrollbar for horizontal poster/avatar strips —
      replaces the default OS scrollbar (thick, flat gray, ignores the
      theme) with a slim rounded thumb using --muted-foreground, faint at
@@ -226,5 +273,28 @@
   }
   .film-perforations-right {
     right: 3px;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
   }
 }

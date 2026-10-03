@@ -446,7 +446,7 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
           {t.watchlist.noMoviesMatch}
         </p>
       ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+        <div className="stagger-in grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           {sorted.map((movie) => (
             <WatchlistGridCard
               key={movie.tmdbId}

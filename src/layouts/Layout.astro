@@ -89,6 +89,42 @@ const sidebarLinkClass = (active: boolean) =>
       : "text-muted-foreground hover:bg-muted hover:text-foreground"
   }`;
 
+// Phone-only bottom tab bar (the md+ sidebar and the sm+ header pill cover
+// larger screens): the five most-used sections one thumb-tap away. Anything
+// else stays in the header's drawer.
+const bottomTabs = [
+  {
+    href: "/filmographies",
+    label: t.nav.myFilmographies,
+    Icon: FilmIcon,
+    active: isFilmographiesActive,
+  },
+  {
+    href: "/search",
+    label: t.nav.search,
+    Icon: SearchIcon,
+    active: isSearchActive,
+  },
+  {
+    href: "/watched",
+    label: t.nav.watched,
+    Icon: EyeIcon,
+    active: isWatchedActive,
+  },
+  {
+    href: "/watchlist",
+    label: t.nav.watchlist,
+    Icon: BookmarkIcon,
+    active: isWatchlistActive,
+  },
+  {
+    href: "/friends",
+    label: t.nav.friends,
+    Icon: UsersIcon,
+    active: isFriendsActive,
+  },
+];
+
 const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
   locale === "es" ? "es-ES" : "en-US",
   { dateStyle: "medium", timeStyle: "short" },
@@ -422,7 +458,7 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
         <UsernamePrompt locale={locale} client:idle />
         <BadgeEarnedPrompt locale={locale} client:idle />
         <Toaster client:idle />
-        <footer class="mt-8 w-full border-t">
+        <footer class="mt-8 w-full border-t pb-16 sm:pb-0">
           <div
             class="mx-auto grid w-full max-w-6xl gap-8 p-4 text-sm sm:px-6 md:grid-cols-[1.5fr_repeat(3,1fr)] lg:px-8"
           >
@@ -528,5 +564,24 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
         </footer>
       </div>
     </div>
+    <nav
+      aria-label="Tabs"
+      class="fixed inset-x-0 bottom-0 z-40 flex border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+    >
+      {
+        bottomTabs.map(({ href, label, Icon, active }) => (
+          <a
+            href={href}
+            aria-current={active ? "page" : undefined}
+            class={`focus-ring flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors ${
+              active ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <Icon className="size-5" />
+            <span class="w-full truncate text-center">{label}</span>
+          </a>
+        ))
+      }
+    </nav>
   </body>
 </html>

@@ -336,7 +336,7 @@ export function Filmography({
             <h2 className="text-sm font-semibold text-muted-foreground">
               {year === "Unknown" ? t.cards.unknownYear : year}
             </h2>
-            <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
+            <div className="stagger-in columns-2 gap-3 sm:columns-3 md:columns-4">
               {yearMovies.map((movie) => (
                 <MovieItem
                   locale={locale}
