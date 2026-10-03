@@ -68,7 +68,7 @@ export function MovieSearch({
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [query, mediaType]);
+  }, [query, mediaType, t]);
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4">

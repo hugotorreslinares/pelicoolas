@@ -107,7 +107,7 @@ export function HeaderSearch({ locale, className }: HeaderSearchProps) {
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, t]);
 
   function close() {
     setOpen(false);

@@ -74,7 +74,7 @@ export function PersonSearch({
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, t]);
 
   function selectPerson(person: PersonSearchResult) {
     addRecentSearch(person);

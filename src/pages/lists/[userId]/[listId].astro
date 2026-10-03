@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 
+import { setCdnCache } from "@/lib/cdnCache";
 import Layout from "@/layouts/Layout.astro";
 import { ListDetailPage } from "@/components/lists/ListDetailPage";
 import { getListSummary } from "@/lib/listSummary";
@@ -15,6 +16,7 @@ const t = getDictionary(locale);
 const es = locale === "es";
 
 const { name, movieCount, titles } = await getListSummary(userId, listId);
+if (name) setCdnCache(Astro.response.headers, 300);
 const title = name ? `${name} — Pelicoolas` : `${t.lists.heading} — Pelicoolas`;
 const description = name
   ? es

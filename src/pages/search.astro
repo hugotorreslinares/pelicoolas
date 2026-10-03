@@ -1,4 +1,5 @@
 ---
+import { setCdnCache } from "@/lib/cdnCache";
 import Layout from "@/layouts/Layout.astro";
 import { SearchTabs } from "@/components/search/SearchTabs";
 import { getTrendingMovies } from "@/lib/tmdb/movies";
@@ -8,6 +9,7 @@ import { getDictionary } from "@/i18n";
 
 const locale = Astro.locals.locale;
 const t = getDictionary(locale);
+setCdnCache(Astro.response.headers, 3600);
 
 // Best-effort, same pattern as the home dashboard: if TMDB is down, the
 // search page still renders fine without the trending fallback content.

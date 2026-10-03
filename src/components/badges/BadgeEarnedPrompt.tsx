@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { BadgeShareDialog } from "@/components/badges/BadgeShareDialog";
 import { useBadgeShare } from "@/lib/hooks/useBadgeShare";
 import { BADGE_EARNED_EVENT } from "@/lib/firebase/badges";
@@ -18,9 +18,14 @@ export function BadgeEarnedPrompt({ locale }: BadgeEarnedPromptProps) {
   const { preview, sharing, open, close, share, download } =
     useBadgeShare(locale);
 
+  // `open` changes identity every render; the listener must stay mounted
+  // once, so it calls through a ref instead of re-subscribing.
+  const openRef = useRef(open);
+  openRef.current = open;
+
   useEffect(() => {
     function onEarned(e: Event) {
-      void open((e as CustomEvent<Badge>).detail);
+      void openRef.current((e as CustomEvent<Badge>).detail);
     }
     window.addEventListener(BADGE_EARNED_EVENT, onEarned);
     return () => window.removeEventListener(BADGE_EARNED_EVENT, onEarned);

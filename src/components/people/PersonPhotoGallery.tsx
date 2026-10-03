@@ -44,7 +44,7 @@ export function PersonPhotoGallery({
       })
       .then((data: { images: readonly string[] }) => setImages(data.images))
       .catch(() => setError(t.personHeader.couldntLoadPhotos));
-  }, [open, personId]);
+  }, [open, personId, t]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

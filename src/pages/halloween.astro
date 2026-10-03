@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 
+import { setCdnCache } from "@/lib/cdnCache";
 import Layout from "@/layouts/Layout.astro";
 import { HalloweenChallenge } from "@/components/challenge/HalloweenChallenge";
 
@@ -8,6 +9,7 @@ import { getDictionary } from "@/i18n";
 
 const locale = Astro.locals.locale;
 const t = getDictionary(locale);
+setCdnCache(Astro.response.headers, 3600);
 ---
 
 <Layout

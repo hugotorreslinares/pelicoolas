@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 
+import { setCdnCache } from "@/lib/cdnCache";
 import Layout from "@/layouts/Layout.astro";
 import { PersonHeader } from "@/components/people/PersonHeader";
 import { Filmography } from "@/components/filmography/Filmography";
@@ -46,13 +47,7 @@ if (!Number.isInteger(personId)) {
 // Public, anonymous-identical content: let Vercel's CDN serve it instead of
 // running the function per visit. Vary keeps the per-locale/per-session-hint
 // markup from leaking across visitors.
-if (profile) {
-  Astro.response.headers.set(
-    "Cache-Control",
-    "public, s-maxage=86400, stale-while-revalidate=604800",
-  );
-  Astro.response.headers.set("Vary", "Accept-Language");
-}
+if (profile) setCdnCache(Astro.response.headers, 86400);
 
 const description = profile
   ? profile.biography

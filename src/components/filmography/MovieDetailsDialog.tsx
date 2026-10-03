@@ -270,7 +270,7 @@ export function MovieDetailsDialog({
       .catch(() =>
         setError(mediaType === "tv" ? t.couldntLoadShow : t.couldntLoadMovie),
       );
-  }, [open, movieId, mediaType]);
+  }, [open, movieId, mediaType, t]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

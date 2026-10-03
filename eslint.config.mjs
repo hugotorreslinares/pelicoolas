@@ -9,7 +9,13 @@ import globals from "globals";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", ".astro/**", ".vercel/**", "node_modules/**"],
+    ignores: [
+      "dist/**",
+      ".astro/**",
+      ".vercel/**",
+      ".claude/**",
+      "node_modules/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
