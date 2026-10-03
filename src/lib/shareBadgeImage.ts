@@ -11,6 +11,7 @@ const BACKGROUND = "#161311";
 const FOREGROUND = "#fdfcf8";
 const MUTED = "#a89e93";
 const ACCENT = "#fda000";
+const WORDMARK_FONT = "Limelight, Georgia, serif";
 
 function wrapText(
   ctx: CanvasRenderingContext2D,
@@ -46,6 +47,11 @@ function drawPerforations(ctx: CanvasRenderingContext2D, x: number) {
 // dependency) — dark background, amber accent, the app's film-reel motif
 // on the edges. Returns a PNG blob ready for navigator.share or download.
 export async function renderBadgeImage(badge: Badge): Promise<Blob> {
+  // Canvas draws with whatever is loaded right now; the web font is lazy, so
+  // ask for it explicitly (falls back to Georgia if it can't load).
+  await document.fonts
+    .load(`38px ${WORDMARK_FONT}`, "PELICOOLAS")
+    .catch(() => []);
   const canvas = document.createElement("canvas");
   canvas.width = SIZE;
   canvas.height = SIZE;
@@ -61,7 +67,7 @@ export async function renderBadgeImage(badge: Badge): Promise<Blob> {
   ctx.textBaseline = "alphabetic";
 
   ctx.fillStyle = ACCENT;
-  ctx.font = "700 32px system-ui, sans-serif";
+  ctx.font = `38px ${WORDMARK_FONT}`;
   ctx.textAlign = "left";
   ctx.fillText("PELICOOLAS", MARGIN, MARGIN + 20);
 
