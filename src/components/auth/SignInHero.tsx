@@ -19,7 +19,7 @@ export function SignInHero({ locale, section }: SignInHeroProps) {
   return (
     <section
       style={{ backgroundImage: "url(/hero-backdrop.webp)" }}
-      className="rounded-2xl bg-cover bg-center"
+      className="rounded-2xl bg-cover bg-center ring-1 ring-foreground/10"
     >
       <div className="flex flex-col items-center space-y-4 px-4 py-12 text-center">
         <img
