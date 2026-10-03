@@ -54,6 +54,7 @@ const description = show
 const ogImage = show?.posterPath
   ? tmdbImageUrl(show.posterPath, 500)
   : undefined;
+const shareImage = show ? `/api/og/title/tv/${show.id}.png` : undefined;
 
 const jsonLd = show
   ? JSON.stringify({
@@ -105,7 +106,8 @@ const subtitle = show
 <Layout
   title={show ? `${show.title} — Pelicoolas` : "Pelicoolas"}
   description={description}
-  image={ogImage}
+  image={shareImage ?? ogImage}
+  imageAlt={show ? `${show.title} — Pelicoolas` : undefined}
   noindex={!show}
 >
   {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}

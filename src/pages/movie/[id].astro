@@ -55,6 +55,9 @@ const description = movie
 const ogImage = movie?.posterPath
   ? tmdbImageUrl(movie.posterPath, 500)
   : undefined;
+// Branded 1200x630 share card (poster + backdrop + title); the plain poster
+// above stays for JSON-LD, where a portrait image is what search wants.
+const shareImage = movie ? `/api/og/title/movie/${movie.id}.png` : undefined;
 
 // Schema.org structured data — lets Google show rich results (rating,
 // cast) directly in search for movie-name queries. `<` escape blocks
@@ -107,7 +110,8 @@ const subtitle = movie
 <Layout
   title={movie ? `${movie.title} — Pelicoolas` : "Pelicoolas"}
   description={description}
-  image={ogImage}
+  image={shareImage ?? ogImage}
+  imageAlt={movie ? `${movie.title} — Pelicoolas` : undefined}
   noindex={!movie}
 >
   {jsonLd && <script type="application/ld+json" set:html={jsonLd} is:inline />}
