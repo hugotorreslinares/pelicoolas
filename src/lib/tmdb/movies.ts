@@ -4,10 +4,12 @@ import {
   tmdbCombinedCreditsResponseSchema,
   tmdbMovieDetailsResponseSchema,
   tmdbTrendingMoviesResponseSchema,
+  tmdbUpcomingResponseSchema,
 } from "@/types/tmdb";
 import type { CreditDepartment } from "@/types/filmography";
 import type {
   FilmographyMovie,
+  CrewMember,
   MovieDetails,
   TrendingMovie,
   WatchProviders,
@@ -38,6 +40,39 @@ export function pickTrailerKey(
     (v) => v.site === "YouTube" && v.type === "Trailer",
   );
   return (trailers.find((v) => v.official) ?? trailers[0])?.key ?? null;
+}
+
+const CREW_JOBS = [
+  "Director",
+  "Screenplay",
+  "Writer",
+  "Original Music Composer",
+];
+
+/** Directors, up to two writers and the composer — the credits people actually look for. */
+export function pickKeyCrew(
+  crew: readonly { id: number; name: string; job: string }[] | undefined,
+): readonly CrewMember[] {
+  const seen = new Set<string>();
+  const out: CrewMember[] = [];
+  let writers = 0;
+  for (const job of CREW_JOBS) {
+    for (const c of crew ?? []) {
+      if (c.job !== job) continue;
+      const isWriter = job === "Screenplay" || job === "Writer";
+      if (isWriter && writers >= 2) continue;
+      const key = `${c.id}-${isWriter ? "writer" : job}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (isWriter) writers++;
+      out.push({
+        personId: c.id,
+        name: c.name,
+        job: isWriter ? "Screenplay" : job,
+      });
+    }
+  }
+  return out;
 }
 
 export function dedupeByMovieId(
@@ -136,6 +171,7 @@ export async function getMovieDetails(
     voteAverage: data.vote_average ?? null,
     genres: data.genres.map((g) => g.name),
     genreIds: data.genres.map((g) => g.id),
+    crew: pickKeyCrew(data.credits?.crew),
     cast: (data.credits?.cast ?? []).slice(0, CAST_LIMIT).map((c) => ({
       personId: c.id,
       name: c.name,
@@ -247,6 +283,52 @@ export async function getSimilarMovies(
     tmdbTrendingMoviesResponseSchema,
   );
   return data.results.slice(0, SIMILAR_LIMIT).map(toTrendingMovie);
+}
+
+const RECOMMENDED_LIMIT = 12;
+
+/** TMDB's "people who liked this also liked" list — falls back to "similar" when it's empty. */
+export async function getRecommendedMovies(
+  movieId: number,
+): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch(
+    `/movie/${movieId}/recommendations`,
+    tmdbTrendingMoviesResponseSchema,
+  );
+  if (data.results.length === 0) return getSimilarMovies(movieId);
+  return data.results.slice(0, RECOMMENDED_LIMIT).map(toTrendingMovie);
+}
+
+export interface UpcomingMovie extends TrendingMovie {
+  /** "YYYY-MM-DD" — always set, discover is filtered to dated releases. */
+  readonly releaseDate: string;
+}
+
+const UPCOMING_PAGES = 3; // 20 per page — the most talked-about ~60, not the whole calendar
+
+/** Theatrical releases from `today` on, most popular first per page, returned in release order. */
+export async function getUpcomingMovies(
+  today: string,
+): Promise<readonly UpcomingMovie[]> {
+  const pages = await Promise.all(
+    Array.from({ length: UPCOMING_PAGES }, (_, i) =>
+      tmdbFetch("/discover/movie", tmdbUpcomingResponseSchema, {
+        "primary_release_date.gte": today,
+        with_release_type: "2|3", // theatrical limited + wide
+        sort_by: "popularity.desc",
+        include_adult: "false",
+        page: String(i + 1),
+      }),
+    ),
+  );
+  const byId = new Map<number, UpcomingMovie>();
+  for (const m of pages.flatMap((p) => p.results)) {
+    if (!m.release_date || byId.has(m.id)) continue;
+    byId.set(m.id, { ...toTrendingMovie(m), releaseDate: m.release_date });
+  }
+  return [...byId.values()].sort((a, b) =>
+    a.releaseDate.localeCompare(b.releaseDate),
+  );
 }
 
 export function sortFilmography(

@@ -1,0 +1,70 @@
+---
+import type { WatchProviders } from "@/types/movie";
+import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
+
+interface Props {
+  providers: WatchProviders | null;
+  locale: Locale;
+}
+
+const { providers, locale } = Astro.props;
+const t = getDictionary(locale).movie;
+
+const rows = providers
+  ? [
+      {
+        label: t.stream,
+        list: [...providers.flatrate, ...providers.free, ...providers.ads],
+      },
+      { label: t.rent, list: providers.rent },
+      { label: t.buy, list: providers.buy },
+    ].filter((r) => r.list.length > 0)
+  : [];
+---
+
+{
+  providers && rows.length > 0 && (
+    <section class="space-y-3">
+      <h2 class="font-display text-xl font-bold">{t.whereToWatch}</h2>
+      <div class="space-y-2">
+        {rows.map((r) => (
+          <div class="flex items-center gap-3">
+            <p class="w-16 shrink-0 text-sm text-muted-foreground">{r.label}</p>
+            <div class="flex flex-wrap gap-2">
+              {r.list.map((p) => (
+                <span
+                  title={p.providerName}
+                  class="size-10 overflow-hidden rounded-lg border"
+                >
+                  {p.logoPath ? (
+                    <img
+                      src={tmdbImageUrl(p.logoPath, 92)}
+                      alt={p.providerName}
+                      loading="lazy"
+                      class="size-full object-cover"
+                    />
+                  ) : (
+                    <span class="flex size-full items-center justify-center bg-muted text-xs">
+                      {p.providerName.slice(0, 2)}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p class="text-xs text-muted-foreground">
+        <a
+          href={providers.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline"
+        >
+          {t.justWatchNote}
+        </a>
+      </p>
+    </section>
+  )
+}

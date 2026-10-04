@@ -5,7 +5,10 @@ import { setCdnCache } from "@/lib/cdnCache";
 import Layout from "@/layouts/Layout.astro";
 import { MovieDetailActions } from "@/components/movies/MovieDetailActions";
 import { TrailerButton } from "@/components/movies/TrailerButton";
-import { getTVDetails } from "@/lib/tmdb/tv";
+import CrewLine from "@/components/titles/CrewLine.astro";
+import WatchProvidersSection from "@/components/titles/WatchProvidersSection.astro";
+import RecommendedRow from "@/components/titles/RecommendedRow.astro";
+import { getRecommendedTV, getTVDetails } from "@/lib/tmdb/tv";
 import { resolveWatchRegion } from "@/lib/region";
 import {
   tmdbImageUrl,
@@ -45,6 +48,8 @@ if (!Number.isInteger(showId)) {
 // running the function per visit. Vary keeps the per-locale/per-session-hint
 // markup from leaking across visitors.
 if (show) setCdnCache(Astro.response.headers, 86400);
+
+const recommended = show ? await getRecommendedTV(show.id).catch(() => []) : [];
 
 const description = show
   ? show.overview
@@ -152,6 +157,8 @@ const subtitle = show
 
           <p class="text-sm">{show.overview || t.movie.noOverview}</p>
 
+          <CrewLine crew={show.crew} locale={locale} />
+
           {show.externalRatings &&
             (show.externalRatings.imdb ||
               show.externalRatings.rottenTomatoes ||
@@ -214,6 +221,17 @@ const subtitle = show
             </div>
           )}
         </div>
+      </div>
+    )
+  }
+  {
+    show && (
+      <div class="mt-8 space-y-8">
+        <WatchProvidersSection
+          providers={show.watchProviders}
+          locale={locale}
+        />
+        <RecommendedRow items={recommended} locale={locale} mediaType="tv" />
       </div>
     )
   }

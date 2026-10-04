@@ -66,6 +66,13 @@ export interface WatchProviders {
   readonly ads: readonly WatchProviderOption[];
 }
 
+export interface CrewMember {
+  readonly personId: number;
+  readonly name: string;
+  /** TMDB job label, e.g. "Director", "Screenplay", "Original Music Composer", "Creator". */
+  readonly job: string;
+}
+
 export interface MovieDetails {
   readonly id: number;
   readonly title: string;
@@ -81,6 +88,8 @@ export interface MovieDetails {
   /** Same genres as `genres`, as TMDB ids — for filtering (see `lib/tmdb/genres.ts`) rather than display. */
   readonly genreIds: readonly number[];
   readonly cast: readonly CastMember[];
+  /** Key crew (director/writers/composer, or a show's creators). */
+  readonly crew: readonly CrewMember[];
   /** null when TMDB has no imdb_id for this movie, or OMDb has nothing/is unreachable — never blocks the rest of the details. */
   readonly externalRatings: ExternalRatings | null;
   readonly watchProviders: WatchProviders | null;
@@ -108,6 +117,8 @@ export interface TVDetails {
   readonly genres: readonly string[];
   readonly genreIds: readonly number[];
   readonly cast: readonly CastMember[];
+  /** Key crew (director/writers/composer, or a show's creators). */
+  readonly crew: readonly CrewMember[];
   readonly externalRatings: ExternalRatings | null;
   readonly watchProviders: WatchProviders | null;
 }

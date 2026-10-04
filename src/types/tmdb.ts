@@ -129,6 +129,9 @@ export const tmdbMovieDetailsResponseSchema = z.object({
           profile_path: z.string().nullable(),
         }),
       ),
+      crew: z
+        .array(z.object({ id: z.number(), name: z.string(), job: z.string() }))
+        .optional(),
     })
     .optional(),
   // Present because getMovieDetails requests append_to_response includes
@@ -191,6 +194,9 @@ export const tmdbTVDetailsResponseSchema = z.object({
   number_of_seasons: z.number().nullable().optional(),
   number_of_episodes: z.number().nullable().optional(),
   vote_average: z.number().optional(),
+  created_by: z
+    .array(z.object({ id: z.number(), name: z.string() }))
+    .optional(),
   genres: z.array(z.object({ id: z.number(), name: z.string() })),
   // Present because getTVDetails requests append_to_response=credits,external_ids.
   credits: z
@@ -221,3 +227,17 @@ export const tmdbTVDetailsResponseSchema = z.object({
   "watch/providers": tmdbWatchProvidersResponseSchema.optional(),
 });
 export type TmdbTVDetailsResponse = z.infer<typeof tmdbTVDetailsResponseSchema>;
+
+// /discover/movie with a required release_date (filtered server-side to dated releases).
+export const tmdbUpcomingResponseSchema = z.object({
+  results: z.array(
+    z.object({
+      id: z.number(),
+      title: z.string(),
+      poster_path: z.string().nullable(),
+      release_date: z.string().optional(),
+      vote_average: z.number().optional(),
+      genre_ids: z.array(z.number()).optional(),
+    }),
+  ),
+});

@@ -35,6 +35,7 @@ export const en = {
     connections: "Connections",
     friends: "Friends",
     movieMap: "Movie Map",
+    upcoming: "Upcoming",
     menu: "Menu",
     lists: "Lists",
     myLists: "My lists",
@@ -650,6 +651,11 @@ export const en = {
       `to track, save, or recommend ${tv ? "shows" : "movies"}`,
     viewInMovieMap: "View in Movie Map",
     viewFullPage: "View full page",
+    directedBy: "Directed by",
+    writtenBy: "Written by",
+    musicBy: "Music by",
+    createdBy: "Created by",
+    youMightLike: "You might also like",
     watchTrailer: "Watch trailer",
     trailerOf: (title: string) => `${title} — trailer`,
     similarMovies: "Similar movies",
@@ -825,6 +831,16 @@ export const en = {
     contactHeading: "Contact",
     contactBody:
       "Questions about this policy or a data request? Reach out via the contact info on the app's GitHub repository.",
+  },
+  upcoming: {
+    heading: "Upcoming movies",
+    metaDescription:
+      "Movies coming soon to theaters, by release date. Add the ones you want to see to your watchlist.",
+    subtitle: "Coming soon to theaters — bookmark what you don't want to miss.",
+    couldntLoad: "We couldn't load upcoming movies. Please try again later.",
+    today: "Today",
+    tomorrow: "Tomorrow",
+    inDays: (n: number) => `In ${n} days`,
   },
   demo: {
     title: "See how Pelicoolas works",

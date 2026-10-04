@@ -1,0 +1,39 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { UpcomingGrid } from "@/components/movies/UpcomingGrid";
+import { getUpcomingMovies } from "@/lib/tmdb/movies";
+import { setCdnCache } from "@/lib/cdnCache";
+import { todayIso } from "@/lib/releaseChallenge";
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale).upcoming;
+
+let movies: Awaited<ReturnType<typeof getUpcomingMovies>> = [];
+let failed = false;
+try {
+  movies = await getUpcomingMovies(todayIso());
+} catch {
+  failed = true;
+}
+if (!failed) setCdnCache(Astro.response.headers, 21600);
+---
+
+<Layout title={`${t.heading} — Pelicoolas`} description={t.metaDescription}>
+  <div class="space-y-6">
+    <div class="space-y-1">
+      <h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+        {t.heading}
+      </h1>
+      <p class="text-muted-foreground">{t.subtitle}</p>
+    </div>
+    {failed && <p class="text-destructive">{t.couldntLoad}</p>}
+    {
+      movies.length > 0 && (
+        <UpcomingGrid movies={movies} locale={locale} client:load />
+      )
+    }
+  </div>
+</Layout>

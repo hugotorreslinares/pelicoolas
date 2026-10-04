@@ -11,7 +11,7 @@ export const prerender = false;
 // of TMDB's most popular people/movies/shows, since /person/{id},
 // /movie/{id} and /tv/{id} are the real public content. Everything else is
 // still reachable via search and internal links.
-const STATIC_PATHS = ["/", "/search", "/demo", "/privacy"];
+const STATIC_PATHS = ["/", "/search", "/upcoming", "/demo", "/privacy"];
 const CACHE_SECONDS = 60 * 60 * 24;
 
 export const GET: APIRoute = async ({ site }) => {

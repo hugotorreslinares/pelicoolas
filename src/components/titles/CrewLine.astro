@@ -1,0 +1,53 @@
+---
+import type { CrewMember } from "@/types/movie";
+import { getDictionary, type Locale } from "@/i18n";
+
+interface Props {
+  crew: readonly CrewMember[];
+  locale: Locale;
+  /** Tailwind class for the label text color (differs on dark vs themed backgrounds). */
+  labelClass?: string;
+}
+
+const { crew, locale, labelClass = "text-muted-foreground" } = Astro.props;
+const t = getDictionary(locale).movie;
+
+const labels: Record<string, string> = {
+  Director: t.directedBy,
+  Screenplay: t.writtenBy,
+  "Original Music Composer": t.musicBy,
+  Creator: t.createdBy,
+};
+const order = ["Creator", "Director", "Screenplay", "Original Music Composer"];
+const groups = order
+  .map((job) => ({
+    job,
+    people: crew.filter((c) => c.job === job),
+  }))
+  .filter((g) => g.people.length > 0);
+---
+
+{
+  groups.length > 0 && (
+    <dl class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+      {groups.map((g) => (
+        <div>
+          <dt class={`inline ${labelClass}`}>{labels[g.job]} </dt>
+          <dd class="inline font-medium">
+            {g.people.map((p, i) => (
+              <>
+                {i > 0 && ", "}
+                <a
+                  href={`/person/${p.personId}`}
+                  class="focus-ring hover:underline"
+                >
+                  {p.name}
+                </a>
+              </>
+            ))}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

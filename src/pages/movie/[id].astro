@@ -6,7 +6,10 @@ import Layout from "@/layouts/Layout.astro";
 import { MovieDetailActions } from "@/components/movies/MovieDetailActions";
 import { TrailerButton } from "@/components/movies/TrailerButton";
 import { MovieMap } from "@/components/connections/MovieMap";
-import { getMovieDetails } from "@/lib/tmdb/movies";
+import CrewLine from "@/components/titles/CrewLine.astro";
+import WatchProvidersSection from "@/components/titles/WatchProvidersSection.astro";
+import RecommendedRow from "@/components/titles/RecommendedRow.astro";
+import { getMovieDetails, getRecommendedMovies } from "@/lib/tmdb/movies";
 import { resolveWatchRegion } from "@/lib/region";
 import {
   tmdbImageUrl,
@@ -41,6 +44,11 @@ if (!Number.isInteger(movieId)) {
     error = t.movie.couldntLoadMovie;
   }
 }
+
+// Best-effort: a TMDB hiccup here shouldn't take the whole page down.
+const recommended = movie
+  ? await getRecommendedMovies(movie.id).catch(() => [])
+  : [];
 
 // Public, anonymous-identical content: let Vercel's CDN serve it instead of
 // running the function per visit. Vary keeps the per-locale/per-session-hint
@@ -166,6 +174,12 @@ const subtitle = movie
 
             <p class="text-sm">{movie.overview || t.movie.noOverview}</p>
 
+            <CrewLine
+              crew={movie.crew}
+              locale={locale}
+              labelClass="text-white/60"
+            />
+
             {movie.externalRatings &&
               (movie.externalRatings.imdb ||
                 movie.externalRatings.rottenTomatoes ||
@@ -229,6 +243,18 @@ const subtitle = movie
           </div>
         )}
       </section>
+    )
+  }
+
+  {
+    movie && (
+      <div class="mt-8 space-y-8">
+        <WatchProvidersSection
+          providers={movie.watchProviders}
+          locale={locale}
+        />
+        <RecommendedRow items={recommended} locale={locale} mediaType="movie" />
+      </div>
     )
   }
 

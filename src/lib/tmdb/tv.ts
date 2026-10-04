@@ -44,6 +44,25 @@ export async function searchTV(
   }));
 }
 
+/** TMDB's recommendations for a show (empty list when it has none). */
+export async function getRecommendedTV(
+  tvId: number,
+): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch(
+    `/tv/${tvId}/recommendations`,
+    tmdbTrendingTVResponseSchema,
+  );
+  return data.results.slice(0, 12).map((show) => ({
+    tmdbMovieId: show.id,
+    title: show.name,
+    posterPath: show.poster_path,
+    releaseYear: toReleaseYear(show.first_air_date),
+    voteAverage: show.vote_average ?? null,
+    genreIds: show.genre_ids ?? [],
+    mediaType: "tv" as const,
+  }));
+}
+
 const POPULAR_TV_PAGES = 5; // mirrors getPopularMovieIds/getPopularPersonIds
 
 export async function getPopularTVIds(): Promise<readonly number[]> {
@@ -82,6 +101,11 @@ export async function getTVDetails(
     voteAverage: data.vote_average ?? null,
     genres: data.genres.map((g) => g.name),
     genreIds: data.genres.map((g) => g.id),
+    crew: (data.created_by ?? []).map((c) => ({
+      personId: c.id,
+      name: c.name,
+      job: "Creator",
+    })),
     cast: (data.credits?.cast ?? []).slice(0, CAST_LIMIT).map((c) => ({
       personId: c.id,
       name: c.name,

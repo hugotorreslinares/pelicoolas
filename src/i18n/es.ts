@@ -12,6 +12,7 @@ export const es: Dictionary = {
     connections: "Conexiones",
     friends: "Amigos",
     movieMap: "Movie Map",
+    upcoming: "Estrenos",
     menu: "Menú",
     lists: "Listas",
     myLists: "Mis listas",
@@ -627,6 +628,11 @@ export const es: Dictionary = {
       `para llevar el registro, guardar o recomendar ${tv ? "series" : "películas"}`,
     viewInMovieMap: "Ver en Movie Map",
     viewFullPage: "Ver página completa",
+    directedBy: "Dirigida por",
+    writtenBy: "Guion de",
+    musicBy: "Música de",
+    createdBy: "Creada por",
+    youMightLike: "También te podría gustar",
     watchTrailer: "Ver tráiler",
     trailerOf: (title) => `${title} — tráiler`,
     similarMovies: "Películas similares",
@@ -806,6 +812,16 @@ export const es: Dictionary = {
     contactHeading: "Contacto",
     contactBody:
       "¿Preguntas sobre esta política o quieres hacer una solicitud sobre tus datos? Escríbenos vía la información de contacto en el repositorio de GitHub de la app.",
+  },
+  upcoming: {
+    heading: "Próximos estrenos",
+    metaDescription:
+      "Películas que llegan pronto a cines, por fecha de estreno. Guarda en tu watchlist las que no te quieras perder.",
+    subtitle: "Llegan pronto a cines — guarda las que no te quieras perder.",
+    couldntLoad: "No pudimos cargar los estrenos. Intenta más tarde.",
+    today: "Hoy",
+    tomorrow: "Mañana",
+    inDays: (n) => `En ${n} días`,
   },
   demo: {
     title: "Mira cómo funciona Pelicoolas",

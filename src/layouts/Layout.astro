@@ -21,6 +21,7 @@ import {
   GhostIcon,
   SearchIcon,
   ListVideoIcon,
+  CalendarClockIcon,
 } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
@@ -67,6 +68,7 @@ const isWatchedActive = pathname === "/watched";
 const isWatchlistActive = pathname === "/watchlist";
 const isConnectionsActive = pathname === "/connections";
 const isMapActive = pathname === "/map";
+const isUpcomingActive = pathname === "/upcoming";
 const isFriendsActive = pathname === "/friends";
 const isHalloweenActive = pathname === "/halloween";
 const isListsActive = pathname === "/lists";
@@ -280,6 +282,14 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
               {t.nav.movieMap}
             </a>
             <a
+              href="/upcoming"
+              class={sidebarLinkClass(isUpcomingActive)}
+              aria-current={isUpcomingActive ? "page" : undefined}
+            >
+              <CalendarClockIcon className="size-4" />
+              {t.nav.upcoming}
+            </a>
+            <a
               href="/friends"
               class={sidebarLinkClass(isFriendsActive)}
               aria-current={isFriendsActive ? "page" : undefined}
@@ -402,6 +412,15 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
                 >
                   <WaypointsIcon className="size-4" />
                   <span class="sr-only">{t.nav.movieMap}</span>
+                </a>
+                <a
+                  href="/upcoming"
+                  class={navLinkClass(isUpcomingActive)}
+                  aria-current={isUpcomingActive ? "page" : undefined}
+                  title={t.nav.upcoming}
+                >
+                  <CalendarClockIcon className="size-4" />
+                  <span class="sr-only">{t.nav.upcoming}</span>
                 </a>
                 <a
                   href="/friends"

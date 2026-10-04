@@ -1,0 +1,51 @@
+---
+import type { TrendingMovie } from "@/types/movie";
+import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+import { getDictionary, type Locale } from "@/i18n";
+
+interface Props {
+  items: readonly TrendingMovie[];
+  locale: Locale;
+  mediaType: "movie" | "tv";
+}
+
+const { items, locale, mediaType } = Astro.props;
+const t = getDictionary(locale).movie;
+---
+
+{
+  items.length > 0 && (
+    <section class="space-y-3">
+      <h2 class="font-display text-xl font-bold">{t.youMightLike}</h2>
+      <div class="scroll-thin flex gap-3 overflow-x-auto pb-2">
+        {items.map((m) => (
+          <a
+            href={`/${mediaType}/${m.tmdbMovieId}`}
+            class="focus-ring group w-28 shrink-0 space-y-1 sm:w-32"
+          >
+            {m.posterPath ? (
+              <img
+                src={tmdbImageUrl(m.posterPath, 185)}
+                srcset={tmdbWidthSrcSet(m.posterPath, [185, 342])}
+                sizes="128px"
+                alt=""
+                loading="lazy"
+                class="aspect-[2/3] w-full rounded-lg border bg-muted object-cover transition-transform group-hover:scale-[1.03]"
+              />
+            ) : (
+              <div class="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted p-2 text-center text-xs text-muted-foreground">
+                {m.title}
+              </div>
+            )}
+            <p class="line-clamp-2 text-xs leading-tight font-medium">
+              {m.title}
+            </p>
+            {m.releaseYear && (
+              <p class="text-[11px] text-muted-foreground">{m.releaseYear}</p>
+            )}
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}
