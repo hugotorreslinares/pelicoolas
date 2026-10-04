@@ -4,6 +4,7 @@ import { getPopularMovieIds } from "@/lib/tmdb/movies";
 import { getPopularTVIds } from "@/lib/tmdb/tv";
 import { TmdbError } from "@/lib/tmdb/client";
 import { buildSitemap } from "@/lib/sitemap";
+import { TMDB_MOVIE_GENRES } from "@/lib/tmdb/genres";
 
 export const prerender = false;
 
@@ -11,7 +12,14 @@ export const prerender = false;
 // of TMDB's most popular people/movies/shows, since /person/{id},
 // /movie/{id} and /tv/{id} are the real public content. Everything else is
 // still reachable via search and internal links.
-const STATIC_PATHS = ["/", "/search", "/upcoming", "/demo", "/privacy"];
+const STATIC_PATHS = [
+  "/",
+  "/search",
+  "/upcoming",
+  "/trending",
+  "/demo",
+  "/privacy",
+];
 const CACHE_SECONDS = 60 * 60 * 24;
 
 export const GET: APIRoute = async ({ site }) => {
@@ -36,6 +44,7 @@ export const GET: APIRoute = async ({ site }) => {
     ...personIds.map((id) => `${origin}/person/${id}`),
     ...movieIds.map((id) => `${origin}/movie/${id}`),
     ...tvIds.map((id) => `${origin}/tv/${id}`),
+    ...Object.keys(TMDB_MOVIE_GENRES).map((id) => `${origin}/genre/${id}`),
   ];
   const ttl = personIds.length > 0 ? CACHE_SECONDS : 300;
   return new Response(buildSitemap(locs), {

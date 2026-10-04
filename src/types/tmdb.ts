@@ -145,11 +145,20 @@ export const tmdbMovieDetailsResponseSchema = z.object({
       results: z.array(
         z.object({
           key: z.string(),
+          name: z.string().optional(),
           site: z.string(),
           type: z.string(),
           official: z.boolean().optional(),
         }),
       ),
+    })
+    .optional(),
+  images: z
+    .object({ backdrops: z.array(z.object({ file_path: z.string() })) })
+    .optional(),
+  keywords: z
+    .object({
+      keywords: z.array(z.object({ id: z.number(), name: z.string() })),
     })
     .optional(),
   "watch/providers": tmdbWatchProvidersResponseSchema.optional(),
@@ -221,12 +230,16 @@ export const tmdbTVDetailsResponseSchema = z.object({
       results: z.array(
         z.object({
           key: z.string(),
+          name: z.string().optional(),
           site: z.string(),
           type: z.string(),
           official: z.boolean().optional(),
         }),
       ),
     })
+    .optional(),
+  images: z
+    .object({ backdrops: z.array(z.object({ file_path: z.string() })) })
     .optional(),
   "watch/providers": tmdbWatchProvidersResponseSchema.optional(),
 });
@@ -253,6 +266,26 @@ export const tmdbCollectionResponseSchema = z.object({
   poster_path: z.string().nullable(),
   backdrop_path: z.string().nullable().optional(),
   parts: z.array(
+    z.object({
+      id: z.number(),
+      title: z.string(),
+      poster_path: z.string().nullable(),
+      release_date: z.string().optional(),
+      vote_average: z.number().optional(),
+      genre_ids: z.array(z.number()).optional(),
+    }),
+  ),
+});
+
+export const tmdbKeywordResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+/** /discover/movie page (title + release_date; shared by genre, keyword and now-playing lists). */
+export const tmdbMovieListResponseSchema = z.object({
+  total_pages: z.number().optional(),
+  results: z.array(
     z.object({
       id: z.number(),
       title: z.string(),

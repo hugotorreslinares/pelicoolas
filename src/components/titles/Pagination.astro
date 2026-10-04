@@ -1,0 +1,47 @@
+---
+import { getDictionary, type Locale } from "@/i18n";
+
+interface Props {
+  basePath: string;
+  page: number;
+  totalPages: number;
+  locale: Locale;
+}
+
+const { basePath, page, totalPages, locale } = Astro.props;
+const t = getDictionary(locale).browse;
+const href = (p: number) => (p <= 1 ? basePath : `${basePath}?page=${p}`);
+---
+
+{
+  totalPages > 1 && (
+    <nav
+      aria-label={t.pagination}
+      class="flex items-center justify-center gap-4 pt-4 text-sm"
+    >
+      {page > 1 ? (
+        <a
+          href={href(page - 1)}
+          rel="prev"
+          class="focus-ring rounded-full border px-4 py-2 hover:bg-muted"
+        >
+          ← {t.previous}
+        </a>
+      ) : (
+        <span />
+      )}
+      <span class="text-muted-foreground">{t.pageOf(page, totalPages)}</span>
+      {page < totalPages ? (
+        <a
+          href={href(page + 1)}
+          rel="next"
+          class="focus-ring rounded-full border px-4 py-2 hover:bg-muted"
+        >
+          {t.next} →
+        </a>
+      ) : (
+        <span />
+      )}
+    </nav>
+  )
+}

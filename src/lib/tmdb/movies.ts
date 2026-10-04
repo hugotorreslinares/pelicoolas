@@ -5,10 +5,13 @@ import {
   tmdbMovieDetailsResponseSchema,
   tmdbTrendingMoviesResponseSchema,
   tmdbUpcomingResponseSchema,
+  tmdbMovieListResponseSchema,
+  tmdbKeywordResponseSchema,
 } from "@/types/tmdb";
 import type { CreditDepartment } from "@/types/filmography";
 import type {
   FilmographyMovie,
+  ClipVideo,
   CrewMember,
   MovieDetails,
   TrendingMovie,
@@ -40,6 +43,31 @@ export function pickTrailerKey(
     (v) => v.site === "YouTube" && v.type === "Trailer",
   );
   return (trailers.find((v) => v.official) ?? trailers[0])?.key ?? null;
+}
+
+const CLIP_TYPES = ["Teaser", "Clip", "Featurette", "Behind the Scenes"];
+
+export function pickStills(
+  backdrops: readonly { readonly file_path: string }[] | undefined,
+): readonly string[] {
+  return (backdrops ?? []).slice(0, 12).map((b) => b.file_path);
+}
+
+/** Extra YouTube videos beyond the trailer: teasers, clips, featurettes, behind-the-scenes. */
+export function pickClips(
+  videos:
+    | readonly {
+        readonly key: string;
+        readonly name?: string;
+        readonly site: string;
+        readonly type: string;
+      }[]
+    | undefined,
+): readonly ClipVideo[] {
+  return (videos ?? [])
+    .filter((v) => v.site === "YouTube" && CLIP_TYPES.includes(v.type))
+    .slice(0, 8)
+    .map((v) => ({ key: v.key, name: v.name ?? v.type, type: v.type }));
 }
 
 const CREW_JOBS = [
@@ -154,7 +182,11 @@ export async function getMovieDetails(
   const data = await tmdbFetch(
     `/movie/${movieId}`,
     tmdbMovieDetailsResponseSchema,
-    { append_to_response: "credits,watch/providers,videos" },
+    {
+      append_to_response: "credits,watch/providers,videos,images,keywords",
+      include_image_language: "en,null",
+      include_video_language: "en,es",
+    },
   );
 
   const externalRatings = await getExternalRatings(data.imdb_id);
@@ -165,6 +197,9 @@ export async function getMovieDetails(
     posterPath: data.poster_path,
     backdropPath: data.backdrop_path ?? null,
     trailerKey: pickTrailerKey(data.videos?.results),
+    stills: pickStills(data.images?.backdrops),
+    clips: pickClips(data.videos?.results),
+    keywords: (data.keywords?.keywords ?? []).slice(0, 8),
     collection: data.belongs_to_collection ?? null,
     releaseYear: toReleaseYear(data.release_date),
     overview: data.overview,
@@ -284,6 +319,76 @@ export async function getSimilarMovies(
     tmdbTrendingMoviesResponseSchema,
   );
   return data.results.slice(0, SIMILAR_LIMIT).map(toTrendingMovie);
+}
+
+export interface MovieListPage {
+  readonly movies: readonly TrendingMovie[];
+  readonly totalPages: number;
+}
+
+// TMDB won't page past 500; our "load more" links stop well before that.
+const MAX_LIST_PAGE = 500;
+
+async function discoverMovies(
+  params: Record<string, string>,
+  page: number,
+): Promise<MovieListPage> {
+  const data = await tmdbFetch("/discover/movie", tmdbMovieListResponseSchema, {
+    include_adult: "false",
+    sort_by: "popularity.desc",
+    "vote_count.gte": "50", // keeps empty/obscure entries off the list
+    ...params,
+    page: String(Math.min(Math.max(1, page), MAX_LIST_PAGE)),
+  });
+  return {
+    movies: data.results.map(toTrendingMovie),
+    totalPages: Math.min(data.total_pages ?? 1, MAX_LIST_PAGE),
+  };
+}
+
+export function getMoviesByGenre(
+  genreId: number,
+  page: number,
+): Promise<MovieListPage> {
+  return discoverMovies({ with_genres: String(genreId) }, page);
+}
+
+export function getMoviesByKeyword(
+  keywordId: number,
+  page: number,
+): Promise<MovieListPage> {
+  return discoverMovies({ with_keywords: String(keywordId) }, page);
+}
+
+export async function getKeywordName(keywordId: number): Promise<string> {
+  const data = await tmdbFetch(
+    `/keyword/${keywordId}`,
+    tmdbKeywordResponseSchema,
+  );
+  return data.name;
+}
+
+/** Movies in theaters right now in `region` (ISO 3166-1), TMDB's own ordering. */
+export async function getNowPlaying(
+  region: string,
+): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch(
+    "/movie/now_playing",
+    tmdbTrendingMoviesResponseSchema,
+    { region },
+  );
+  return data.results.slice(0, 18).map(toTrendingMovie);
+}
+
+/** What's trending today (not the weekly list the home uses). */
+export async function getTrendingMoviesToday(): Promise<
+  readonly TrendingMovie[]
+> {
+  const data = await tmdbFetch(
+    "/trending/movie/day",
+    tmdbTrendingMoviesResponseSchema,
+  );
+  return data.results.slice(0, 18).map(toTrendingMovie);
 }
 
 const RECOMMENDED_LIMIT = 12;

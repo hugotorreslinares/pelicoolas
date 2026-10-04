@@ -7,6 +7,7 @@ import {
   NetworkIcon,
   WaypointsIcon,
   CalendarClockIcon,
+  FlameIcon,
   UsersIcon,
   GhostIcon,
   ListVideoIcon,
@@ -45,6 +46,7 @@ export function MobileNav({ locale }: MobileNavProps) {
     { href: "/connections", label: t.nav.connections, icon: NetworkIcon },
     { href: "/map", label: t.nav.movieMap, icon: WaypointsIcon },
     { href: "/upcoming", label: t.nav.upcoming, icon: CalendarClockIcon },
+    { href: "/trending", label: t.nav.trending, icon: FlameIcon },
     { href: "/friends", label: t.nav.friends, icon: UsersIcon },
   ];
   const lists = [

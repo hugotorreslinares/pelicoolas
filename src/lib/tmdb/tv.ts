@@ -6,7 +6,13 @@ import {
   tmdbTVDetailsResponseSchema,
 } from "@/types/tmdb";
 import type { TrendingMovie, TVDetails } from "@/types/movie";
-import { pickTrailerKey, toReleaseYear, toWatchProviders } from "./movies";
+import {
+  pickClips,
+  pickStills,
+  pickTrailerKey,
+  toReleaseYear,
+  toWatchProviders,
+} from "./movies";
 
 const TRENDING_LIMIT = 10;
 
@@ -34,6 +40,23 @@ export async function searchTV(
     include_adult: "false",
   });
   return data.results.map((show) => ({
+    tmdbMovieId: show.id,
+    title: show.name,
+    posterPath: show.poster_path,
+    releaseYear: toReleaseYear(show.first_air_date),
+    voteAverage: show.vote_average ?? null,
+    genreIds: show.genre_ids ?? [],
+    mediaType: "tv" as const,
+  }));
+}
+
+/** What's trending today (not the weekly list the home uses). */
+export async function getTrendingTVToday(): Promise<readonly TrendingMovie[]> {
+  const data = await tmdbFetch(
+    "/trending/tv/day",
+    tmdbTrendingTVResponseSchema,
+  );
+  return data.results.slice(0, 18).map((show) => ({
     tmdbMovieId: show.id,
     title: show.name,
     posterPath: show.poster_path,
@@ -83,7 +106,9 @@ export async function getTVDetails(
   region: string,
 ): Promise<TVDetails> {
   const data = await tmdbFetch(`/tv/${tvId}`, tmdbTVDetailsResponseSchema, {
-    append_to_response: "credits,external_ids,watch/providers,videos",
+    append_to_response: "credits,external_ids,watch/providers,videos,images",
+    include_image_language: "en,null",
+    include_video_language: "en,es",
   });
 
   const externalRatings = await getExternalRatings(data.external_ids?.imdb_id);
@@ -94,6 +119,8 @@ export async function getTVDetails(
     posterPath: data.poster_path,
     backdropPath: data.backdrop_path ?? null,
     trailerKey: pickTrailerKey(data.videos?.results),
+    stills: pickStills(data.images?.backdrops),
+    clips: pickClips(data.videos?.results),
     releaseYear: toReleaseYear(data.first_air_date),
     overview: data.overview,
     seasonCount: data.number_of_seasons ?? null,

@@ -13,6 +13,7 @@ export const es: Dictionary = {
     friends: "Amigos",
     movieMap: "Movie Map",
     upcoming: "Estrenos",
+    trending: "Tendencias",
     menu: "Menú",
     lists: "Listas",
     myLists: "Mis listas",
@@ -633,6 +634,10 @@ export const es: Dictionary = {
     musicBy: "Música de",
     createdBy: "Creada por",
     youMightLike: "También te podría gustar",
+    gallery: "Galería",
+    videos: "Videos",
+    openStill: (title) => `Ver un fotograma de ${title}`,
+    themes: "Temas",
     watchTrailer: "Ver tráiler",
     trailerOf: (title) => `${title} — tráiler`,
     similarMovies: "Películas similares",
@@ -814,6 +819,28 @@ export const es: Dictionary = {
     contactHeading: "Contacto",
     contactBody:
       "¿Preguntas sobre esta política o quieres hacer una solicitud sobre tus datos? Escríbenos vía la información de contacto en el repositorio de GitHub de la app.",
+  },
+  browse: {
+    genreTitle: (name) => `Películas de ${name}`,
+    genreDescription: (name) =>
+      `Las películas de ${name.toLowerCase()} más populares ahora mismo. Abre una para ver el reparto, dónde verla y guardarla en tu watchlist.`,
+    keywordTitle: (name) => `Películas sobre: ${name}`,
+    keywordDescription: (name) =>
+      `Películas populares con la etiqueta "${name}". Abre una para ver el reparto y dónde verla.`,
+    notFound: "No encontramos esa lista.",
+    pagination: "Paginación",
+    previous: "Anterior",
+    next: "Siguiente",
+    pageOf: (page, total) => `Página ${page} de ${total}`,
+  },
+  trending: {
+    heading: "Tendencias",
+    metaDescription:
+      "Lo que la gente está viendo ahora: películas en cines cerca de ti y lo que es tendencia hoy.",
+    subtitle: "Lo que todos están viendo, actualizado durante el día.",
+    inTheaters: (country) => `En cines en ${country}`,
+    moviesToday: "Películas en tendencia hoy",
+    showsToday: "Series en tendencia hoy",
   },
   collection: {
     label: "Saga",

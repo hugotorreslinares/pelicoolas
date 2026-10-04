@@ -8,6 +8,7 @@ import { TrailerButton } from "@/components/movies/TrailerButton";
 import CrewLine from "@/components/titles/CrewLine.astro";
 import WatchProvidersSection from "@/components/titles/WatchProvidersSection.astro";
 import RecommendedRow from "@/components/titles/RecommendedRow.astro";
+import { MediaGallery } from "@/components/titles/MediaGallery";
 import { getRecommendedTV, getTVDetails } from "@/lib/tmdb/tv";
 import { resolveWatchRegion } from "@/lib/region";
 import {
@@ -230,6 +231,13 @@ const subtitle = show
         <WatchProvidersSection
           providers={show.watchProviders}
           locale={locale}
+        />
+        <MediaGallery
+          locale={locale}
+          stills={show.stills}
+          clips={show.clips}
+          title={show.title}
+          client:visible
         />
         <RecommendedRow items={recommended} locale={locale} mediaType="tv" />
       </div>

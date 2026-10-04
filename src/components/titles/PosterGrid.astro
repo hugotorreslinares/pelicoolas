@@ -1,0 +1,43 @@
+---
+import type { TrendingMovie } from "@/types/movie";
+import { tmdbImageUrl, tmdbWidthSrcSet } from "@/lib/tmdb/image";
+
+interface Props {
+  items: readonly TrendingMovie[];
+  mediaType?: "movie" | "tv";
+}
+
+const { items, mediaType = "movie" } = Astro.props;
+---
+
+<div
+  class="stagger-in grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6"
+>
+  {
+    items.map((m) => (
+      <a
+        href={`/${mediaType}/${m.tmdbMovieId}`}
+        class="focus-ring group space-y-1"
+      >
+        {m.posterPath ? (
+          <img
+            src={tmdbImageUrl(m.posterPath, 342)}
+            srcset={tmdbWidthSrcSet(m.posterPath, [185, 342])}
+            sizes="(min-width: 768px) 16vw, (min-width: 640px) 25vw, 33vw"
+            alt=""
+            loading="lazy"
+            class="card-elevated aspect-[2/3] w-full rounded-lg border bg-muted object-cover"
+          />
+        ) : (
+          <div class="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted p-2 text-center text-xs text-muted-foreground">
+            {m.title}
+          </div>
+        )}
+        <p class="line-clamp-2 text-sm leading-tight font-medium">{m.title}</p>
+        {m.releaseYear && (
+          <p class="text-xs text-muted-foreground">{m.releaseYear}</p>
+        )}
+      </a>
+    ))
+  }
+</div>

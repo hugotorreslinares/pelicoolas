@@ -22,6 +22,7 @@ import {
   SearchIcon,
   ListVideoIcon,
   CalendarClockIcon,
+  FlameIcon,
 } from "lucide-react";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
@@ -69,6 +70,7 @@ const isWatchlistActive = pathname === "/watchlist";
 const isConnectionsActive = pathname === "/connections";
 const isMapActive = pathname === "/map";
 const isUpcomingActive = pathname === "/upcoming";
+const isTrendingActive = pathname === "/trending";
 const isFriendsActive = pathname === "/friends";
 const isHalloweenActive = pathname === "/halloween";
 const isListsActive = pathname === "/lists";
@@ -288,6 +290,14 @@ const deployedAt = new Date(__BUILD_TIME__).toLocaleString(
             >
               <CalendarClockIcon className="size-4" />
               {t.nav.upcoming}
+            </a>
+            <a
+              href="/trending"
+              class={sidebarLinkClass(isTrendingActive)}
+              aria-current={isTrendingActive ? "page" : undefined}
+            >
+              <FlameIcon className="size-4" />
+              {t.nav.trending}
             </a>
             <a
               href="/friends"

@@ -9,6 +9,7 @@ import { MovieMap } from "@/components/connections/MovieMap";
 import CrewLine from "@/components/titles/CrewLine.astro";
 import WatchProvidersSection from "@/components/titles/WatchProvidersSection.astro";
 import RecommendedRow from "@/components/titles/RecommendedRow.astro";
+import { MediaGallery } from "@/components/titles/MediaGallery";
 import { getMovieDetails, getRecommendedMovies } from "@/lib/tmdb/movies";
 import { resolveWatchRegion } from "@/lib/region";
 import {
@@ -262,6 +263,36 @@ const subtitle = movie
           providers={movie.watchProviders}
           locale={locale}
         />
+        <MediaGallery
+          locale={locale}
+          stills={movie.stills}
+          clips={movie.clips}
+          title={movie.title}
+          client:visible
+        />
+        {movie.keywords.length > 0 && (
+          <section class="space-y-3">
+            <h2 class="font-display text-xl font-bold">{t.movie.themes}</h2>
+            <div class="flex flex-wrap gap-2">
+              {movie.genreIds.map((gid, i) => (
+                <a
+                  href={`/genre/${gid}`}
+                  class="focus-ring rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm hover:bg-primary/20"
+                >
+                  {movie.genres[i]}
+                </a>
+              ))}
+              {movie.keywords.map((k) => (
+                <a
+                  href={`/keyword/${k.id}`}
+                  class="focus-ring rounded-full border px-3 py-1 text-sm hover:bg-muted"
+                >
+                  {k.name}
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
         <RecommendedRow items={recommended} locale={locale} mediaType="movie" />
       </div>
     )

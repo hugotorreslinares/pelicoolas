@@ -1,0 +1,68 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import PosterGrid from "@/components/titles/PosterGrid.astro";
+import { getNowPlaying, getTrendingMoviesToday } from "@/lib/tmdb/movies";
+import { getTrendingTVToday } from "@/lib/tmdb/tv";
+import { resolveWatchRegion } from "@/lib/region";
+import { setCdnCache } from "@/lib/cdnCache";
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale).trending;
+
+// Region comes from the browser's Accept-Language (same signal as "where to
+// watch"); the page is CDN-cached with Vary: Accept-Language so each region
+// gets its own copy.
+const region = resolveWatchRegion(Astro.request.headers.get("accept-language"));
+const countryName =
+  new Intl.DisplayNames([locale], { type: "region" }).of(region) ?? region;
+
+const [moviesToday, tvToday, nowPlaying] = await Promise.all([
+  getTrendingMoviesToday().catch(() => []),
+  getTrendingTVToday().catch(() => []),
+  getNowPlaying(region).catch(() => []),
+]);
+if (moviesToday.length > 0) setCdnCache(Astro.response.headers, 3600);
+---
+
+<Layout title={`${t.heading} — Pelicoolas`} description={t.metaDescription}>
+  <div class="space-y-10">
+    <div class="space-y-1">
+      <h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+        {t.heading}
+      </h1>
+      <p class="text-muted-foreground">{t.subtitle}</p>
+    </div>
+
+    {
+      nowPlaying.length > 0 && (
+        <section class="space-y-3">
+          <h2 class="font-display text-xl font-bold">
+            {t.inTheaters(countryName)}
+          </h2>
+          <PosterGrid items={nowPlaying} />
+        </section>
+      )
+    }
+
+    {
+      moviesToday.length > 0 && (
+        <section class="space-y-3">
+          <h2 class="font-display text-xl font-bold">{t.moviesToday}</h2>
+          <PosterGrid items={moviesToday} />
+        </section>
+      )
+    }
+
+    {
+      tvToday.length > 0 && (
+        <section class="space-y-3">
+          <h2 class="font-display text-xl font-bold">{t.showsToday}</h2>
+          <PosterGrid items={tvToday} mediaType="tv" />
+        </section>
+      )
+    }
+  </div>
+</Layout>

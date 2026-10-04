@@ -1,0 +1,55 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import PosterGrid from "@/components/titles/PosterGrid.astro";
+import Pagination from "@/components/titles/Pagination.astro";
+import { getMoviesByGenre, type MovieListPage } from "@/lib/tmdb/movies";
+import { TMDB_MOVIE_GENRES } from "@/lib/tmdb/genres";
+import { setCdnCache } from "@/lib/cdnCache";
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale).browse;
+
+const id = Number(Astro.params.id);
+const name = TMDB_MOVIE_GENRES[id];
+const page = Math.max(1, Number(Astro.url.searchParams.get("page")) || 1);
+
+let list: MovieListPage | null = null;
+if (name) {
+  try {
+    list = await getMoviesByGenre(id, page);
+  } catch {
+    list = null;
+  }
+}
+if (list) setCdnCache(Astro.response.headers, 21600);
+---
+
+<Layout
+  title={name ? `${t.genreTitle(name)} — Pelicoolas` : "Pelicoolas"}
+  description={name ? t.genreDescription(name) : undefined}
+  noindex={!list || page > 1}
+>
+  {!list && <p class="text-destructive">{t.notFound}</p>}
+  {
+    list && name && (
+      <div class="space-y-6">
+        <div class="space-y-1">
+          <h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            {t.genreTitle(name)}
+          </h1>
+          <p class="text-muted-foreground">{t.genreDescription(name)}</p>
+        </div>
+        <PosterGrid items={list.movies} />
+        <Pagination
+          basePath={`/genre/${id}`}
+          page={page}
+          totalPages={list.totalPages}
+          locale={locale}
+        />
+      </div>
+    )
+  }
+</Layout>

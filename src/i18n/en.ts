@@ -36,6 +36,7 @@ export const en = {
     friends: "Friends",
     movieMap: "Movie Map",
     upcoming: "Upcoming",
+    trending: "Trending",
     menu: "Menu",
     lists: "Lists",
     myLists: "My lists",
@@ -656,6 +657,10 @@ export const en = {
     musicBy: "Music by",
     createdBy: "Created by",
     youMightLike: "You might also like",
+    gallery: "Gallery",
+    videos: "Videos",
+    openStill: (title: string) => `View a still from ${title}`,
+    themes: "Themes",
     watchTrailer: "Watch trailer",
     trailerOf: (title: string) => `${title} — trailer`,
     similarMovies: "Similar movies",
@@ -834,6 +839,28 @@ export const en = {
     contactHeading: "Contact",
     contactBody:
       "Questions about this policy or a data request? Reach out via the contact info on the app's GitHub repository.",
+  },
+  browse: {
+    genreTitle: (name: string) => `${name} movies`,
+    genreDescription: (name: string) =>
+      `The most popular ${name.toLowerCase()} movies right now. Open one to see the cast, where to watch it and add it to your watchlist.`,
+    keywordTitle: (name: string) => `Movies about: ${name}`,
+    keywordDescription: (name: string) =>
+      `Popular movies tagged "${name}". Open one to see the cast and where to watch it.`,
+    notFound: "We couldn't find that list.",
+    pagination: "Pagination",
+    previous: "Previous",
+    next: "Next",
+    pageOf: (page: number, total: number) => `Page ${page} of ${total}`,
+  },
+  trending: {
+    heading: "Trending",
+    metaDescription:
+      "What people are watching right now: movies in theaters near you and what's trending today.",
+    subtitle: "What everyone is watching, updated through the day.",
+    inTheaters: (country: string) => `In theaters in ${country}`,
+    moviesToday: "Movies trending today",
+    showsToday: "Shows trending today",
   },
   collection: {
     label: "Collection",

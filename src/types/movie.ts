@@ -66,6 +66,12 @@ export interface WatchProviders {
   readonly ads: readonly WatchProviderOption[];
 }
 
+export interface ClipVideo {
+  readonly key: string;
+  readonly name: string;
+  readonly type: string;
+}
+
 export interface CrewMember {
   readonly personId: number;
   readonly name: string;
@@ -80,6 +86,10 @@ export interface MovieDetails {
   readonly backdropPath: string | null;
   /** YouTube video key of the best official trailer, if TMDB lists one. */
   readonly trailerKey: string | null;
+  /** Up to 12 backdrop stills and 8 extra YouTube clips (teasers, featurettes…). */
+  readonly stills: readonly string[];
+  readonly keywords: readonly { readonly id: number; readonly name: string }[];
+  readonly clips: readonly ClipVideo[];
   /** The saga/collection this movie belongs to, if any. */
   readonly collection: { readonly id: number; readonly name: string } | null;
   readonly releaseYear: number | null;
@@ -111,6 +121,9 @@ export interface TVDetails {
   readonly backdropPath: string | null;
   /** YouTube video key of the best official trailer, if TMDB lists one. */
   readonly trailerKey: string | null;
+  /** Up to 12 backdrop stills and 8 extra YouTube clips (teasers, featurettes…). */
+  readonly stills: readonly string[];
+  readonly clips: readonly ClipVideo[];
   readonly releaseYear: number | null;
   readonly overview: string | null;
   readonly seasonCount: number | null;
