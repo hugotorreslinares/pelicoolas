@@ -48,6 +48,12 @@ export function localizeBadge(badge: Badge, locale: Locale): Badge {
         label: t.fullRetrospective(name),
         description: t.fullRetrospectiveDesc(name),
       };
+    case "collection-complete":
+      return {
+        ...badge,
+        label: t.collectionComplete(badge.collectionName ?? ""),
+        description: t.collectionCompleteDesc(badge.collectionName ?? ""),
+      };
     case "caught-up":
       return {
         ...badge,

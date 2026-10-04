@@ -677,6 +677,8 @@ export const es: Dictionary = {
     halloweenMarathon: "Maratón de Halloween",
     halloweenMarathonDesc:
       "Viste las 31 películas de terror antes del 31 de octubre.",
+    collectionComplete: (name) => `Completaste ${name}`,
+    collectionCompleteDesc: (name) => `Viste todas las películas de ${name}.`,
     caughtUp: (name) => `Al día con ${name}`,
     caughtUpDesc: (name) =>
       `Viste todo lo de ${name} antes de su próximo estreno.`,
@@ -812,6 +814,18 @@ export const es: Dictionary = {
     contactHeading: "Contacto",
     contactBody:
       "¿Preguntas sobre esta política o quieres hacer una solicitud sobre tus datos? Escríbenos vía la información de contacto en el repositorio de GitHub de la app.",
+  },
+  collection: {
+    label: "Saga",
+    movieCount: (n) => `${n} ${n === 1 ? "película" : "películas"}`,
+    metaDescription: (name, n) =>
+      `${name}: las ${n} películas en orden de estreno. Marca cuáles has visto.`,
+    notFound: "No encontramos esa saga.",
+    comingSoon: "Próximamente",
+    unknownYear: "Por confirmar",
+    progress: (watched, total) => `${watched} de ${total} películas vistas`,
+    complete: "¡Completaste toda la saga!",
+    partOf: (name) => `Parte de ${name}`,
   },
   upcoming: {
     heading: "Próximos estrenos",

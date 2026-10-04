@@ -109,6 +109,10 @@ export const tmdbMovieDetailsResponseSchema = z.object({
   title: z.string(),
   poster_path: z.string().nullable(),
   backdrop_path: z.string().nullable().optional(),
+  belongs_to_collection: z
+    .object({ id: z.number(), name: z.string() })
+    .nullable()
+    .optional(),
   release_date: z.string().optional(),
   overview: z.string().nullable(),
   runtime: z.number().nullable(),
@@ -231,6 +235,24 @@ export type TmdbTVDetailsResponse = z.infer<typeof tmdbTVDetailsResponseSchema>;
 // /discover/movie with a required release_date (filtered server-side to dated releases).
 export const tmdbUpcomingResponseSchema = z.object({
   results: z.array(
+    z.object({
+      id: z.number(),
+      title: z.string(),
+      poster_path: z.string().nullable(),
+      release_date: z.string().optional(),
+      vote_average: z.number().optional(),
+      genre_ids: z.array(z.number()).optional(),
+    }),
+  ),
+});
+
+export const tmdbCollectionResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  overview: z.string().nullable().optional(),
+  poster_path: z.string().nullable(),
+  backdrop_path: z.string().nullable().optional(),
+  parts: z.array(
     z.object({
       id: z.number(),
       title: z.string(),

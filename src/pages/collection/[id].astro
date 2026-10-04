@@ -1,0 +1,78 @@
+---
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { CollectionGrid } from "@/components/movies/CollectionGrid";
+import { getCollection, type Collection } from "@/lib/tmdb/collections";
+import { setCdnCache } from "@/lib/cdnCache";
+import { tmdbImageUrl } from "@/lib/tmdb/image";
+import { getDictionary } from "@/i18n";
+
+const locale = Astro.locals.locale;
+const t = getDictionary(locale).collection;
+
+const id = Number(Astro.params.id);
+let collection: Collection | null = null;
+if (Number.isInteger(id)) {
+  try {
+    collection = await getCollection(id);
+  } catch {
+    collection = null;
+  }
+}
+if (collection) setCdnCache(Astro.response.headers, 86400);
+
+const description = collection
+  ? (collection.overview ??
+    t.metaDescription(collection.name, collection.parts.length))
+  : undefined;
+const image = collection?.backdropPath
+  ? tmdbImageUrl(collection.backdropPath, 780)
+  : collection?.posterPath
+    ? tmdbImageUrl(collection.posterPath, 500)
+    : undefined;
+---
+
+<Layout
+  title={collection ? `${collection.name} — Pelicoolas` : "Pelicoolas"}
+  description={description}
+  image={image}
+  noindex={!collection}
+>
+  {!collection && <p class="text-destructive">{t.notFound}</p>}
+  {
+    collection && (
+      <div class="space-y-6">
+        <section class="relative overflow-hidden rounded-2xl bg-neutral-900 text-white">
+          {collection.backdropPath && (
+            <img
+              src={tmdbImageUrl(collection.backdropPath, 1280)}
+              alt=""
+              class="absolute inset-0 size-full object-cover"
+            />
+          )}
+          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/65 to-black/40" />
+          <div class="relative space-y-2 p-6 sm:p-10">
+            <p class="text-sm tracking-wide text-white/70 uppercase">
+              {t.label}
+            </p>
+            <h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              {collection.name}
+            </h1>
+            <p class="text-white/70">{t.movieCount(collection.parts.length)}</p>
+            {collection.overview && (
+              <p class="max-w-2xl text-sm">{collection.overview}</p>
+            )}
+          </div>
+        </section>
+        <CollectionGrid
+          locale={locale}
+          collectionId={collection.id}
+          collectionName={collection.name}
+          parts={collection.parts}
+          client:load
+        />
+      </div>
+    )
+  }
+</Layout>

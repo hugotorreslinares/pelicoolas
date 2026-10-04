@@ -80,6 +80,8 @@ export interface MovieDetails {
   readonly backdropPath: string | null;
   /** YouTube video key of the best official trailer, if TMDB lists one. */
   readonly trailerKey: string | null;
+  /** The saga/collection this movie belongs to, if any. */
+  readonly collection: { readonly id: number; readonly name: string } | null;
   readonly releaseYear: number | null;
   readonly overview: string | null;
   readonly runtimeMinutes: number | null;

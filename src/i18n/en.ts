@@ -699,6 +699,9 @@ export const en = {
       `Watched ${name}'s movies across many different decades.`,
     halloweenMarathon: "Halloween Marathon",
     halloweenMarathonDesc: "Watched all 31 horror movies before October 31.",
+    collectionComplete: (name: string) => `Completed ${name}`,
+    collectionCompleteDesc: (name: string) =>
+      `Watched every movie in the ${name}.`,
     caughtUp: (name: string) => `Caught up with ${name}`,
     caughtUpDesc: (name: string) =>
       `Watched everything by ${name} before their next release.`,
@@ -831,6 +834,19 @@ export const en = {
     contactHeading: "Contact",
     contactBody:
       "Questions about this policy or a data request? Reach out via the contact info on the app's GitHub repository.",
+  },
+  collection: {
+    label: "Collection",
+    movieCount: (n: number) => `${n} ${n === 1 ? "movie" : "movies"}`,
+    metaDescription: (name: string, n: number) =>
+      `${name}: all ${n} movies in release order. Track which ones you've watched.`,
+    notFound: "We couldn't find that collection.",
+    comingSoon: "Coming soon",
+    unknownYear: "TBA",
+    progress: (watched: number, total: number) =>
+      `${watched} of ${total} movies watched`,
+    complete: "You've completed the whole collection!",
+    partOf: (name: string) => `Part of the ${name}`,
   },
   upcoming: {
     heading: "Upcoming movies",

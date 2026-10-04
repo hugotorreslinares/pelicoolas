@@ -6,7 +6,8 @@
     "actorDirectorMilestones": true,
     "decadeSpan": true,
     "referral": true,
-    "caughtUp": true
+    "caughtUp": true,
+    "collectionComplete": true
   },
   "nudges": {
     "cardAlmostThere": true,

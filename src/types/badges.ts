@@ -7,7 +7,8 @@ export type BadgeType =
   | "decade-span"
   | "challenge"
   | "referral"
-  | "caught-up";
+  | "caught-up"
+  | "collection-complete";
 
 export interface Badge {
   readonly id: string;
@@ -17,4 +18,5 @@ export interface Badge {
   readonly earnedAt: string;
   readonly personId?: number;
   readonly personName?: string;
+  readonly collectionName?: string;
 }
