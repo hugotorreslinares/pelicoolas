@@ -42,7 +42,13 @@ export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
 // convention used across the data model.
 function createFirestore(app: FirebaseApp): Firestore {
   try {
-    return initializeFirestore(app, { ignoreUndefinedProperties: true });
+    return initializeFirestore(app, {
+      ignoreUndefinedProperties: true,
+      // Safari/iOS (and some mobile networks or proxies) silently stall
+      // Firestore's streaming channel — snapshots never arrive and the page
+      // sits on its loading skeleton. Auto-detect falls back to long polling.
+      experimentalAutoDetectLongPolling: true,
+    });
   } catch {
     // Already initialized for this app (HMR / second module instance) —
     // initializeFirestore can only run once, so reuse that instance.

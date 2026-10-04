@@ -160,6 +160,9 @@ export const es: Dictionary = {
     metaDescription:
       "Películas que guardaste de las filmografías que sigues, listas para ver después.",
     myWatchlist: "Mi Watchlist",
+    couldntLoad:
+      "No pudimos cargar tu watchlist. Revisa tu conexión e intenta de nuevo.",
+    retry: "Reintentar",
     signInPrompt: "Inicia sesión para guardar películas en tu radar.",
     emptyHeading: "Tu watchlist está vacía.",
     emptyBody:

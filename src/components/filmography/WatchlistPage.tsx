@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/astro";
 import { useEffect, useRef, useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SignInHero } from "@/components/auth/SignInHero";
@@ -109,13 +110,22 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [openMovie, setOpenMovie] = useState<WatchlistMovie | null>(null);
 
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+
   useEffect(() => {
     if (!user) {
       setMovies(null);
       return;
     }
-    return subscribeToWatchlist(user.uid, setMovies);
-  }, [user]);
+    setLoadError(false);
+    // A failed listener never calls back with data — without this the page
+    // stayed on its loading skeleton forever.
+    return subscribeToWatchlist(user.uid, setMovies, (error) => {
+      Sentry.captureException(error, { tags: { action: "watchlist-listen" } });
+      setLoadError(true);
+    });
+  }, [user, loadAttempt]);
 
   useEffect(() => {
     if (!user) {
@@ -205,6 +215,18 @@ export function WatchlistPage({ locale }: WatchlistPageProps) {
         <h1 className="sr-only">{t.watchlist.heading}</h1>
         <Skeleton className="mx-auto h-7 w-32" />
         <Skeleton className="mx-auto h-5 w-56" />
+      </div>
+    );
+  }
+
+  if (user && movies === null && loadError) {
+    return (
+      <div className="space-y-3 text-center">
+        <h1 className="sr-only">{t.watchlist.heading}</h1>
+        <p className="text-muted-foreground">{t.watchlist.couldntLoad}</p>
+        <Button onClick={() => setLoadAttempt((n) => n + 1)}>
+          {t.watchlist.retry}
+        </Button>
       </div>
     );
   }

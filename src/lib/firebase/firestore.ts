@@ -378,12 +378,14 @@ export async function exportUserData(
 export function subscribeToWatchlist(
   userId: string,
   callback: (movies: readonly WatchlistMovie[]) => void,
+  onError?: (error: Error) => void,
 ): () => void {
   return onSnapshot(
     collection(requireDb(), "users", userId, "watchlist"),
     (snapshot) => {
       callback(snapshot.docs.map((d) => d.data() as WatchlistMovie));
     },
+    onError,
   );
 }
 

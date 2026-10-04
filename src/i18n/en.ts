@@ -184,6 +184,9 @@ export const en = {
     metaDescription:
       "Movies you've bookmarked from the filmographies you follow, ready to watch next.",
     myWatchlist: "My Watchlist",
+    couldntLoad:
+      "We couldn't load your watchlist. Check your connection and try again.",
+    retry: "Retry",
     signInPrompt: "Sign in to keep movies on your radar.",
     emptyHeading: "Your watchlist is empty.",
     emptyBody:
