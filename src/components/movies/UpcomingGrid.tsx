@@ -80,7 +80,7 @@ export function UpcomingGrid({ locale, movies }: UpcomingGridProps) {
     <div className="space-y-8">
       {[...groups.entries()].map(([key, items]) => (
         <section key={key} className="space-y-3">
-          <h2 className="font-display text-xl font-bold capitalize">
+          <h2 className="font-display text-xl font-bold first-letter:uppercase">
             {new Date(`${key}-15T12:00:00`).toLocaleDateString(
               locale === "es" ? "es-ES" : "en-US",
               { month: "long", year: "numeric" },
