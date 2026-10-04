@@ -54,7 +54,7 @@ export function MediaGallery({
                   src={tmdbImageUrl(path, 300)}
                   alt=""
                   loading="lazy"
-                  className="h-28 w-auto bg-muted object-cover transition-transform hover:scale-[1.03] sm:h-32"
+                  className="aspect-video h-28 w-auto bg-muted object-cover transition-transform hover:scale-[1.03] sm:h-32"
                 />
               </button>
             ))}
