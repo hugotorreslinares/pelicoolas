@@ -37,6 +37,11 @@ export const GET: APIRoute = async ({ request }) => {
   let notified = 0;
   let checked = 0;
 
+  const filmographyCache = new Map<
+    number,
+    Awaited<ReturnType<typeof getFilmography>> | null
+  >();
+
   const usersSnap = await db.collection("users").get();
 
   for (const userDoc of usersSnap.docs) {
@@ -52,16 +57,24 @@ export const GET: APIRoute = async ({ request }) => {
         person.knownForDepartment === "Directing" ? "Directing" : "Acting";
 
       checked++;
-      let movies;
-      try {
-        movies = await getFilmography(personId, department);
-      } catch (e) {
-        if (e instanceof TmdbError) {
-          logApiError("cron-check-releases", e);
-          continue;
+      // One TMDB fetch per distinct person per run, shared by every user who
+      // follows them (a failed lookup is remembered too, so it isn't retried
+      // once per follower).
+      let movies = filmographyCache.get(personId);
+      if (movies === undefined) {
+        try {
+          movies = await getFilmography(personId, department);
+        } catch (e) {
+          if (e instanceof TmdbError) {
+            logApiError("cron-check-releases", e);
+            movies = null;
+          } else {
+            throw e;
+          }
         }
-        throw e;
+        filmographyCache.set(personId, movies);
       }
+      if (movies === null) continue;
 
       const recent = movies.filter((m) =>
         isRecentRelease(m.releaseDate, todayIso),
