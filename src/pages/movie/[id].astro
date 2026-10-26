@@ -54,7 +54,7 @@ const recommended = movie
 // Public, anonymous-identical content: let Vercel's CDN serve it instead of
 // running the function per visit. Vary keeps the per-locale/per-session-hint
 // markup from leaking across visitors.
-if (movie) setCdnCache(Astro.response.headers, 86400);
+if (movie) setCdnCache(Astro.response.headers, 604800);
 
 const description = movie
   ? movie.overview

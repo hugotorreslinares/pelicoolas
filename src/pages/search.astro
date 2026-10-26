@@ -9,7 +9,7 @@ import { getDictionary } from "@/i18n";
 
 const locale = Astro.locals.locale;
 const t = getDictionary(locale);
-setCdnCache(Astro.response.headers, 3600);
+setCdnCache(Astro.response.headers, 86400);
 
 // Best-effort, same pattern as the home dashboard: if TMDB is down, the
 // search page still renders fine without the trending fallback content.

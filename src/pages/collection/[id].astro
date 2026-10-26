@@ -20,7 +20,7 @@ if (Number.isInteger(id)) {
     collection = null;
   }
 }
-if (collection) setCdnCache(Astro.response.headers, 86400);
+if (collection) setCdnCache(Astro.response.headers, 604800);
 
 const description = collection
   ? (collection.overview ??

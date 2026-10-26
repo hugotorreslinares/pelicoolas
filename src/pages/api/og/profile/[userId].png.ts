@@ -7,7 +7,7 @@ export const prerender = false;
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const CACHE_SECONDS = 60 * 60; // 1h — profile stats/photo change rarely enough that a stale hour is fine
+const CACHE_SECONDS = 60 * 60 * 24; // 1d — rendering a satori card is the expensive part
 
 let interRegular: ArrayBuffer | null = null;
 let interBold: ArrayBuffer | null = null;

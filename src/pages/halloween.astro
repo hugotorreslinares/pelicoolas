@@ -9,7 +9,7 @@ import { getDictionary } from "@/i18n";
 
 const locale = Astro.locals.locale;
 const t = getDictionary(locale);
-setCdnCache(Astro.response.headers, 3600);
+setCdnCache(Astro.response.headers, 86400);
 ---
 
 <Layout

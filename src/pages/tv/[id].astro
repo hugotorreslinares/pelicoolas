@@ -48,7 +48,7 @@ if (!Number.isInteger(showId)) {
 // Public, anonymous-identical content: let Vercel's CDN serve it instead of
 // running the function per visit. Vary keeps the per-locale/per-session-hint
 // markup from leaking across visitors.
-if (show) setCdnCache(Astro.response.headers, 86400);
+if (show) setCdnCache(Astro.response.headers, 604800);
 
 const recommended = show ? await getRecommendedTV(show.id).catch(() => []) : [];
 

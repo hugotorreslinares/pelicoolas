@@ -9,7 +9,7 @@ export const prerender = false;
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const CACHE_SECONDS = 60 * 60 * 24;
+const CACHE_SECONDS = 60 * 60 * 24 * 7; // TMDB data barely moves — a week at the CDN
 const REGION = "US"; // only needed to satisfy the details call; no providers drawn
 
 // Plain satori-element tree, not JSX — API routes are .ts files.

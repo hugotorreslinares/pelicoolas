@@ -16,7 +16,7 @@ const t = getDictionary(locale);
 const es = locale === "es";
 
 const { name, movieCount, titles } = await getListSummary(userId, listId);
-if (name) setCdnCache(Astro.response.headers, 300);
+if (name) setCdnCache(Astro.response.headers, 3600);
 const title = name ? `${name} — Pelicoolas` : `${t.lists.heading} — Pelicoolas`;
 const description = name
   ? es

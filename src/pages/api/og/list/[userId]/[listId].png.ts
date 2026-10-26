@@ -7,7 +7,7 @@ export const prerender = false;
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const CACHE_SECONDS = 60 * 60; // 1h — same staleness budget as the profile OG image
+const CACHE_SECONDS = 60 * 60 * 24; // 1d — rendering a satori card is the expensive part
 
 let interRegular: ArrayBuffer | null = null;
 let interBold: ArrayBuffer | null = null;

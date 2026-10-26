@@ -18,7 +18,7 @@ try {
 } catch {
   failed = true;
 }
-if (!failed) setCdnCache(Astro.response.headers, 21600);
+if (!failed) setCdnCache(Astro.response.headers, 86400);
 ---
 
 <Layout title={`${t.heading} — Pelicoolas`} description={t.metaDescription}>
